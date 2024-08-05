@@ -9,57 +9,8 @@ REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~UI.MENU~ @1 /*~UI.MENU not found in game.
 REQUIRE_PREDICATE (GAME_IS ~bg2ee eet~) @3 /*~Game not supported.~*/
 
 	INCLUDE ~%MOD_FOLDER%/bubb_lib.tph~
-
-	ACTION_IF ~%WEIDU_OS%~ STRING_EQUAL_CASE ~WIN32~ BEGIN
 	
-		ACTION_DEFINE_ASSOCIATIVE_ARRAY accepted_responses BEGIN ~1~ => 1 ~2~ => 1 END
-		LAF PROMPT_USER
-		STR_VAR
-			to_prompt = EVAL ~This installer can attempt to patch UI.MENU instead of overriding it on Windows platforms; which installation method do you wish to perform?%WNL% 1] Patch%WNL% 2] Override~
-			accepted_responses = ~accepted_responses~
-		RET
-			response
-		END
-	
-	END ELSE BEGIN
-	
-		ACTION_DEFINE_ASSOCIATIVE_ARRAY accepted_responses BEGIN ~2~ => 1 END
-		LAF PROMPT_USER
-		STR_VAR
-			to_prompt = EVAL ~This installer can attempt to patch UI.MENU instead of overriding it on Windows platforms; which installation method do you wish to perform?%WNL% 1] Patch%WNL% 2] Override~
-			accepted_responses = ~accepted_responses~
-		RET
-			response
-		END
-	
-	END
-	
-	ACTION_IF %response% == 1 BEGIN
-	
-		//Patch UI.MENU
-		
-		AT_NOW ~%MOD_FOLDER%\work\UIUtil.exe cleanup~
-		
-		COPY ~%MOD_FOLDER%\work\uipatches\0base.uipatch~ ~%MOD_FOLDER%\work~
-		
-		COPY_EXISTING ~UI.MENU~ ~%MOD_FOLDER%\work\to_patch.MENU~ IF_EXISTS
-		AT_NOW ~%MOD_FOLDER%\work\UIUtil.exe applypatches to_patch.MENU out.MENU~
-		
-		ACTION_IF FILE_EXISTS ~%MOD_FOLDER%\work\failed.mrk~ BEGIN
-			FAIL @6 /*~Could not patch UI.MENU.~*/
-		END
-		
-		COPY ~%MOD_FOLDER%\work\out.MENU~ ~override\UI.MENU~
-		
-		//AT_NOW ~%MOD_FOLDER%\work\UIUtil.exe cleanup~
-		
-		//Patch UI.MENU
-	
-	END ELSE BEGIN
-	
-		COPY ~%MOD_FOLDER%\copy\UI.MENU~ ~override\UI.MENU~
-	
-	END
+	COPY ~%MOD_FOLDER%\copy\UI.MENU~ ~override\UI.MENU~
 	
 	PRINT @0 /*~Processing items. Please wait...~*/
 	
