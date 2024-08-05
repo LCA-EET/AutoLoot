@@ -1,6 +1,5 @@
 BACKUP ~AutoLoot/backup~
 AUTHOR ~Bubb (Original version), Daniel Valle lcamod@danielvalle.net (EET version)~
-VERSION 1.0
 AUTO_TRA ~%MOD_FOLDER%/tra/%s~
 LANGUAGE ~English~ ~english~ ~%MOD_FOLDER%/tra/english/xaal.tra~
 
