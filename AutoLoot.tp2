@@ -9,7 +9,11 @@ REQUIRE_PREDICATE (GAME_IS ~bg2ee eet~) @3 /*~Game not supported.~*/
 
 	INCLUDE ~%MOD_FOLDER%/bubb_lib.tph~
 	
-	COPY ~%MOD_FOLDER%\copy\UI.MENU~ ~override\UI.MENU~
+	ACTION_IF (GAME_IS ~eet~) THEN BEGIN
+		COPY ~%MOD_FOLDER%\copy\eet\UI.MENU~ ~override\UI.MENU~ 
+	END ELSE BEGIN
+		COPY ~%MOD_FOLDER%\copy\bg2ee\UI.MENU~ ~override\UI.MENU~
+	END
 	
 	PRINT @0 /*~Processing items. Please wait...~*/
 	
