@@ -1,0 +1,1333 @@
+:lua
+1
+IGNORED
+ADD
+17
++@0 
++@0 -- BUBB EDIT DEBUG DUMP START
++@0 -- BUBB EDIT DEBUG DUMP END
++@0 
++@0 -- BUBB EDIT LOOT START
++@0 bubbAutolootOptionsOnToggle =               Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsOnToggle',               0)
++@0 bubbAutolootOptionsCriticalItemsToggle =    Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsCriticalItemsToggle',    0)
++@0 bubbAutolootOptionsEnchantedWeaponsToggle = Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsEnchantedWeaponsToggle', 0)
++@0 bubbAutolootOptionsEnchantedWeaponsField =  Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsEnchantedWeaponsField',  '1')
++@0 bubbAutolootOptionsGoldToggle =             Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsGoldToggle',             0)
++@0 bubbAutolootOptionsPriceToggle =            Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPriceToggle',            0)
++@0 bubbAutolootOptionsPriceField =             Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPriceField',             '1')
++@0 bubbAutolootOptionsPricePerWeightToggle =   Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPricePerWeightToggle',   0)
++@0 bubbAutolootOptionsPricePerWeightField =    Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPricePerWeightField',    '1')
++@0 
++@0 bubbAutolootOptionsPausedOnOpen = false
++@0 -- BUBB EDIT LOOT END
+:functions
+10
+alphanumericSortEntries
+ADD
+22
++@0 function alphanumericSortEntries(o)
++@0    local function conv(s)
++@0       local res, dot = "", ""
++@0       for n, m, c in tostring(s):gmatch"(0*(%d*))(.?)" do
++@0          if n == "" then
++@0             dot, c = "", dot..c
++@0          else
++@0             res = res..(dot == "" and ("%03d%s"):format(#m, m)
++@0                                   or "."..n)
++@0             dot, c = c:match"(%.?)(.*)"
++@0          end
++@0          res = res..c:gsub(".", "\0%0")
++@0       end
++@0       return res
++@0    end
++@0    table.sort(o,
++@0       function (a, b)
++@0          local ca, cb = conv(a.string), conv(b.string)
++@0          return ca < cb or ca == cb and a.string < b.string
++@0       end)
++@0    return o
++@0 end
+decideWhetherToPickUp
+ADD
+45
++@0 function decideWhetherToPickUp(itemRes, itemInfo)
++@0 
++@0 	-- Critical Items
++@0 	if bubbAutolootOptionsCriticalItemsToggle == 1 then
++@0 		if itemInfo.critical == 1 then
++@0 			return true
++@0 		end
++@0 	end
++@0 
++@0 	-- Enchanted Weapons
++@0 	if bubbAutolootOptionsEnchantedWeaponsToggle == 1 then
++@0 		if bubbAutolootOptionsEnchantedWeaponsField ~= "" then
++@0 			if itemInfo.enchantment >= tonumber(bubbAutolootOptionsEnchantedWeaponsField) then
++@0 				return true
++@0 			end
++@0 		end
++@0 	end
++@0 
++@0 	-- Gold
++@0 	if bubbAutolootOptionsGoldToggle == 1 then
++@0 		if itemRes == "MISC07" then
++@0 			return true
++@0 		end
++@0 	end
++@0 
++@0 	-- Price
++@0 	if bubbAutolootOptionsPriceToggle == 1 then
++@0 		if bubbAutolootOptionsPriceField ~= "" then
++@0 			if itemInfo.price >= tonumber(bubbAutolootOptionsPriceField) then
++@0 				return true
++@0 			end
++@0 		end
++@0 	end
++@0 
++@0 	-- Price per Weight
++@0 	if bubbAutolootOptionsPricePerWeightToggle == 1 then
++@0 		if bubbAutolootOptionsPricePerWeightField ~= "" then
++@0 			if getPricePerWeight(itemInfo.price, itemInfo.weight) >= tonumber(bubbAutolootOptionsPricePerWeightField) then
++@0 				return true
++@0 			end
++@0 		end
++@0 	end
++@0 
++@0 	return false
++@0 end
+doesCharacterHaveSpace
+ADD
+15
++@0 function doesCharacterHaveSpace()
++@0 	characters = {}
++@0 	Infinity_UpdateLuaStats()
++@0 	for key, character in pairs(characters) do
++@0 		local equipment = character.equipment
++@0 		for i = 0, 15, 1 do
++@0 			local groupKey = "group"..i
++@0 			local isEmpty = equipment[groupKey].empty
++@0 			if isEmpty == 1 then
++@0 				return true
++@0 			end
++@0 		end
++@0 	end
++@0 	return false
++@0 end
+dump
+ADD
+34
++@0 function dump(key, valueToDump)
++@0 
++@0 	valueToDumpType = type(valueToDump)
++@0 
++@0 	if valueToDumpType == 'string' or valueToDumpType == 'number' or valueToDumpType == 'boolean' then
++@0 
++@0 		print(valueToDumpType..' '..key..' = '..valueToDump)
++@0 
++@0 	elseif valueToDumpType == 'table' then
++@0 
++@0 		print(valueToDumpType..' '..key..':')
++@0 		print('{')
++@0 		entries = fillDumpLevel(key, valueToDump, {})
++@0 		printEntries(entries, 1, {[0] = '', [1] = '\t'})
++@0 
++@0 	elseif valueToDumpType == 'userdata' then
++@0 
++@0 		metatable = getmetatable(valueToDump)
++@0 
++@0 		if metatable ~= nil then
++@0 
++@0 			print(valueToDumpType..' '..key..':')
++@0 			print('{')
++@0 			entries = fillDumpLevel(key, metatable, {})
++@0 			printEntries(entries, 1, {[0] = '', [1] = '\t'})
++@0 		else
++@0 
++@0 			print(valueToDumpType..' '..key..' = nil')
++@0 		end
++@0 	else
++@0 
++@0 		print(valueToDumpType..' '..key)
++@0 	end
++@0 end
+fillDumpLevel
+ADD
+92
++@0 function fillDumpLevel(tableName, levelTable, levelToFill, levelTableKey)
++@0 
++@0 	local tableKey, tableValue = next(levelTable, levelTableKey)
++@0 	while tableValue ~= nil do
++@0 
++@0 		local tableValueType = type(tableValue)
++@0 
++@0 		if tableValueType == 'string' or tableValueType == 'number' or tableValueType == 'boolean' then
++@0 
++@0 			local entry = {}
++@0 			entry.string = tableValueType..' '..tableKey..' = '
++@0 			entry.value = tableValue
++@0 			table.insert(levelToFill, entry)
++@0 
++@0 		elseif tableValueType == 'table' then
++@0 
++@0 			if tableKey ~= '_G' then
++@0 
++@0 				local entry = {}
++@0 				entry.string = tableValueType..' '..tableKey..':\n'
++@0 				entry.value = {} --entry.value is a levelToFill
++@0 
++@0 				entry.value.previous = {}
++@0 				entry.value.previous.tableName = tableName
++@0 				entry.value.previous.levelTable = levelTable
++@0 				entry.value.previous.levelToFill = levelToFill
++@0 				entry.value.previous.levelTableKey = tableKey
++@0 
++@0 				table.insert(levelToFill, entry)
++@0 
++@0 				return fillDumpLevel(tableKey, tableValue, entry.value)
++@0 			end
++@0 		elseif tableValueType == 'userdata' then
++@0 
++@0 			metatable = getmetatable(tableValue)
++@0 			local entry = {}
++@0 
++@0 			if metatable ~= nil then
++@0 
++@0 				entry.string = tableValueType..' '..tableKey..':\n'
++@0 				entry.value = {} --entry.value is a levelToFill
++@0 
++@0 				entry.value.previous = {}
++@0 				entry.value.previous.tableName = tableName
++@0 				entry.value.previous.levelTable = levelTable
++@0 				entry.value.previous.levelToFill = levelToFill
++@0 				entry.value.previous.levelTableKey = tableKey
++@0 
++@0 				table.insert(levelToFill, entry)
++@0 
++@0 				return fillDumpLevel(tableKey, metatable, entry.value)
++@0 			else
++@0 
++@0 				entry.string = tableValueType..' '..tableKey..' = '
++@0 				entry.value = 'nil'
++@0 				table.insert(levelToFill, entry)
++@0 			end
++@0 		else
++@0 
++@0 			local entry = {}
++@0 			entry.string = tableValueType..' '..tableKey
++@0 			entry.value = nil
++@0 			table.insert(levelToFill, entry)
++@0 		end
++@0 
++@0 		--Iteration
++@0 		tableKey, tableValue = next(levelTable, tableKey)
++@0 		--Iteration
++@0 	end
++@0 
++@0 	--Sort the now finished level
++@0 	alphanumericSortEntries(levelToFill)
++@0 	--Sort the now finished level
++@0 
++@0 	local previous = levelToFill.previous
++@0 
++@0 	if previous ~= nil then
++@0 
++@0 		--Clear out "previous" metadata, as it is no longer needed.
++@0 		local previousTableName = previous.tableName
++@0 		local previousLevelTable = previous.levelTable
++@0 		local previousLevelToFill = previous.levelToFill
++@0 		local previousLevelTableKey = previous.levelTableKey
++@0 		levelToFill.previous = nil
++@0 		--Clear out "previous" metadata, as it is no longer needed.
++@0 
++@0 		return fillDumpLevel(previousTableName, previousLevelTable,
++@0 							 previousLevelToFill, previousLevelTableKey)
++@0 	else
++@0 		return levelToFill
++@0 	end
++@0 end
+getPricePerWeight
+ADD
+9
++@0 function getPricePerWeight(price, weight)
++@0 	if price == 0 then
++@0 		return 0
++@0 	elseif weight == 0 then
++@0 		return price
++@0 	else
++@0 		return price / weight
++@0 	end
++@0 end
+initializeAutolootOptionsMenu
+ADD
+42
++@0 function initializeAutolootOptionsMenu(itemName)
++@0 	local screenWidth, screenHeight = Infinity_GetScreenSize()
++@0 	local backgroundX, backgroundY, backgroundWidth, backgroundHeight = Infinity_GetArea('bubbAutolootOptionsBackground')
++@0 	local horizontalMargin = screenWidth - backgroundWidth
++@0 	local newBackGroundX = horizontalMargin / 2
++@0 	local verticalMargin = screenHeight - backgroundHeight
++@0 	local newBackGroundY = verticalMargin / 2
++@0 
++@0 	-- Background
++@0 	Infinity_SetArea('bubbAutolootOptionsBackground', newBackGroundX, newBackGroundY, nil, nil)
++@0 
++@0 	-- Exit Button
++@0 	Infinity_SetArea('bubbAutolootOptionsExitButton', newBackGroundX + backgroundWidth - 54, newBackGroundY + 10, nil, nil)
++@0 
++@0 	-- Autoloot On
++@0 	Infinity_SetArea('bubbAutolootOptionsOnToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 0, nil, nil)
++@0 	Infinity_SetArea('bubbAutolootOptionsOn',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 0, nil, nil)
++@0 
++@0 	-- Critical Items
++@0 	Infinity_SetArea('bubbAutolootOptionsCriticalItemsToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 1, nil, nil)
++@0 	Infinity_SetArea('bubbAutolootOptionsCriticalItems',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 1, nil, nil)
++@0 
++@0 	-- Enchanted Weapons
++@0 	Infinity_SetArea('bubbAutolootOptionsEnchantedWeaponsToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
++@0 	Infinity_SetArea('bubbAutolootOptionsEnchantedWeapons',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
++@0 	Infinity_SetArea('bubbAutolootOptionsEnchantedWeaponsField',  newBackGroundX + 52 + 356 + 5, newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
++@0 
++@0 	-- Gold
++@0 	Infinity_SetArea('bubbAutolootOptionsGoldToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
++@0 	Infinity_SetArea('bubbAutolootOptionsGold',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
++@0 
++@0 	-- Price
++@0 	Infinity_SetArea('bubbAutolootOptionsPriceToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
++@0 	Infinity_SetArea('bubbAutolootOptionsPrice',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
++@0 	Infinity_SetArea('bubbAutolootOptionsPriceField',  newBackGroundX + 52 + 218 + 5, newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
++@0 
++@0 	-- Price per Weight
++@0 	Infinity_SetArea('bubbAutolootOptionsPricePerWeightToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
++@0 	Infinity_SetArea('bubbAutolootOptionsPricePerWeight',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
++@0 	Infinity_SetArea('bubbAutolootOptionsPricePerWeightField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
++@0 
++@0 end
+pickupLoot
+ADD
+24
++@0 function pickupLoot()
++@0 	if bubbAutolootOptionsOnToggle == 1 then
++@0 		-- Stupid check because LUA starts tables at index 1
++@0 		if loot.groundItems[0] == nil then
++@0 			return
++@0 		end
++@0 		local groundItemCount = #loot.groundItems
++@0 		for i = 0, groundItemCount, 1 do
++@0 			if doesCharacterHaveSpace() then
++@0 				local groundItemSlot = loot.groundItems[i]
++@0 				local groundItem = groundItemSlot.item
++@0 				local info = lootInfo[groundItem.res]
++@0 
++@0 				if decideWhetherToPickUp(groundItem.res, info) then
++@0 
++@0 					Infinity_DisplayString("[Auto Loot] Picking up "..groundItem.name)
++@0 					worldScreen:OnGroundButtonClick(groundItemSlot.slotId, groundItemSlot.containerId, groundItem.res)
++@0 				end
++@0 			else
++@0 				return
++@0 			end
++@0 		end
++@0 	end
++@0 end
+printEntries
+ADD
+53
++@0 function printEntries(entriesTable, indentLevel, indentStrings, previousState, levelTableKey)
++@0 
++@0 	tableEntryKey, tableEntry = next(entriesTable, levelTableKey)
++@0 	while(tableEntry ~= nil) do
++@0 
++@0 		tableEntryString = tableEntry.string
++@0 		tableEntryValue = tableEntry.value
++@0 		indentString = indentStrings[indentLevel]
++@0 
++@0 		if tableEntryValue ~= nil then
++@0 
++@0 			if type(tableEntryValue) ~= 'table' then
++@0 
++@0 				valueToPrint = string.gsub(tostring(tableEntryValue), '\n', '\\n')
++@0 				print(indentString..tableEntryString..valueToPrint)
++@0 			else
++@0 	
++@0 				print(indentString..tableEntryString)
++@0 				print(indentString..'{')
++@0 
++@0 				local previous = {}
++@0 				previous.entriesTable = entriesTable
++@0 				previous.indentLevel = indentLevel
++@0 				previous.levelTableKey = tableEntryKey
++@0 				previous.previousState = previousState
++@0 
++@0 				indentLevel = indentLevel + 1
++@0 
++@0 				indentStringsSize = #indentStrings
++@0 				if indentLevel > indentStringsSize then
++@0 					indentStrings[indentStringsSize + 1] = indentStrings[indentStringsSize]..'\t'
++@0 				end
++@0 
++@0 				return printEntries(tableEntryValue, indentLevel, indentStrings, previous)
++@0 			end
++@0 		else
++@0 			print(indentString..tableEntryString)
++@0 		end
++@0 
++@0 		--Increment
++@0 		tableEntryKey, tableEntry = next(entriesTable, tableEntryKey)
++@0 		--Increment
++@0 	end
++@0 
++@0 	print(indentStrings[indentLevel - 1]..'}')
++@0 
++@0 	--Finish previous levels
++@0 	if previousState ~= nil then
++@0 
++@0 		return printEntries(previousState.entriesTable, previousState.indentLevel, indentStrings,
++@0 							previousState.previousState, previousState.levelTableKey)
++@0 	end
++@0 end
+setMessagesY
+MODIFY
+2
+-@9 		Infinity_SetOffset('WORLD_QUICKLOOT',0, -toolbarTop)
++@10 		Infinity_SetOffset('WORLD_QUICKLOOT_OVERRIDE',0, -toolbarTop)
+:menus
+5
+BUBB_AUTOLOOT_OPTIONS
+ADD
+215
++@0 menu
++@0 {
++@0 	name "BUBB_AUTOLOOT_OPTIONS"
++@0 	modal
++@0 	onOpen 
++@0 	"
++@0 		if not worldScreen:CheckIfPaused() then
++@0 			bubbAutolootOptionsPausedOnOpen = false
++@0 			worldScreen:TogglePauseGame(true)
++@0 		else
++@0 			bubbAutolootOptionsPausedOnOpen = true
++@0 		end
++@0 
++@0 		initializeAutolootOptionsMenu()
++@0 	"
++@0 	onClose 
++@0 	"
++@0 		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsOnToggle',               tostring(bubbAutolootOptionsOnToggle))
++@0 		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsCriticalItemsToggle',    tostring(bubbAutolootOptionsCriticalItemsToggle))
++@0 		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsEnchantedWeaponsToggle', tostring(bubbAutolootOptionsEnchantedWeaponsToggle))
++@0 		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsEnchantedWeaponsField',  bubbAutolootOptionsEnchantedWeaponsField)
++@0 		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsGoldToggle',             tostring(bubbAutolootOptionsGoldToggle))
++@0 		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPriceToggle',            tostring(bubbAutolootOptionsPriceToggle))
++@0 		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPriceField',             bubbAutolootOptionsPriceField)
++@0 		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPricePerWeightToggle',   tostring(bubbAutolootOptionsPricePerWeightToggle))
++@0 		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPricePerWeightField',    bubbAutolootOptionsPricePerWeightField)
++@0 
++@0 		if not bubbAutolootOptionsPausedOnOpen then
++@0 			worldScreen:TogglePauseGame(true)
++@0 		end
++@0 	"
++@0 
++@0 	-- Background
++@0 	label
++@0 	{
++@0 		name "bubbAutolootOptionsBackground"
++@0 		area -1 -1 500 265
++@0 		rectangle 0
++@0 	}
++@0 
++@0 	-- Exit Button
++@0 	button
++@0 	{
++@0 		name "bubbAutolootOptionsExitButton"
++@0 		bam GUIOSW
++@0 		area -1 -1 44 44
++@0 		sequence 2
++@0 		action 
++@0 		"
++@0 			Infinity_PopMenu('BUBB_AUTOLOOT_OPTIONS')	
++@0 		"
++@0 	}
++@0 
++@0 	-- Autoloot On
++@0 	button
++@0 	{
++@0 		name "bubbAutolootOptionsOnToggle"
++@0 		area -1 -1 32 32
++@0 		bam ROUNDBUT
++@0 		toggle bubbAutolootOptionsOnToggle
++@0 	}
++@0 	label
++@0 	{
++@0 		name "bubbAutolootOptionsOn"
++@0 		area -1 -1 102 32
++@0 		text "Autoloot On"
++@0 		text style 'normal'
++@0 		text align left center
++@0 	}
++@0 
++@0 	-- Critical Items
++@0 	button
++@0 	{
++@0 		name "bubbAutolootOptionsCriticalItemsToggle"
++@0 		area -1 -1 32 32
++@0 		bam ROUNDBUT
++@0 		toggle bubbAutolootOptionsCriticalItemsToggle
++@0 	}
++@0 	label
++@0 	{
++@0 		name "bubbAutolootOptionsCriticalItems"
++@0 		area -1 -1 102 32
++@0 		text "Critical Items"
++@0 		text style 'normal'
++@0 		text align left center
++@0 	}
++@0 
++@0 	-- Enchanted Weapons
++@0 	button
++@0 	{
++@0 		name "bubbAutolootOptionsEnchantedWeaponsToggle"
++@0 		area -1 -1 32 32
++@0 		bam ROUNDBUT
++@0 		toggle bubbAutolootOptionsEnchantedWeaponsToggle
++@0 	}
++@0 	label
++@0 	{
++@0 		name "bubbAutolootOptionsEnchantedWeapons"
++@0 		area -1 -1 356 32
++@0 		text "Enchanted Weapons equal to or higher than enchantment level:"
++@0 		text style 'normal'
++@0 		text align left center
++@0 	}
++@0 	edit
++@0 	{
++@0 		name "bubbAutolootOptionsEnchantedWeaponsField"
++@0 		area -1 -1 20 32
++@0 		var bubbAutolootOptionsEnchantedWeaponsField
++@0 		text style "edit"
++@0 		align left center
++@0 		maxlines 1
++@0 		action
++@0 		"
++@0 			if((tonumber(letter_pressed) ~= nil
++@0 				and #tostring(bubbAutolootOptionsEnchantedWeaponsField) < 1)
++@0 				or not letter_pressed)
++@0 			then
++@0 				return 1
++@0 			else
++@0 				return 0
++@0 			end
++@0 		"
++@0 	}
++@0 
++@0 	-- Gold
++@0 	button
++@0 	{
++@0 		name "bubbAutolootOptionsGoldToggle"
++@0 		area -1 -1 32 32
++@0 		bam ROUNDBUT
++@0 		toggle bubbAutolootOptionsGoldToggle
++@0 	}
++@0 	label
++@0 	{
++@0 		name "bubbAutolootOptionsGold"
++@0 		area -1 -1 356 32
++@0 		text "Gold"
++@0 		text style 'normal'
++@0 		text align left center
++@0 	}
++@0 
++@0 	-- Price
++@0 	button
++@0 	{
++@0 		name "bubbAutolootOptionsPriceToggle"
++@0 		area -1 -1 32 32
++@0 		bam ROUNDBUT
++@0 		toggle bubbAutolootOptionsPriceToggle
++@0 	}
++@0 	label
++@0 	{
++@0 		name "bubbAutolootOptionsPrice"
++@0 		area -1 -1 218 32
++@0 		text "Price equal to or higher than:"
++@0 		text style 'normal'
++@0 		text align left center
++@0 	}
++@0 	edit
++@0 	{
++@0 		name "bubbAutolootOptionsPriceField"
++@0 		area -1 -1 50 32
++@0 		var bubbAutolootOptionsPriceField
++@0 		text style "edit"
++@0 		align left center
++@0 		maxlines 1
++@0 		action
++@0 		"
++@0 			if((tonumber(letter_pressed) ~= nil
++@0 				and #tostring(bubbAutolootOptionsPriceField) < 5)
++@0 				or not letter_pressed)
++@0 			then
++@0 				return 1
++@0 			else
++@0 				return 0
++@0 			end
++@0 		"
++@0 	}
++@0 
++@0 	-- Price per Weight
++@0 	button
++@0 	{
++@0 		name "bubbAutolootOptionsPricePerWeightToggle"
++@0 		area -1 -1 32 32
++@0 		bam ROUNDBUT
++@0 		toggle bubbAutolootOptionsPricePerWeightToggle
++@0 	}
++@0 	label
++@0 	{
++@0 		name "bubbAutolootOptionsPricePerWeight"
++@0 		area -1 -1 308 32
++@0 		text "Price per Weight equal to or higher than:"
++@0 		text style 'normal'
++@0 		text align left center
++@0 	}
++@0 	edit
++@0 	{
++@0 		name "bubbAutolootOptionsPricePerWeightField"
++@0 		area -1 -1 50 32
++@0 		var bubbAutolootOptionsPricePerWeightField
++@0 		text style "edit"
++@0 		align left center
++@0 		maxlines 1
++@0 		action
++@0 		"
++@0 			if((tonumber(letter_pressed) ~= nil
++@0 				and #tostring(bubbAutolootOptionsPricePerWeightField) < 5)
++@0 				or not letter_pressed)
++@0 			then
++@0 				return 1
++@0 			else
++@0 				return 0
++@0 			end
++@0 		"
++@0 	}
++@0 }
+BUBB_AUTOLOOT_TOGGLE
+ADD
+26
++@0 menu
++@0 {
++@0 	name "BUBB_AUTOLOOT_TOGGLE"
++@0 	align center bottom
++@0 	onOpen 
++@0 	"
++@0 		groundItemsButtonToggleX, 
++@0 		groundItemsButtonToggleY, 
++@0 		groundItemsButtonToggleWidth, 
++@0 		groundItemsButtonToggleHeight = Infinity_GetArea('groundItemsButtonToggle')
++@0 		Infinity_SetArea('bubbAutolootOptionsToggle', groundItemsButtonToggleX - 44, groundItemsButtonToggleY - 24, nil, nil)
++@0 	"
++@0 	ignoreEsc
++@0 
++@0 	button
++@0 	{
++@0 		name "bubbAutolootOptionsToggle"
++@0 		area 750 0 32 32
++@0 		bam ROUNDBUT
++@0 		tooltip "Autoloot Options"
++@0 		action
++@0 		"
++@0 			Infinity_PushMenu('BUBB_AUTOLOOT_OPTIONS')
++@0 		"
++@0 	}
++@0 }
+WORLD_ACTIONBAR
+MODIFY
+22
++@11 
++@11 		-- BUBB EDIT LOOT START
++@11 
++@11 		worldScreen:StartGroundItems()
++@11 		Infinity_PushMenu('BUBB_AUTOLOOT_TOGGLE')
++@11 
++@11 		-- BUBB EDIT LOOT END
++@16 
++@16 		-- BUBB EDIT LOOT START
++@16 
++@16 		Infinity_PopMenu('BUBB_AUTOLOOT_TOGGLE')
++@16 
++@16 		-- BUBB EDIT LOOT END
++@25 		name "groundItemsButtonToggle"
+-@31 				worldScreen:StartGroundItems()
++@32 				--worldScreen:StartGroundItems()
++@32 				worldQuicklootOverrideOpen = true
++@32 				Infinity_PushMenu('WORLD_QUICKLOOT_OVERRIDE')
+-@33 				worldScreen:StopGroundItems()
++@34 				--worldScreen:StopGroundItems()
++@34 				worldQuicklootOverrideOpen = false
++@34 				Infinity_PopMenu('WORLD_QUICKLOOT_OVERRIDE')
+WORLD_QUICKLOOT
+MODIFY
+165
+-@3 	align center bottom
+-@7 		Infinity_SetOffset('WORLD_QUICKLOOT',0, -toolbarTop)
+-@8 	"
+-@9 	button
++@10 		if worldQuicklootOverrideOpen then
++@10 			Infinity_PushMenu('WORLD_QUICKLOOT_OVERRIDE')
++@10 		end
++@10 	"
++@10 	onClose
++@10 	"
++@10 		Infinity_PopMenu('WORLD_QUICKLOOT_OVERRIDE')
++@10 		worldScreen:StopGroundItems()
++@10 	"
++@10 	label
+-@11 		area 2 4 40 57
+-@12 		bam GUIBTACT
+-@13 		frame 44
+-@14 		enabled "worldScreen:GroundScrollEnabled(-1) or worldScreen:GroundScrollEnabled(1)"
+-@15 		action
+-@16 		"
+-@17 			worldScreen:OnGroundScroll(-1)
+-@18 		"
++@19 		area 0 0 -1 -1
++@19 		text lua "pickupLoot()"
+-@20 	button
+-@21 	{
+-@22 		area 610 4 40 57
+-@23 		bam GUIBTACT
+-@24 		frame 42
+-@25 		enabled "worldScreen:GroundScrollEnabled(-1) or worldScreen:GroundScrollEnabled(1)"
+-@26 		action
+-@27 		"
+-@28 			worldScreen:OnGroundScroll(1)
+-@29 		"
+-@30 	}
+-@31 	button
+-@32 	{
+-@33 		area 46 5 52 52
+-@34 		bam STONSLOT
+-@35 		tooltip lua	"getGroundItemProperty(0,'name')"
+-@36 		tint lua	"getGroundItemProperty(0,'tint')"
+-@37 		icon lua	"getGroundItemProperty(0,'icon')"
+-@38 		count lua	"getGroundItemProperty(0,'count')"
+-@39 		usages lua	"getGroundItemProperty(0,'usages')"
+-@40 		action "groundItemClick(0)"
+-@41 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(0,'containerId')"
+-@42 		actionExit "mouseOverQuicklootContainer = nil"
+-@43 	}
+-@44 	button
+-@45 	{
+-@46 		area 102 5 52 52
+-@47 		bam STONSLOT
+-@48 		tooltip lua	"getGroundItemProperty(1,'name')"
+-@49 		tint lua	"getGroundItemProperty(1,'tint')"
+-@50 		icon lua	"getGroundItemProperty(1,'icon')"
+-@51 		count lua	"getGroundItemProperty(1,'count')"
+-@52 		usages lua	"getGroundItemProperty(1,'usages')"
+-@53 		action "groundItemClick(1)"
+-@54 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(1,'containerId')"
+-@55 		actionExit "mouseOverQuicklootContainer = nil"
+-@56 	}
+-@57 	button
+-@58 	{
+-@59 		area 158 5 52 52
+-@60 		bam STONSLOT
+-@61 		tooltip lua	"getGroundItemProperty(2,'name')"
+-@62 		tint lua	"getGroundItemProperty(2,'tint')"
+-@63 		icon lua	"getGroundItemProperty(2,'icon')"
+-@64 		count lua	"getGroundItemProperty(2,'count')"
+-@65 		usages lua	"getGroundItemProperty(2,'usages')"
+-@66 		action "groundItemClick(2)"
+-@67 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(2,'containerId')"
+-@68 		actionExit "mouseOverQuicklootContainer = nil"
+-@69 	}
+-@70 	button
+-@71 	{
+-@72 		area 214 5 52 52
+-@73 		bam STONSLOT
+-@74 		tooltip lua	"getGroundItemProperty(3,'name')"
+-@75 		tint lua	"getGroundItemProperty(3,'tint')"
+-@76 		icon lua	"getGroundItemProperty(3,'icon')"
+-@77 		count lua	"getGroundItemProperty(3,'count')"
+-@78 		usages lua	"getGroundItemProperty(3,'usages')"
+-@79 		action "groundItemClick(3)"
+-@80 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(3,'containerId')"
+-@81 		actionExit "mouseOverQuicklootContainer = nil"
+-@82 	}
+-@83 	button
+-@84 	{
+-@85 		area 270 5 52 52
+-@86 		bam STONSLOT
+-@87 		tooltip lua	"getGroundItemProperty(4,'name')"
+-@88 		tint lua	"getGroundItemProperty(4,'tint')"
+-@89 		icon lua	"getGroundItemProperty(4,'icon')"
+-@90 		count lua	"getGroundItemProperty(4,'count')"
+-@91 		usages lua	"getGroundItemProperty(4,'usages')"
+-@92 		action "groundItemClick(4)"
+-@93 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(4,'containerId')"
+-@94 		actionExit "mouseOverQuicklootContainer = nil"
+-@95 	}
+-@96 	button
+-@97 	{
+-@98 		area 326 5 52 52
+-@99 		bam STONSLOT
+-@100 		tooltip lua	"getGroundItemProperty(5,'name')"
+-@101 		tint lua	"getGroundItemProperty(5,'tint')"
+-@102 		icon lua	"getGroundItemProperty(5,'icon')"
+-@103 		count lua	"getGroundItemProperty(5,'count')"
+-@104 		usages lua	"getGroundItemProperty(5,'usages')"
+-@105 		action "groundItemClick(5)"
+-@106 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(5,'containerId')"
+-@107 		actionExit "mouseOverQuicklootContainer = nil"
+-@108 	}
+-@109 	button
+-@110 	{
+-@111 		area 383 5 52 52
+-@112 		bam STONSLOT
+-@113 		tooltip lua	"getGroundItemProperty(6,'name')"
+-@114 		tint lua	"getGroundItemProperty(6,'tint')"
+-@115 		icon lua	"getGroundItemProperty(6,'icon')"
+-@116 		count lua	"getGroundItemProperty(6,'count')"
+-@117 		usages lua	"getGroundItemProperty(6,'usages')"
+-@118 		action "groundItemClick(6)"
+-@119 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(6,'containerId')"
+-@120 		actionExit "mouseOverQuicklootContainer = nil"
+-@121 	}
+-@122 	button
+-@123 	{
+-@124 		area 439 5 52 52
+-@125 		bam STONSLOT
+-@126 		tooltip lua	"getGroundItemProperty(7,'name')"
+-@127 		tint lua	"getGroundItemProperty(7,'tint')"
+-@128 		icon lua	"getGroundItemProperty(7,'icon')"
+-@129 		count lua	"getGroundItemProperty(7,'count')"
+-@130 		usages lua	"getGroundItemProperty(7,'usages')"
+-@131 		action "groundItemClick(7)"
+-@132 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(7,'containerId')"
+-@133 		actionExit "mouseOverQuicklootContainer = nil"
+-@134 	}
+-@135 	button
+-@136 	{
+-@137 		area 495 5 52 52
+-@138 		bam STONSLOT
+-@139 		tooltip lua	"getGroundItemProperty(8,'name')"
+-@140 		tint lua	"getGroundItemProperty(8,'tint')"
+-@141 		icon lua	"getGroundItemProperty(8,'icon')"
+-@142 		count lua	"getGroundItemProperty(8,'count')"
+-@143 		usages lua	"getGroundItemProperty(8,'usages')"
+-@144 		action "groundItemClick(8)"
+-@145 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(8,'containerId')"
+-@146 		actionExit "mouseOverQuicklootContainer = nil"
+-@147 	}
+-@148 	button
+-@149 	{
+-@150 		area 551 5 52 52
+-@151 		bam STONSLOT
+-@152 		tooltip lua	"getGroundItemProperty(9,'name')"
+-@153 		tint lua	"getGroundItemProperty(9,'tint')"
+-@154 		icon lua	"getGroundItemProperty(9,'icon')"
+-@155 		count lua	"getGroundItemProperty(9,'count')"
+-@156 		usages lua	"getGroundItemProperty(9,'usages')"
+-@157 		action "groundItemClick(9)"
+-@158 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(9,'containerId')"
+-@159 		actionExit "mouseOverQuicklootContainer = nil"
+-@160 	}	
+WORLD_QUICKLOOT_OVERRIDE
+ADD
+163
++@0 menu
++@0 {
++@0 	name 'WORLD_QUICKLOOT_OVERRIDE'
++@0 	align center bottom
++@0 	ignoreEsc
++@0 	onOpen
++@0 	"
++@0 		Infinity_SetOffset('WORLD_QUICKLOOT_OVERRIDE', 0, -toolbarTop)
++@0 	"
++@0 
++@0 	button
++@0 	{
++@0 		area 2 4 40 57
++@0 		bam GUIBTACT
++@0 		frame 44
++@0 		enabled "worldScreen:GroundScrollEnabled(-1) or worldScreen:GroundScrollEnabled(1)"
++@0 		action
++@0 		"
++@0 			worldScreen:OnGroundScroll(-1)
++@0 		"
++@0 	}
++@0 	button
++@0 	{
++@0 		area 610 4 40 57
++@0 		bam GUIBTACT
++@0 		frame 42
++@0 		enabled "worldScreen:GroundScrollEnabled(-1) or worldScreen:GroundScrollEnabled(1)"
++@0 		action
++@0 		"
++@0 			worldScreen:OnGroundScroll(1)
++@0 		"
++@0 	}
++@0 	button
++@0 	{
++@0 		area 46 5 52 52
++@0 		bam STONSLOT
++@0 		tooltip lua	"getGroundItemProperty(0,'name')"
++@0 		tint lua	"getGroundItemProperty(0,'tint')"
++@0 		icon lua	"getGroundItemProperty(0,'icon')"
++@0 		count lua	"getGroundItemProperty(0,'count')"
++@0 		usages lua	"getGroundItemProperty(0,'usages')"
++@0 		action "groundItemClick(0)"
++@0 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(0,'containerId')"
++@0 		actionExit "mouseOverQuicklootContainer = nil"
++@0 	}
++@0 	button
++@0 	{
++@0 		area 102 5 52 52
++@0 		bam STONSLOT
++@0 		tooltip lua	"getGroundItemProperty(1,'name')"
++@0 		tint lua	"getGroundItemProperty(1,'tint')"
++@0 		icon lua	"getGroundItemProperty(1,'icon')"
++@0 		count lua	"getGroundItemProperty(1,'count')"
++@0 		usages lua	"getGroundItemProperty(1,'usages')"
++@0 		action "groundItemClick(1)"
++@0 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(1,'containerId')"
++@0 		actionExit "mouseOverQuicklootContainer = nil"
++@0 	}
++@0 	button
++@0 	{
++@0 		area 158 5 52 52
++@0 		bam STONSLOT
++@0 		tooltip lua	"getGroundItemProperty(2,'name')"
++@0 		tint lua	"getGroundItemProperty(2,'tint')"
++@0 		icon lua	"getGroundItemProperty(2,'icon')"
++@0 		count lua	"getGroundItemProperty(2,'count')"
++@0 		usages lua	"getGroundItemProperty(2,'usages')"
++@0 		action "groundItemClick(2)"
++@0 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(2,'containerId')"
++@0 		actionExit "mouseOverQuicklootContainer = nil"
++@0 	}
++@0 	button
++@0 	{
++@0 		area 214 5 52 52
++@0 		bam STONSLOT
++@0 		tooltip lua	"getGroundItemProperty(3,'name')"
++@0 		tint lua	"getGroundItemProperty(3,'tint')"
++@0 		icon lua	"getGroundItemProperty(3,'icon')"
++@0 		count lua	"getGroundItemProperty(3,'count')"
++@0 		usages lua	"getGroundItemProperty(3,'usages')"
++@0 		action "groundItemClick(3)"
++@0 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(3,'containerId')"
++@0 		actionExit "mouseOverQuicklootContainer = nil"
++@0 	}
++@0 	button
++@0 	{
++@0 		area 270 5 52 52
++@0 		bam STONSLOT
++@0 		tooltip lua	"getGroundItemProperty(4,'name')"
++@0 		tint lua	"getGroundItemProperty(4,'tint')"
++@0 		icon lua	"getGroundItemProperty(4,'icon')"
++@0 		count lua	"getGroundItemProperty(4,'count')"
++@0 		usages lua	"getGroundItemProperty(4,'usages')"
++@0 		action "groundItemClick(4)"
++@0 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(4,'containerId')"
++@0 		actionExit "mouseOverQuicklootContainer = nil"
++@0 	}
++@0 	button
++@0 	{
++@0 		area 326 5 52 52
++@0 		bam STONSLOT
++@0 		tooltip lua	"getGroundItemProperty(5,'name')"
++@0 		tint lua	"getGroundItemProperty(5,'tint')"
++@0 		icon lua	"getGroundItemProperty(5,'icon')"
++@0 		count lua	"getGroundItemProperty(5,'count')"
++@0 		usages lua	"getGroundItemProperty(5,'usages')"
++@0 		action "groundItemClick(5)"
++@0 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(5,'containerId')"
++@0 		actionExit "mouseOverQuicklootContainer = nil"
++@0 	}
++@0 	button
++@0 	{
++@0 		area 383 5 52 52
++@0 		bam STONSLOT
++@0 		tooltip lua	"getGroundItemProperty(6,'name')"
++@0 		tint lua	"getGroundItemProperty(6,'tint')"
++@0 		icon lua	"getGroundItemProperty(6,'icon')"
++@0 		count lua	"getGroundItemProperty(6,'count')"
++@0 		usages lua	"getGroundItemProperty(6,'usages')"
++@0 		action "groundItemClick(6)"
++@0 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(6,'containerId')"
++@0 		actionExit "mouseOverQuicklootContainer = nil"
++@0 	}
++@0 	button
++@0 	{
++@0 		area 439 5 52 52
++@0 		bam STONSLOT
++@0 		tooltip lua	"getGroundItemProperty(7,'name')"
++@0 		tint lua	"getGroundItemProperty(7,'tint')"
++@0 		icon lua	"getGroundItemProperty(7,'icon')"
++@0 		count lua	"getGroundItemProperty(7,'count')"
++@0 		usages lua	"getGroundItemProperty(7,'usages')"
++@0 		action "groundItemClick(7)"
++@0 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(7,'containerId')"
++@0 		actionExit "mouseOverQuicklootContainer = nil"
++@0 	}
++@0 	button
++@0 	{
++@0 		area 495 5 52 52
++@0 		bam STONSLOT
++@0 		tooltip lua	"getGroundItemProperty(8,'name')"
++@0 		tint lua	"getGroundItemProperty(8,'tint')"
++@0 		icon lua	"getGroundItemProperty(8,'icon')"
++@0 		count lua	"getGroundItemProperty(8,'count')"
++@0 		usages lua	"getGroundItemProperty(8,'usages')"
++@0 		action "groundItemClick(8)"
++@0 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(8,'containerId')"
++@0 		actionExit "mouseOverQuicklootContainer = nil"
++@0 	}
++@0 	button
++@0 	{
++@0 		area 551 5 52 52
++@0 		bam STONSLOT
++@0 		tooltip lua	"getGroundItemProperty(9,'name')"
++@0 		tint lua	"getGroundItemProperty(9,'tint')"
++@0 		icon lua	"getGroundItemProperty(9,'icon')"
++@0 		count lua	"getGroundItemProperty(9,'count')"
++@0 		usages lua	"getGroundItemProperty(9,'usages')"
++@0 		action "groundItemClick(9)"
++@0 		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(9,'containerId')"
++@0 		actionExit "mouseOverQuicklootContainer = nil"
++@0 	}	
++@0 }
+:function_references
+1
+setMessagesY
+432
+function setMessagesY(newY)
+		local x,y,w,hOld = Infinity_GetArea('messagesRect')
+		h = hOld - newY
+		newY = clampMessageBoxHeight(h,hOld)
+		
+		adjustItemGroup({"messagesHandleY"},0,newY,0,0)
+		adjustItemGroup({"messagesRect","worldMessageBox"},0,newY,0,-newY)
+		
+		toolbarTop = toolbarTop - newY
+		Infinity_SetOffset('WORLD_QUICKLOOT',0, -toolbarTop)
+		
+		chatboxScrollToBottom = 1
+		worldMessageBoxTop = y + newY
+ end
+:menu_references
+2
+WORLD_ACTIONBAR
+3329
+menu
+{
+	name "WORLD_ACTIONBAR"
+	align center bottom
+	onOpen 
+	"
+		toolbarTop = 50
+		Infinity_PushMenu('WORLD_MESSAGES')
+		if(groundItemsButtonToggle == 1) then
+			worldScreen:StartGroundItems()
+		end
+	"
+	onClose 
+	"
+		Infinity_PopMenu('WORLD_QUICKLOOT');
+		Infinity_PopMenu('WORLD_MESSAGES');
+	"
+	ignoreEsc
+	label
+	{
+		area 0 0 746 57
+		mosaic GUWBTP10
+	}
+	button
+	{
+		area 21 12 32 32
+		bam ROUNDBUT
+		toggle groundItemsButtonToggle
+		action
+		"
+			if(groundItemsButtonToggle == 1) then
+				worldScreen:StartGroundItems()
+			else
+				worldScreen:StopGroundItems()
+			end
+		"
+	}
+	button
+	{
+		area 68 1 52 52
+		actionBar 0
+		enabled "buttonArray:GetButtonEnabled(0)"
+		tooltip lua "actionBarTooltip[0]"
+		action "buttonArray:OnLButtonPressed(0)"
+		actionAlt "buttonArray:OnRButtonPressed(0)"
+	}
+	button
+	{
+		area 122 1 52 52
+		actionBar 1
+		enabled "buttonArray:GetButtonEnabled(1)"
+		tooltip lua "actionBarTooltip[1]"
+		action "buttonArray:OnLButtonPressed(1)"
+		actionAlt "buttonArray:OnRButtonPressed(1)"
+	}
+	button
+	{
+		area 177 1 52 52
+		actionBar 2
+		enabled "buttonArray:GetButtonEnabled(2)"
+		tooltip lua "actionBarTooltip[2]"
+		action "buttonArray:OnLButtonPressed(2)"
+		actionAlt "buttonArray:OnRButtonPressed(2)"
+	}
+	button
+	{
+		area 231 1 52 52
+		actionBar 3
+		enabled "buttonArray:GetButtonEnabled(3)"
+		tooltip lua "actionBarTooltip[3]"
+		action "buttonArray:OnLButtonPressed(3)"
+		actionAlt "buttonArray:OnRButtonPressed(3)"
+	}
+	button
+	{
+		area 299 1 52 52
+		actionBar 4
+		enabled "buttonArray:GetButtonEnabled(4)"
+		tooltip lua "actionBarTooltip[4]"
+		action "buttonArray:OnLButtonPressed(4)"
+		actionAlt "buttonArray:OnRButtonPressed(4)"
+	}
+	button
+	{
+		area 353 1 52 52
+		actionBar 5
+		enabled "buttonArray:GetButtonEnabled(5)"
+		tooltip lua "actionBarTooltip[5]"
+		action "buttonArray:OnLButtonPressed(5)"
+		actionAlt "buttonArray:OnRButtonPressed(5)"
+	}
+	button
+	{
+		area 407 1 52 52
+		actionBar 6
+		enabled "buttonArray:GetButtonEnabled(6)"
+		tooltip lua "actionBarTooltip[6]"
+		action "buttonArray:OnLButtonPressed(6)"
+		actionAlt "buttonArray:OnRButtonPressed(6)"
+	}
+	button
+	{
+		area 461 1 52 52
+		actionBar 7
+		enabled "buttonArray:GetButtonEnabled(7)"
+		tooltip lua "actionBarTooltip[7]"
+		action "buttonArray:OnLButtonPressed(7)"
+		actionAlt "buttonArray:OnRButtonPressed(7)"
+	}
+	
+	button
+	{
+		area 528 1 52 52
+		actionBar 8
+		enabled "buttonArray:GetButtonEnabled(8)"
+		tooltip lua "actionBarTooltip[8]"
+		action "buttonArray:OnLButtonPressed(8)"
+		actionAlt "buttonArray:OnRButtonPressed(8)"
+	}
+	button
+	{
+		area 582 1 52 52
+		actionBar 9
+		enabled "buttonArray:GetButtonEnabled(9)"
+		tooltip lua "actionBarTooltip[9]"
+		action "buttonArray:OnLButtonPressed(9)"
+		actionAlt "buttonArray:OnRButtonPressed(9)"
+	}
+	button
+	{
+		area 636 1 52 52
+		actionBar 10
+		enabled "buttonArray:GetButtonEnabled(10)"
+		tooltip lua "actionBarTooltip[10]"
+		action "buttonArray:OnLButtonPressed(10)"
+		actionAlt "buttonArray:OnRButtonPressed(10)"
+	}
+	button
+	{
+		area 689 1 52 52
+		actionBar 11
+		enabled "buttonArray:GetButtonEnabled(11)"
+		tooltip lua "actionBarTooltip[11]"
+		action "buttonArray:OnLButtonPressed(11)"
+		actionAlt "buttonArray:OnRButtonPressed(11)"
+	}
+}
+WORLD_QUICKLOOT
+5113
+menu
+{
+	name 'WORLD_QUICKLOOT'
+	align center bottom
+	ignoreEsc
+	onOpen
+	"
+		Infinity_SetOffset('WORLD_QUICKLOOT',0, -toolbarTop)
+	"
+	button
+	{
+		area 2 4 40 57
+		bam GUIBTACT
+		frame 44
+		enabled "worldScreen:GroundScrollEnabled(-1) or worldScreen:GroundScrollEnabled(1)"
+		action
+		"
+			worldScreen:OnGroundScroll(-1)
+		"
+	}
+	button
+	{
+		area 610 4 40 57
+		bam GUIBTACT
+		frame 42
+		enabled "worldScreen:GroundScrollEnabled(-1) or worldScreen:GroundScrollEnabled(1)"
+		action
+		"
+			worldScreen:OnGroundScroll(1)
+		"
+	}
+	button
+	{
+		area 46 5 52 52
+		bam STONSLOT
+		tooltip lua	"getGroundItemProperty(0,'name')"
+		tint lua	"getGroundItemProperty(0,'tint')"
+		icon lua	"getGroundItemProperty(0,'icon')"
+		count lua	"getGroundItemProperty(0,'count')"
+		usages lua	"getGroundItemProperty(0,'usages')"
+		action "groundItemClick(0)"
+		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(0,'containerId')"
+		actionExit "mouseOverQuicklootContainer = nil"
+	}
+	button
+	{
+		area 102 5 52 52
+		bam STONSLOT
+		tooltip lua	"getGroundItemProperty(1,'name')"
+		tint lua	"getGroundItemProperty(1,'tint')"
+		icon lua	"getGroundItemProperty(1,'icon')"
+		count lua	"getGroundItemProperty(1,'count')"
+		usages lua	"getGroundItemProperty(1,'usages')"
+		action "groundItemClick(1)"
+		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(1,'containerId')"
+		actionExit "mouseOverQuicklootContainer = nil"
+	}
+	button
+	{
+		area 158 5 52 52
+		bam STONSLOT
+		tooltip lua	"getGroundItemProperty(2,'name')"
+		tint lua	"getGroundItemProperty(2,'tint')"
+		icon lua	"getGroundItemProperty(2,'icon')"
+		count lua	"getGroundItemProperty(2,'count')"
+		usages lua	"getGroundItemProperty(2,'usages')"
+		action "groundItemClick(2)"
+		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(2,'containerId')"
+		actionExit "mouseOverQuicklootContainer = nil"
+	}
+	button
+	{
+		area 214 5 52 52
+		bam STONSLOT
+		tooltip lua	"getGroundItemProperty(3,'name')"
+		tint lua	"getGroundItemProperty(3,'tint')"
+		icon lua	"getGroundItemProperty(3,'icon')"
+		count lua	"getGroundItemProperty(3,'count')"
+		usages lua	"getGroundItemProperty(3,'usages')"
+		action "groundItemClick(3)"
+		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(3,'containerId')"
+		actionExit "mouseOverQuicklootContainer = nil"
+	}
+	button
+	{
+		area 270 5 52 52
+		bam STONSLOT
+		tooltip lua	"getGroundItemProperty(4,'name')"
+		tint lua	"getGroundItemProperty(4,'tint')"
+		icon lua	"getGroundItemProperty(4,'icon')"
+		count lua	"getGroundItemProperty(4,'count')"
+		usages lua	"getGroundItemProperty(4,'usages')"
+		action "groundItemClick(4)"
+		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(4,'containerId')"
+		actionExit "mouseOverQuicklootContainer = nil"
+	}
+	button
+	{
+		area 326 5 52 52
+		bam STONSLOT
+		tooltip lua	"getGroundItemProperty(5,'name')"
+		tint lua	"getGroundItemProperty(5,'tint')"
+		icon lua	"getGroundItemProperty(5,'icon')"
+		count lua	"getGroundItemProperty(5,'count')"
+		usages lua	"getGroundItemProperty(5,'usages')"
+		action "groundItemClick(5)"
+		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(5,'containerId')"
+		actionExit "mouseOverQuicklootContainer = nil"
+	}
+	button
+	{
+		area 383 5 52 52
+		bam STONSLOT
+		tooltip lua	"getGroundItemProperty(6,'name')"
+		tint lua	"getGroundItemProperty(6,'tint')"
+		icon lua	"getGroundItemProperty(6,'icon')"
+		count lua	"getGroundItemProperty(6,'count')"
+		usages lua	"getGroundItemProperty(6,'usages')"
+		action "groundItemClick(6)"
+		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(6,'containerId')"
+		actionExit "mouseOverQuicklootContainer = nil"
+	}
+	button
+	{
+		area 439 5 52 52
+		bam STONSLOT
+		tooltip lua	"getGroundItemProperty(7,'name')"
+		tint lua	"getGroundItemProperty(7,'tint')"
+		icon lua	"getGroundItemProperty(7,'icon')"
+		count lua	"getGroundItemProperty(7,'count')"
+		usages lua	"getGroundItemProperty(7,'usages')"
+		action "groundItemClick(7)"
+		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(7,'containerId')"
+		actionExit "mouseOverQuicklootContainer = nil"
+	}
+	button
+	{
+		area 495 5 52 52
+		bam STONSLOT
+		tooltip lua	"getGroundItemProperty(8,'name')"
+		tint lua	"getGroundItemProperty(8,'tint')"
+		icon lua	"getGroundItemProperty(8,'icon')"
+		count lua	"getGroundItemProperty(8,'count')"
+		usages lua	"getGroundItemProperty(8,'usages')"
+		action "groundItemClick(8)"
+		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(8,'containerId')"
+		actionExit "mouseOverQuicklootContainer = nil"
+	}
+	button
+	{
+		area 551 5 52 52
+		bam STONSLOT
+		tooltip lua	"getGroundItemProperty(9,'name')"
+		tint lua	"getGroundItemProperty(9,'tint')"
+		icon lua	"getGroundItemProperty(9,'icon')"
+		count lua	"getGroundItemProperty(9,'count')"
+		usages lua	"getGroundItemProperty(9,'usages')"
+		action "groundItemClick(9)"
+		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(9,'containerId')"
+		actionExit "mouseOverQuicklootContainer = nil"
+	}	
+}
