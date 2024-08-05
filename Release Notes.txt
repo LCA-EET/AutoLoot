@@ -2,6 +2,9 @@
 
 # Report any bugs to LCAMod@danielvalle.net
 
+# v1.0.1 2024-08-05
+* Removed dependency on bubb_lib.tph.
+
 # v1.0, 2024-08-04
 * Initial release; adds EET compatibility to Bubb's original auto loot mod.
 * At this time, the mod is incompatible with other mods  (EET excluded) that change the game UI.

@@ -6,7 +6,6 @@ else
 	Infinity_DoFile("L_en_us")
 end
 listMetaInfo = {}
-combatLog = {}
 
 
 currentPanelID = 0
@@ -895,13 +894,6 @@ function updateAttrTable()
 		listItems = { }
 	end
 
-	characterViewable = characterScreen:IsCharacterViewable()
-	showClassInfo = showClassInfo == 1 and characterViewable == true
-	showJustText = showJustText == 1 and characterViewable == true
-	showMemorized = showMemorized == 1 and characterViewable == true
-	showBothLists = showBothLists == 1 and characterViewable == true
-	showStats = showStats == 1 and characterViewable == true
-	showAbilityBonuses = showAbilityBonuses == 1 and characterViewable == true
 end
 
 characters = {}
@@ -1019,7 +1011,6 @@ end
 	showJustText = 0
 	showMemorized = 0
 	showBothLists = 0
-	characterViewable = true
 `
 menu
 {
@@ -1038,14 +1029,13 @@ menu
 		showAbilityBonuses = 0
 		showMemorized = 0
 		showBothLists = 0
-		characterViewable = true
 		
 		if(CurrentlyInGame()) then
 			pushSidebars()
 		end
 		updateAttrTable()
 		
-		if(currentPanelID == const.EXPORT_ID) then
+		if(currentPanelID == const.EXPORT_ID) then 
 			Infinity_PushMenu('CHARACTER_EXPORT')
 		else 
 			if(currentPanelID == const.CUSTOMIZE_ID) then 
@@ -1074,7 +1064,6 @@ menu
 		text		lua "characters[currentID].name"
 		text style  	'title'
 		text align	center center
-		enabled "characterViewable"
 	}
 
 	label
@@ -1084,7 +1073,6 @@ menu
 		greyscale	0 --display greyscale or not, number 0-1
 		progressbar color	128 0 0 255	 --color when percentage != 100
 		progressbar full	128 0 0 255	 --color when percentage == 100
-		enabled "characterViewable"
 	}
 	label
 	{
@@ -1093,7 +1081,6 @@ menu
 		text style  'normal'
 		text align	center center
 		text shadow 1
-		enabled "characterViewable"
 	}
 
 
@@ -1198,7 +1185,6 @@ menu
 		table		"attributeItems"
 		var			currentItem
 		hidehighlight
-		enabled "characterViewable"
 		action
 		"
 			helpTextString = Infinity_FetchString( attributeItems[currentItem][2])
@@ -1235,7 +1221,6 @@ menu
 		table		"statusEffects"
 		var		notrealValue
 		scrollbar	'GUISCRC'
-		enabled "characterViewable"
 		hidehighlight	
 	}
 
@@ -1259,7 +1244,6 @@ menu
 		text lua "characterDescString(characters[currentID])"
 		text style 'normal'
 		text align center center
-		enabled "characterViewable"
 		
 	}
 	
@@ -1438,7 +1422,6 @@ menu
 		text style "button"
 		bam		GUIOSTLL
 		sequence	0
-		clickable lua "characterScreen:IsMultiPlayerModifyable()"
 		action 
 		"
 			characterScreen:OnCustomizeButtonClick();
@@ -1453,7 +1436,6 @@ menu
 		text style "button"
 		bam		GUIOSTLR
 		sequence	0
-		clickable lua "characterScreen:IsExportButtonClickable()"
 		action 
 		"
 			characterScreen:OnExportButtonClick();
@@ -2067,8 +2049,7 @@ menu
 	ignoreEsc
 	onOpen
 	"
-		currentPanelID = const.EXPORT_ID;
-		Infinity_FocusTextEdit('characterExportCharacterEditArea');
+		currentPanelID = const.EXPORT_ID
 	"
 	label 
 	{
@@ -2168,44 +2149,6 @@ menu
 `
 list_GUIREC_20_5_idx = 0
 doneEnabled = 0
-
-function compareCustomSound(s1, s2)
-	-- DEFAULT, then normal alphabetically, then AoN alphabetically (result must be strictly less than)
-	if (s1.sound == "DEFAULT") then
-		return s2.sound ~= "DEFAULT";
-	elseif (string.sub(s1.sound, 1, 4) == "BDTP") then
-		if (string.sub(s2.sound, 1, 4) ~= "BDTP") then
-			return false;
-		end
-	elseif (string.sub(s2.sound, 1, 4) == "BDTP") then
-		return true;
-	end
-	return s1.sound < s2.sound;
-end
-
-function prepareSounds(soundTable)
-	-- preserve original indices to return as selection
-	local i;
-	for i = 1, #soundTable, 1 do
-		local s = soundTable[i];
-		if (type(s) == "string") then
-			soundTable[i] = {
-				index = i,
-				sound = s
-			}
-		end
-	end
-	
-	table.sort(soundTable, compareCustomSound)
-end
-
-function getSoundStringRef(rowNumber, tab)
-	if ( filenames_stringrefs[tab[rowNumber].sound] ~= nil ) then
-		return Infinity_FetchString(filenames_stringrefs[tab[rowNumber].sound][1])
-	else
-		return tab[rowNumber].sound
-	end
-end
 `
 menu
 {
@@ -2217,7 +2160,6 @@ menu
 		currentPanelID = const.SOUND_ID
 		Infinity_OnSoundItemSelect(0)
 		doneEnabled = characterScreen:IsDoneButtonClickable(currentID)
-		prepareSounds(list_GUIREC_20_5)
 	"
 	label
 	{
@@ -2238,7 +2180,7 @@ menu
 			label
 			{
 				area 0 0 -1 -1
-				text lua "getSoundStringRef(rowNumber, list_GUIREC_20_5)"
+				text lua "getFileNameStringRef(rowNumber, list_GUIREC_20_5)"
 				text style	"list"
 				pad 8 0 0 0
 			}
@@ -2250,7 +2192,7 @@ menu
 		scrollbar	'GUISCRC'
 		action
 		"
-			Infinity_OnSoundItemSelect(list_GUIREC_20_5[list_GUIREC_20_5_idx].index - 1)
+			Infinity_OnSoundItemSelect(list_GUIREC_20_5_idx - 1)
 			doneEnabled = characterScreen:IsDoneButtonClickable(currentID)
 		"
 	}
@@ -2268,7 +2210,7 @@ menu
 		sequence 0
 		area 272 120 300 44
 		text style "button"
-		text	"PLAY_SOUND_BUTTON"
+		text	"PLAY_IMPORT_BUTTON"
 		action 
 		"	
 			characterScreen:OnPlayButtonClick();			
@@ -2331,24 +2273,6 @@ function addStoryModeOption()
 		toggleTitles[index+1] = toggleTitles[index]
 	end
 	toggleTitles[1] = {'DIFFICULTY_LABEL_STORYMODE',	'DIFFICULTY_DESCRIPTION_STORYMODE_BG2EE',	65, 0, 0}
-end
-
-function removeOptionFromList(list, option)
-	local startingPoint = 1
-	local found = false
-	for index = 1, #list-1, 1 do
-		if list[index][3] == option then
-			startingPoint = index
-			found = true
-			break
-		end
-	end
-	if found == true then
-		for index = startingPoint, #list-1, 1 do
-			list[index] = list[index+1]
-		end
-		list[#list] = nil
-	end
 end
 
 toggleTitles = {
@@ -2425,10 +2349,6 @@ menu
 				var[4] = 2
  			end
 		end
- 
-		if Infinity_CanCloudSave() == false and (toggleTitles[1][3] == 60 or toggleTitles[2][3] == 60) then
-			removeOptionFromList(toggleTitles,60)
-		end
 	"
 
 	button
@@ -2499,10 +2419,6 @@ menu
 					toggleTitles[selectedOpt][5] = 1
 				end
 			end
-			if selectedOpt == 1 and toggleTitles[1][5] == 1 then
-				groundItemsButtonToggle = 1
-				highlightButtonToggle = 1
-			end
 		"
 	}
 	
@@ -2546,7 +2462,7 @@ menu
 		sequence 0
 		frame	 1
 		settings	40
-		pad 4 0 4 0
+		pad 8 0 10 0
 		action 
 		"
 			helpString = 'TOOLTIP_DELAY_DESCRIPTION' 
@@ -2563,7 +2479,6 @@ menu
 		text align	right center
 		text upper
 		text highlight lua "getSelected(selectedSL, 2)"
-		enabled "not e:IsTouchUI()"
 		action 
 		"
 			helpString = 'KEYBOARD_SCRLSPEED_DESCRIPTION' 
@@ -2580,8 +2495,7 @@ menu
 		sequence 0
 		frame	 1
 		settings	40
-		pad 4 0 4 0
-		enabled "not e:IsTouchUI()"
+		pad 8 0 10 0
 		action 
 		"
 			helpString = 'KEYBOARD_SCRLSPEED_DESCRIPTION' 
@@ -2598,7 +2512,6 @@ menu
 		text align	right center
 		text upper
 		text highlight lua "getSelected(selectedSL, 3)"
-		enabled "not e:IsTouchUI()"
 		action 
 		"
 			helpString = 'MOUSE_SCRLSPEED_DESCRIPTION' 
@@ -2615,8 +2528,7 @@ menu
 		sequence 0
 		frame	 1
 		settings	40
-		pad 4 0 4 0
-		enabled "not e:IsTouchUI()"
+		pad 8 0 10 0
 		action 
 		"
 			helpString = 'MOUSE_SCRLSPEED_DESCRIPTION' 
@@ -2650,7 +2562,7 @@ menu
 		sequence 0
 		frame	 1
 		settings	5
-		pad 4 0 4 0
+		pad 8 0 10 0
 		enabled "Infinity_GetOption(59, 8) == 0 and toggleTitles[1][4] == 0"
 		action 
 		"
@@ -2685,7 +2597,7 @@ menu
 		sequence 0
 		frame	 1
 		settings	5
-		pad 4 0 4 0
+		pad 8 0 10 0
 		enabled "Infinity_GetOption(59, 8) == 0 and toggleTitles[1][4] ~= 0"
 		action 
 		"
@@ -2717,7 +2629,6 @@ menu
 		area		158 501 302 44
 		text		"ASSIGN_KEYS_BUTTON"
 		text style	"button"
-		enabled "not e:IsTouchUI()"
 		action
 		"
 			Infinity_PushMenu( 'OPTIONS_KEYBINDINGS' );
@@ -2867,7 +2778,7 @@ menu
 		
 		column 
 		{ 
-			width 88 
+			width 90 
 			label
 			{
 				area 10 0 -1 -1
@@ -2878,7 +2789,7 @@ menu
 		}
 		column 
 		{ 
-			width 12 
+			width 10 
 			label
 			{
 				area		10 8 -1 -1
@@ -2918,7 +2829,7 @@ menu
 	
 		column 
 		{ 
-			width 88 
+			width 90 
 			label
 			{
 				area 10 0 -1 -1
@@ -2929,7 +2840,7 @@ menu
 		}
 		column 
 		{ 
-			width 12 
+			width 10 
 			label
 			{
 				area		10 8 -1 -1
@@ -3028,7 +2939,6 @@ graphicsToggles = {
 {'SHOW_HEALTHBAR_LABEL',103192, 65, 0, 0, 0},
 {'SHOW_BLACK_SPACE_LABEL','SHOW_BLACK_SPACE_DESCRIPTION', 69, 0, 0, 0},
 {'NEAREST_NEIGHBOUR_LABEL','NEAREST_NEIGHBOUR_DESCRIPTION', 70, 0, 0, 0},
-{'AREA_MAP_ZOOM_TRANSITION_LABEL','AREA_MAP_ZOOM_TRANSITION_DESCRIPTION', 71, 0, 0, 0}
 }
 
 addedDirectx = false
@@ -3074,11 +2984,6 @@ menu
 			else
 				var[4] = 2
 			end
-		end
-
-		if e:IsTouchUI() then
-			removeOptionFromList(graphicsToggles, 9)
-			removeOptionFromList(graphicsToggles, 13)
 		end
 	"
 
@@ -3128,7 +3033,7 @@ menu
 		
 		column 
 		{ 
-			width 88
+			width 90
 			label
 			{
 				area 0 0 -1 -1
@@ -3139,7 +3044,7 @@ menu
 		}
 		column 
 		{ 
-			width 12 
+			width 10 
 			label
 			{
 				area		10 4 -1 -1
@@ -3216,7 +3121,7 @@ menu
 		sequence 0
 		frame	 1
 		settings	7
-		pad 4 0 4 0
+		pad 8 0 10 0
 		action
 		"
 			Infinity_ChangeOption( 22, fontSizeSLDR, 6)
@@ -3372,7 +3277,7 @@ menu
 		
 		column 
 		{ 
-			width 88
+			width 90
 			label
 			{
 				area 0 0 -1 -1
@@ -3383,7 +3288,7 @@ menu
 		}
 		column 
 		{ 
-			width 12 
+			width 10 
 			label
 			{
 				area		10 8 -1 -1
@@ -3440,7 +3345,7 @@ menu
 		
 		column 
 		{ 
-			width 88 
+			width 90 
 			label
 			{
 				area 10 0 -1 -1
@@ -3451,7 +3356,7 @@ menu
 		}
 		column 
 		{ 
-			width 12
+			width 10
 			label
 			{
 				area		10 8 -1 -1
@@ -3505,7 +3410,7 @@ menu
 		
 		column 
 		{ 
-			width 88
+			width 90
 			label
 			{
 				area 10 0 -1 -1
@@ -3516,7 +3421,7 @@ menu
 		}
 		column 
 		{ 
-			width 12
+			width 10
 			label
 			{
 				area		10 8 -1 -1
@@ -3595,7 +3500,7 @@ menu
 		sequence 0
 		frame	 1
 		settings	40
-		pad 4 0 4 0
+		pad 8 0 10 0
 		action 
 		"
 			helpString = 18008 
@@ -3629,7 +3534,7 @@ menu
 		sequence 0
 		frame	 1
 		settings	40
-		pad 4 0 4 0
+		pad 8 0 10 0
 		action 
 		"
 			helpString = 18009 
@@ -3662,7 +3567,7 @@ menu
 		sequence 0
 		frame	 1
 		settings	40
-		pad 4 0 4 0
+		pad 8 0 10 0
 		action 
 		"
 			helpString = 18010 
@@ -3696,7 +3601,7 @@ menu
 		sequence 0
 		frame	 1
 		settings	40
-		pad 4 0 4 0
+		pad 8 0 10 0
 		text highlight lua "getSelected(selectedSL, 7)"
 		action 
 		"
@@ -3730,7 +3635,7 @@ menu
 		sequence 0
 		frame	 1
 		settings	40
-		pad 4 0 4 0
+		pad 8 0 10 0
 		action 
 		"
 			helpString = 18012
@@ -3799,12 +3704,11 @@ menu
 `
 
 feedbackToggles = {
-{'COLORED_MARKERS_LABEL',			'COLORED_MARKERS_HELP', 			 38, 0, 0},
-{'CLASSIC_MARKERS_LABEL',			'CLASSIC_MARKERS_HELP', 			 45, 0, 0},
-{'ENABLE_CONFIRMATION_LABEL',		'ENABLE_CONFIRMATION_HELP', 		 41, 0, 0},
-{'DISABLE_COSMETIC_ATTACKS_LABEL',	'DISABLE_COSMETIC_ATTACKS_HELP', 	 43, 0, 0},
-{'JOURNAL_POPUPS_LABEL',			'JOURNAL_POPUPS_HELP', 				 44, 0, 0},
-{'EQUIPMENT_COMPARISON_LABEL',      'EQUIPMENT_COMPARISON_DESCRIPTION',  46, 0, 0}
+{'COLORED_MARKERS_LABEL',			'COLORED_MARKERS_HELP', 			38, 0, 0},
+{'CLASSIC_MARKERS_LABEL',			'CLASSIC_MARKERS_HELP', 			45, 0, 0},
+{'ENABLE_CONFIRMATION_LABEL',		'ENABLE_CONFIRMATION_HELP', 		41, 0, 0},
+{'DISABLE_COSMETIC_ATTACKS_LABEL',	'DISABLE_COSMETIC_ATTACKS_HELP', 	43, 0, 0},
+{'JOURNAL_POPUPS_LABEL',			'JOURNAL_POPUPS_HELP', 				44, 0, 0}
 }
 
 messagesToggles = { 
@@ -3917,7 +3821,7 @@ menu
 		
 		column 
 		{ 
-			width 88
+			width 90
 			label
 			{
 				area 0 0 -1 -1
@@ -3928,7 +3832,7 @@ menu
 		}
 		column 
 		{ 
-			width 12 
+			width 10 
 			label
 			{
 				area		10 8 -1 -1
@@ -3978,7 +3882,7 @@ menu
 		
 		column 
 		{ 
-			width 88
+			width 90
 			label
 			{
 				area 10 0 -1 -1
@@ -3989,7 +3893,7 @@ menu
 		}
 		column 
 		{ 
-			width 12
+			width 10
 			label
 			{
 				area		10 8 -1 -1
@@ -4066,7 +3970,6 @@ menu
 		sequence 0
 		frame	 1
 		settings	6
-		pad 5 0 5 0
 		action 
 		"
 			helpString = 'MARKER_FEEDBACK_HELP' 
@@ -4108,7 +4011,6 @@ menu
 		sequence 0
 		frame	 1
 		settings	5
-		pad 5 0 5 0
 		action 
 		"
 			helpString = 'LOCATOR_FEEDBACK_HELP' 
@@ -4186,29 +4088,15 @@ key = 0
 
 function displayHelp()
 	if not (key == 0) then
-		return 102621
+		return 24680
 	end
 	return 0
-end
-
-function formatKeyCode(number)
-	local ret = ""
-
-	if number < 127 and number > 32 then
-		return string.format('%c', keybindings[keyCategory][rowNumber][6])
-	end
-	ret = t("SDL_" .. string.format('%d', keybindings[keyCategory][rowNumber][6]))
- 
-	return ret
 end
 
 function getHotkeyName(category,number)
 	local ret = ""
 	if category < 5 then
 		ret = t(keybindings[category][number][4])
-		if ret == keybindings[category][number][4] then
-			ret = Infinity_FetchString(keybindings[category][number][4])
-		end
 	else
 		ret = Infinity_FetchString(keybindings[category][number][4])
 	end
@@ -4293,7 +4181,7 @@ menu
 			label
 			{
 				area 0 0 -1 -1
-				text lua "formatKeyCode(keybindings[keyCategory][rowNumber][6])"
+				text lua "string.format('%c', keybindings[keyCategory][rowNumber][6])"
 				text style	"normal"
 				text upper
 				text align right center 
@@ -4613,7 +4501,6 @@ menu
 		action
 		"
 			restoreOverlayFromQuit()
-			Infinity_PopMenu('QuitMenu')
 		"	
 	}
 }
@@ -4865,7 +4752,7 @@ menu
 	button
 	{
 		area 572 636 232 44
-		bam			GUIOSTUR
+		bam			GUIOSTUL
 		text "DONE_BUTTON"
 		text style "button"
 		action
@@ -4879,7 +4766,7 @@ menu
 	button
 	{
 		area 54 636 232 44
-		bam			GUIOSTUL
+		bam			GUIOSTUR
 		text "CANCEL_BUTTON"
 		text style "button"
 		action
@@ -5197,7 +5084,7 @@ end
 function itemDescLeftButtonEnabled()
 	if(itemDesc.mode == 0) then
 		return GetAbilityIdentifyString() ~= ""
-	elseif(itemDesc.mode == 1) then
+	else
 		return itemDesc.item.isBag
 	end
 	return 0
@@ -5205,7 +5092,7 @@ end
 function itemDescLeftButtonText()
 	if(itemDesc.mode == 0) then
 		return GetAbilityIdentifyString()
-	elseif(itemDesc.mode == 1) then
+	else
 		return t('OPEN_CONTAINER_BUTTON')
 	end
 	return ""
@@ -5217,7 +5104,7 @@ function itemDescLeftButtonAction()
 		else
 			Infinity_PushMenu('ITEM_ABILITIES',0,0)
 		end
-	elseif(itemDesc.mode == 1) then 
+	else 
 		storeScreen:OpenBag(itemDesc.item.res)
 		Infinity_PopMenu()
 	end
@@ -5507,7 +5394,7 @@ menu
 		enabled "e:IsMultiplayer()"
 		bam GUILS10
 		sequence 8
-		tooltip lua "getTooltipWithHotkey(8,16312)"
+		tooltip lua "getTooltipWithHotkey(8,24363)"
 		tooltip force lua "sidebarForceTooltips == 1"
 		tooltip force top
 		glow lua "highlightSidebarButton(multiplayerScreen)"
@@ -5541,17 +5428,13 @@ menu
 		enabled "worldScreen == e:GetActiveEngine()"
 		bam GUILS10
 		sequence 15
-		tooltip lua "getTooltipWithHotkey(28,74261)"
+		tooltip lua "getTooltipWithHotkey(15,74261)"
 		tooltip force lua "sidebarForceTooltips == 1"
 		tooltip force top
 		clickable lua "sidebarsGreyed ~= 1"
 		action
 		"
-			worldScreen:OnQuickSaveButtonClick(false)
-		"
-		actionAlt
-		"
-			worldScreen:OnQuickSaveButtonClick(true)
+			worldScreen:OnQuickSaveButtonClick()
 		"
 	}
 	button
@@ -5560,21 +5443,18 @@ menu
 		enabled "worldScreen == e:GetActiveEngine()"
 		bam GUILS10
 		sequence 16
-		tooltip lua "Infinity_FetchString(74270)" --"getTooltipWithHotkey(16,74270)"
+		tooltip lua "getTooltipWithHotkey(16,74270)"
 		tooltip force lua "sidebarForceTooltips == 1"
 		tooltip force top
 		clickable lua "sidebarsGreyed ~= 1"
-		action
-		"
-			Infinity_PushMenu('HELP')
-		"
+		toggle sidebarForceTooltips
 	}
 	button
 	{
 		area 3 110 73 55
 		bam GUILS10
 		sequence 9
-		tooltip lua "getTooltipWithHotkey(31,11942)"
+		tooltip lua "getTooltipWithHotkey(9,11942)"
 		tooltip force lua "sidebarForceTooltips == 1"
 		tooltip force top
 		clickable lua "sidebarsGreyed ~= 1"
@@ -6032,50 +5912,6 @@ function getInventoryTHAC0Details()
 		return characters[id].THAC0.details.."\n\n"..characters[id].THAC0.detailsOffhand
 	end
 end
-function scrollGroundItems()
-	forceGroundItemsScrollbar = true
-	if scrollDirection > 0 then
-		Infinity_OnGroundPage(-1)
-	elseif scrollDirection < 0 then
-		Infinity_OnGroundPage(1)
-	end
-	currentFakePage = Infinity_GetCurrentGroundPage()
-end
-
-fakeItemList = {}
-currentFakePage = 1
-currentMaxFakePages = 1
-forceGroundItemsScrollbar = false
-
-function scrollGroundItemsFunction(top, height, contentHeight)
-	if forceGroundItemsScrollbar then
-		forceGroundItemsScrollbar = false
-		return (currentFakePage / currentMaxFakePages) * (height - contentHeight)
-	elseif top ~= 0 and height ~= contentHeight and currentMaxFakePages ~= 0 then
-		local currentPage = currentFakePage
-		currentFakePage = math.floor((top / (height - contentHeight) * currentMaxFakePages))
-		if currentPage > currentFakePage then
-			Infinity_OnGroundPage(-1)
-		elseif currentPage < currentFakePage then
-			Infinity_OnGroundPage(1)
-		end
-		return nil
-	end
-end
-
-function isGroundScrollbarEnabled()
-	local maxPages = Infinity_GetMaxGroundPage()
-	if currentMaxFakePages ~= maxPages then
-		currentMaxFakePages = maxPages
-
-		fakeItemList = {}
-		for i = 1, currentMaxFakePages+1 do
-			fakeItemList[i] = 1
-		end
-	end
-
-	return currentMaxFakePages > 0
-end
 `
 menu
 {
@@ -6088,21 +5924,11 @@ menu
 		Infinity_ActivateInventory()
 		pushSidebars()
 		doubleClickEventScheduled = nil
-
-		for i = 1, Infinity_GetMaxGroundPage()+1 do
-			fakeItemList[i] = 1
-		end
-		currentFakePage = Infinity_GetCurrentGroundPage()
-		currentMaxFakePages = Infinity_GetMaxGroundPage()
 	"
 	onClose 
 	"
 		Infinity_PopMenu('CHARACTER_COLOR')
-		Infinity_PopMenu('ITEM_DESCRIPTION')
-		Infinity_PopMenu('ITEM_IDENTIFY')
 		popSidebars()
-
-		fakeItemList = {}
 	"
 	label
 	{
@@ -6429,38 +6255,35 @@ menu
 	slot {name "slot_inv_44"		area 458 571 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.group14"		}
 	slot {name "slot_inv_45"		area 458 626 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.group15"		}
 
-	list
-	{
-		column 
-		{ 
-			width	100
-			label
-			{
-				area 		0,0,928,-1
-			}
-		}
-		
-		area 710 478 136 220
-		rowheight	220
-		hidehighlight
-		table		"fakeItemList"
-		var			currentFakePage
-		scrollbar	'GUISCRC'
-		scrollbar func "scrollGroundItemsFunction"
-		scrollbar respectConstraints
-		actionScroll "scrollGroundItems()"
-		enabled "isGroundScrollbarEnabled()"
-	}
- 
-	slot {name "slot_inv_68"		area 710 478 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground0"	actionScroll "scrollGroundItems()"	}
-	slot {name "slot_inv_69"		area 766 478 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground1"	actionScroll "scrollGroundItems()"	}
-	slot {name "slot_inv_70"		area 710 534 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground2"	actionScroll "scrollGroundItems()"	}
-	slot {name "slot_inv_71"		area 766 534 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground3"	actionScroll "scrollGroundItems()"	}
-	slot {name "slot_inv_72"		area 710 590 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground4"	actionScroll "scrollGroundItems()"	}
-	slot {name "slot_inv_73"		area 766 590 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground5"	actionScroll "scrollGroundItems()"	}
-	slot {name "slot_inv_74"		area 710 646 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground6"	actionScroll "scrollGroundItems()"	}
-	slot {name "slot_inv_75"		area 766 646 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground7"	actionScroll "scrollGroundItems()"	}
+	slot {name "slot_inv_68"		area 710 478 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground0"		}
+	slot {name "slot_inv_69"		area 766 478 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground1"		}
+	slot {name "slot_inv_70"		area 710 534 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground2"		}
+	slot {name "slot_inv_71"		area 766 534 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground3"		}
+	slot {name "slot_inv_72"		area 710 590 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground4"		}
+	slot {name "slot_inv_73"		area 766 590 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground5"		}
+	slot {name "slot_inv_74"		area 710 646 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground6"		}
+	slot {name "slot_inv_75"		area 766 646 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground7"		}
 
+	text
+	{
+		area 822 478 20 28
+		bam GUISCRCW
+		frame 0
+		action
+		"
+			Infinity_OnGroundPage(-1)
+		"
+	}
+	text
+	{
+		area 822 664 20 28
+		bam GUISCRCW
+		frame 2
+		action
+		"
+			Infinity_OnGroundPage(1)
+		"
+	}
 	button
 	{
 		area 458 98 50 52
@@ -6593,7 +6416,6 @@ menu
 		enabled "characters[id].PC == 1"
 		area 46 298 258 44
 		bam	 'SLDRSTAR'
-		scaleToClip
 		position "SLIDER_color_hair"
 		sequence 0
 		frame	 1
@@ -6617,7 +6439,6 @@ menu
 		enabled "characters[id].PC == 1"
 		area 46 356 258 44
 		bam	 'SLDRSTAR'
-		scaleToClip
 		position "SLIDER_color_skin"
 		sequence 0
 		frame	 1
@@ -6648,7 +6469,6 @@ menu
 		palette 2
 		area 46 478 258 44
 		bam	 'SLDRSTAR'
-		scaleToClip
 		position "SLIDER_color_major"
 		sequence 0
 		frame	 1
@@ -6671,7 +6491,6 @@ menu
 		palette 1
 		area 46 534 258 44
 		bam	 'SLDRSTAR'
-		scaleToClip
 		position "SLIDER_color_minor"
 		sequence 0
 		frame	 1
@@ -6805,7 +6624,7 @@ menu
 		text point 14
 		text color C
 	}
-	text
+	label
 	{
 		area 92 36 348 26
 		text lua "getSubtitleString()"
@@ -6813,18 +6632,14 @@ menu
 		text align left center
 		text point 14
 		text color D
-		scrollbar 'GUISCRC'
-		scrollbar hide lua "1"
 	}
 
-	text
+	label
 	{
 		area 20 64 472 62
 		text lua "getBodyString()"
 		text style "normal"
-		text align left top
-		scrollbar 'GUISCRC'
-		scrollbar hide lua "1"
+		text align left center
 	}
 	label
 	{
@@ -6912,16 +6727,7 @@ cheatXpAmt = 500000
 menu
 {
 	name 'cheatMenu'
-	ignoreEsc	
-        
-        onOpen
-	"
-		if startCampaignData[currentCampaign].cheatAreasTable ~= nil then
-			cheatAreaDisplayList = startCampaignData[currentCampaign].cheatAreasTable
-		else
-			cheatAreaDisplayList = cheatAreas
-		end
-	"
+	ignoreEsc
 
 	label
 	{
@@ -6931,12 +6737,12 @@ menu
 	list
 	{
 		column 
-		{
+		{ 
 			width 20 
 			label
 			{
 				area 0 0 -1 -1
-				text lua "cheatAreaDisplayList[rowNumber][1]"
+				text lua "cheatAreas[rowNumber][1]"
 				text style "list"
 			}
 		}
@@ -6946,7 +6752,7 @@ menu
 			label
 			{
 				area 0 0 -1 -1
-				text lua "cheatAreaDisplayList[rowNumber][2]"
+				text lua "cheatAreas[rowNumber][2]"
 				text style "list"
 			}
 		}
@@ -6954,7 +6760,7 @@ menu
 		area 122 6 492 240
 		
 		rowheight	18
-		table		"cheatAreaDisplayList"
+		table		"cheatAreas"
 		var		cheatTeleportArea
 		scrollbar	'GUISCRC'
 	}
@@ -6965,7 +6771,7 @@ menu
 		sequence	6
 		text		"TRAVEL_BUTTON"
 		text style	"button"
-		action 		"C:MoveToArea(cheatAreaDisplayList[cheatTeleportArea][1])"
+		action 		"C:MoveToArea(cheatAreas[cheatTeleportArea][1])"
 	}
 	button
 	{
@@ -7511,202 +7317,43 @@ menu
 	}
 }
 
-menu
-{
-	name 'START_INSTALLATION_WARNING'
-	align center center
-	--ignoreEsc
-	modal
-	
-	label
-	{
-		area 0 0 672 672
-		mosaic "RECENTEV"
-	}
-	label
-	{
-		area 158 32 354 46
-		text style "title"
-		text lua "eetStrings.EET_WARNING_TITLE"
-	}
-	label
-	{
-		area 126 106 422 458
-		text style "normal"
-		text lua "eetStrings.EET_WARNING_TEXT"
-	}
-}
-
-menu
-{
-	name 'START_CAMPAIGN_SELECT'
-	align center center
-	ignoreEsc
-	modal
-	
-	onOpen "
-	"
-	
-	label
-	{
-		area 0 0 820 427
-		mosaic 'STARTBG2'
-	}
-	
-	list
-	{
-		column 
-		{ 
-			width 15
-			label
-			{
-				area	0 0 -1 -1
-				bam "CMPGEET"
-				sequence lua 'startCampaignData[rowNumber].icon'
-				align	center center
-			}
-		}
-		column 
-		{ 
-			width 85
-			label
-			{
-				area		0 0 -1 -1
-				text lua "getEETTitle(rowNumber)"
-				text style "normal_parchment"
-				text align left center
-			}
-		}
-		
-		area 83 25 316 384
-		
-		rowheight	40
-		--hideHighlight
-		table		"startCampaignData"
-		var		selectedOpt
-		scrollbar	'GUISCRP'
-		sound		""
-		action		"
-			onCampaignButton(selectedOpt)
-			selectedOpt = 0
-			startEngine:DismissChooseCampaignPopup()
-		"
-		actionEnter
-		"
-			if mouseoverRow > 0 then
-				highlightedCampaign = mouseoverRow
-			end
-			glowTest = mouseoverRow
-			selectedOpt = mouseoverRow
-		"
-		actionExit
-		"
-			glowTest = nil
-			--highlightedCampaign = nil
-			selectedOpt = 0
-		"
-	}
-	
-	text
-	{
-		name		"campaignBookDescription"
-		area		426 25 316 384
-		text lua	"getEETDescription(highlightedCampaign)"
-		text style	"normal_parchment"
-		scrollbar	'GUISCRP'
-	}
-}
-
 `
-	function getTitle()
-		return startCampaignData[currentCampaign].title
-	end
-	
-	function getBigLogo()
-		return startCampaignData[currentCampaign].bigLogo
-	end
-	
-	function getCampaignButtonSequence()
-		return startCampaignData[currentCampaign].button
-	end
-	
-	function getEETTitle(row)
-		local text = startCampaignData[row].name
-		return eetStrings[text]
-	end
-	
-	function getEETDescription(row)
-		local text = startCampaignData[row].description
-		return eetStrings[text]
-	end
-	
-	function onCampaignButton(buttonNum)
-		if startCampaignData[buttonNum] ~= nil then
-			startEngine:OnCampaignButtonClick(startCampaignData[buttonNum].id,true)
-			Infinity_SetINIValue('Program Options','Active Campaign',buttonNum)
+	highlightBG = false
+	highlightSOD = false
+	highlightBP = false
+	logoFrame = 0
+
+	function startThreeBookHighlight(book)
+		if book == 1 and highlightBG == true then
+			return 1
+		elseif book == 2 and highlightSOD == true then
+			return 1
+		elseif book == 3 and highlightBP == true then
+			return 1
 		else
-			startEngine:OnCampaignButtonClick('BG1',true)
-			Infinity_SetINIValue('Program Options','Active Campaign',const.START_CAMPAIGN_BG1)
+			return 0
 		end
-		currentCampaign = buttonNum
 	end
-	
-	function getCampaignImportEnabled()
-		return startCampaignData[currentCampaign].importEnabled	
-	end
-	
-	function getTutorialEnabled()
-		--Tutorial and campaign import should never be enabled for the same campaign - the button uses the same space
-		return startCampaignData[currentCampaign].tutorialEnabled	
-	end
-	
-	function getSidebarFrame()
-		return startCampaignData[currentCampaign].sidebar
-	end
-	
-	--usingSODStartMenu = 1
 `
 menu
 {
 	name 'START'
 	align center center
-	size 1024 768
 	ignoreesc
 	onOpen "
-		if(Infinity_GetINIValue('Program Options','EET Installation State') == 1) then --EET_end not installed
-			Infinity_PushMenu('START_INSTALLATION_WARNING')
-		end
-		if (start_doOnce == nil) then
-			currentCampaign = Infinity_GetINIValue('Program Options','Active Campaign')
-			if (currentCampaign == 0) then
-				currentCampaign = 1
-			end
-			onCampaignButton(currentCampaign)
-			highlightedCampaign = currentCampaign
-			start_doOnce = 1
-			return
-		end
-		canContinue = startEngine:HasGameToContinue()
-		Infinity_PlayMovie('flames','flames')
 		e:CheckGUISong()
 		local state = startEngine:GetEngineState()
 		if lastStartMenu and lastStartMenu ~= 'START' then
-			Infinity_PopMenu('START')
 			Infinity_PushMenu(lastStartMenu)
 			lastStartMenu = nil
-		elseif state == 1 or state == 3 then
-			Infinity_PopMenu('START')
+		elseif state == 1 then
 			Infinity_PushMenu('START_SP')
 		elseif state == 2 then
-			Infinity_PopMenu('START')
 			Infinity_PushMenu('START_MP')
+		elseif state == 0 then
+			Infinity_PushMenu('START_MAIN')
 		end
-		--Infinity_SetBackground('BACKGROUND')
-		
-		--If we're coming back from the tutorial make sure we're set to our actual campaign.
-		--if(Infinity_GetINIValue('Program Options','Active Campaign') == const.START_CAMPAIGN_BG1) then
-		--	startEngine:OnCampaignButtonClick('BG1',false)
-		--end
+		Infinity_SetBackground('BACKGROUND')
 	"
 	onClose "
 		local state = startEngine:GetEngineState()
@@ -7714,42 +7361,186 @@ menu
 			Infinity_PopMenu('START_SP')
 		elseif state == 2 then
 			Infinity_PopMenu('START_MP')
+		elseif state == 0 or state == 3 then
+			Infinity_PopMenu('START_MAIN')
 		end
 
 	"
+
+	label
+	{
+		area 6 0 1024 768
+		mosaic 'START3EE'
+	}
+
+	text --soa
+	{
+		bam 'LOGOSOA'
+		sequence 0
+		frame lua "startThreeBookHighlight(1)"
+		area 106 270 202 240
+		align center center
+		action 
+		"
+			logoFrame = 0
+			startEngine:OnSoAButtonClick(true)
+			Infinity_PushMenu('START_MAIN')
+		"
+		actionEnter
+		"
+			highlightBG = true
+		"
+		actionExit
+		"
+			highlightBG = false
+		"
+	}
+	text --tob
+	{
+		bam 'LOGOTOB'
+		sequence 0
+		frame lua "startThreeBookHighlight(2)"
+		area 400 270 235 224
+		align center center
+		action 
+		"
+			logoFrame = 1
+			startEngine:OnToBButtonClick(true)
+			Infinity_PushMenu('START_MAIN')
+		"
+		actionEnter
+		"
+			highlightSOD = true
+		"
+		actionExit
+		"
+			highlightSOD = false
+		"
+	}
+	text --black pits
+	{
+		bam 'LOGOTBP'
+		sequence 0
+		frame lua "startThreeBookHighlight(3)"
+		area 718 282 226 212
+		align center center
+		action 
+		"
+			logoFrame = 2
+			startEngine:OnTBPButtonClick(true)
+			Infinity_PushMenu('START_MAIN')
+		"
+		actionEnter
+		"
+			highlightBP = true
+		"
+		actionExit
+		"
+			highlightBP = false
+		"
+	}
+
+	button --credits
+	{
+		bam 'GUIOSTUL'
+		sequence 0
+		area 178 714 234 46
+		pad 10 8 10 8
+		text style "button"
+		text "CREDITS_BUTTON"
+		action 
+		"
+			Infinity_PushMenu('CREDITS')
+		"
+	}
+	button --quit
+	{
+		bam 'GUIOSTUM'
+		sequence 0
+		area 416 714 206 44
+		pad 10 8 10 8
+		text style "button"
+		text "QUIT_GAME_BUTTON"
+		action 
+		"
+			startEngine:OnQuitButtonClick()
+		"
+	}
+	button --options
+	{
+		bam 'GUIOSTUR'
+		sequence 0
+		area 628 714 234 42
+		pad 10 8 10 8
+		text style "button"
+		text "OPTIONS_BUTTON"
+		action 
+		"
+			Infinity_TransitionMenu('START_OPTIONS')
+			optionsScreen:SetEngineState(1)
+			startEngine:OnOptionsButtonClick()
+			lastStartMenu = 'START'
+		"
+	}
 	
+	label
+	{
+		area 448 606 134 44
+		text lua "versionString"
+		text style	"label"
+		text point	10
+		align center center
+	} 
+}
+
+menu
+{
+	name 'START_MAIN'
+	align center center
+	ignoreEsc
+
+	onOpen	"
+		canContinue = startEngine:HasGameToContinue()
+	"
+
 	label
 	{
 		area 0 0 1024 768
 		mosaic 'START'
 	}
-	
 	label
 	{
 		area 112 26 786 202	
 		bam 'TITLE'
 		sequence 0
 		align center center
-		frame lua "getTitle()"
+		frame lua 'logoFrame'
 	}
 	label
 	{
 		area 338 192 352 456	
 		bam 'BIGLOGO'
 		align center center
-		frame lua "getBigLogo()"
+		frame lua 'logoFrame'
 	}
-	label
+
+
+	button
 	{
-		area 76 186 868 466
-		mosaic 'GUIVERB2'
+		bam 'GUIOSTCL'
+		area 364 662 302 44
+		pad 10 8 10 8
+		text style "button"
+		--text 9372
+		text "CONTINUE_BUTTON"
+		clickable lua "canContinue"
+		action "startEngine:OnContinueGame()"
 	}
-	
 	button
 	{
 		bam 'STARTMBT'
 		sequence 0
-		area 113 296 262 74
+		area 112 294 262 74
 		pad 10 8 10 8
 		text style "button"
 		text "SINGLEPLAYER_BUTTON"
@@ -7764,7 +7555,7 @@ menu
 	{
 		bam 'STARTMBT'
 		sequence 3
-		area 645 298 266 74
+		area 649 300 266 74
 		pad 10 8 10 8
 		text style "button"
 		text "MULTIPLAYER_BUTTON"
@@ -7773,38 +7564,39 @@ menu
 			startEngine:OnMultiPlayerButtonClick()
 		"
 	}
-	button
-	{
-		bam 'STARTMBT'
-		sequence 1
-		area 112 375 236 84
-		pad 10 8 10 8
-		text style "button"
-		text "CONTINUE_BUTTON"
-		clickable lua "canContinue"
-		action 
-		"
-			startEngine:OnContinueGame()
-		"
-	}
-	button
-	{
-		bam 'STARTMBT'
-		sequence 4
-		area 680 375 233 84
-		pad 10 8 10 8
-		text style "button"
-		text "QUIT_GAME_BUTTON"
-		action 
-		"
-			startEngine:OnQuitButtonClick()
-		"
-	}
+	--button
+	--{
+	--	bam 'STARTMBT'
+	--	sequence 1
+	--	area 112 374 236 84
+	--	pad 10 8 10 8
+	--	text style "button"
+	--	text "HOW_TO_PLAY_BUTTON"
+	--	action 
+	--	"
+	--		Infinity_TransitionMenu('CONNECTION')
+	--		startEngine:OnMultiPlayerButtonClick()
+	--	"
+	--}
+	--button
+	--{
+	--	bam 'STARTMBT'
+	--	sequence 4
+	--	area 682 378 233 84
+	--	pad 10 8 10 8
+	--	text style "button"
+	--	text "PURCHASE_CONTENT_BUTTON"
+	--	action 
+	--	"
+	--		Infinity_TransitionMenu('CONNECTION')
+	--		startEngine:OnMultiPlayerButtonClick()
+	--	"
+	--}
 	button
 	{
 		bam 'STARTMBT'
 		sequence 2
-		area 114 461 262 76
+		area 116 462 262 76
 		pad 10 8 10 8
 		text style "button"
 		text "OPTIONS_BUTTON"
@@ -7812,29 +7604,22 @@ menu
 			Infinity_TransitionMenu('START_OPTIONS')
 			optionsScreen:SetEngineState(1)
 			startEngine:OnOptionsButtonClick()
-			lastStartMenu = 'START'
+			lastStartMenu = 'START_MAIN'
 		"
 	}
 	button
 	{
-		area 649 463 260 76
+		area 649 462 260 76
 		bam 'STARTMBT'
 		sequence 5
 		pad 10 8 10 8
 		text style "button"
-		text "SELECT_CAMPAIGN_TITLE"
+		text "BACK_BUTTON"
 		action 
 		"
-			Infinity_PushMenu('START_CAMPAIGN_SELECT')
-		"
-	}
-	
-	label
-	{
-		area 463 0 94 47
-		text style 'normal'
-		text align center center
-		text lua "CBaldurChitin:GetVersionString()"
+			e:GetObjectGame():SetCampaign('')
+			Infinity_PopMenu()
+			"
 	}
 }
 menu
@@ -7855,45 +7640,36 @@ menu
 		bam 'TITLE'
 		sequence 0
 		align center center
-		frame lua "getTitle()"
+		frame lua 'logoFrame'
 	}
 	label
 	{
-		area 338 192 352 456	
+		area 340 192 352 456	
 		bam 'BIGLOGO'
 		align center center
-		frame lua "getBigLogo()"
+		frame lua 'logoFrame'
 	}
-	label
-	{
-		area 76 186 868 466
-		mosaic 'GUIVERB2'
-	}
-	
+
+
 	button
 	{
 		bam 'STARTMBT'
 		sequence 0
-		area 113 296 262 74
+		area 112 294 262 74
 		pad 10 8 10 8
 		text style "button"
 		text "NEW_GAME_BUTTON"
 		action 
 		"
 			Infinity_PopMenu(); 
-			checkCampaign = Infinity_GetINIValue('Program Options','Active Campaign')
-			if startCampaignData[checkCampaign].forceParty then
-				startEngine:OnCreatePartyButtonClick();
-			else
-				startEngine:OnNewGameButtonClick();
-			end
+			startEngine:OnNewGameButtonClick();
 		"
 	}
 	button
 	{
 		bam 'STARTMBT'
 		sequence 3
-		area 645 298 266 74
+		area 649 300 266 74
 		pad 10 8 10 8
 		text style "button"
 		text "LOAD_GAME_BUTTON"
@@ -7903,7 +7679,7 @@ menu
 	{
 		bam 'STARTMBT'
 		sequence 1
-		area 112 375 236 84
+		area 112 374 236 84
 		pad 10 8 10 8
 		text style "button"
 		text "PREGENERATE_BUTTON"
@@ -7912,9 +7688,8 @@ menu
 	button
 	{
 		bam 'STARTMBT'
-		enabled "getCampaignImportEnabled()"
 		sequence 4
-		area 680 375 233 84
+		area 682 378 233 84
 		pad 10 8 10 8
 		text style "button"
 		text "IMPORT_GAME_BUTTON"
@@ -7927,22 +7702,8 @@ menu
 	button
 	{
 		bam 'STARTMBT'
-		sequence 4
-		area 680 375 233 84
-		pad 10 8 10 8
-		text style "button"
-		text lua "Infinity_FetchString(74269)"
-		--enabled "e:IsTouchUI()"
-		action 
-		"
-			startEngine:OnDLCImageClick()
-		"
-	}
-	button
-	{
-		bam 'STARTMBT'
 		sequence 2
-		area 114 461 262 76
+		area 116 462 262 76
 		pad 10 8 10 8
 		text style "button"
 		text "OPTIONS_BUTTON"
@@ -7955,20 +7716,13 @@ menu
 	}
 	button
 	{
-		area 649 463 260 76
+		area 649 462 260 76
 		bam 'STARTMBT'
 		sequence 5
 		pad 10 8 10 8
 		text style "button"
 		text "BACK_BUTTON"
 		action "startEngine:SetEngineState(0); Infinity_TransitionMenu('START')"
-	}
-	label
-	{
-		area 463 0 94 47
-		text style 'normal'
-		text align center center
-		text lua "CBaldurChitin:GetVersionString()"
 	}
 }
 
@@ -7989,6 +7743,14 @@ function magePageInfo()
 	return ""
 end
 
+mageBookStrings = {
+	SPWI908 = {tip = 55373, title = 'CHAIN_CONTINGENCY_TITLE', action = "ADD_SPELLS_CONTINGENCY_LABEL"},
+	SPWI617 = {tip = 55373, title = 'CONTINGENCY_TITLE', action = "ADD_SPELLS_CONTINGENCY_LABEL"},
+	SPWI809 = {tip = 55372, title = 'SPELL_TRIGGER_TITLE', action = "ADD_SPELLS_TRIGGER_LABEL"},
+	SPWI710 = {tip = 60420, title = 'SPELL_SEQUENCER_TITLE', action = "ADD_SPELLS_SEQUENCER_LABEL"},
+	SPWI420 = {tip = 60420, title = 'MINOR_SEQUENCER_TITLE', action = "ADD_SPELLS_SEQUENCER_LABEL"},
+	}
+	
 contingencyDescription = 0
 
 function mageBookDescription()
@@ -8070,30 +7832,19 @@ function filterMemorizedMageSpells()
 	return out
 end
 
-function tableInsert(out, v)
-	if mageScreen:SpellSwappedInContingency(v.resref) then
-		for key,value in pairs(contingencySwapTable) do
-			value.castableCount = v.castableCount
-			table.insert(out, value)
-		end
-	else
-		table.insert(out, v)
-	end
-end
-
 function filterContingencyMageSpells()
 	local out = {}
 	if characters[id].mageSpells ~= nil and characters[id].mageSpells[currentSpellLevel] ~= nil then
 		for k,v in pairs(characters[id].mageSpells[currentSpellLevel]) do
 			if v.castableCount > 0 and mageScreen:SpellAllowedForContingency(v.level, v.resref) then
-				tableInsert(out, v)
+				table.insert(out, v)
 			end
 		end
 	end
 	if characters[id].priestSpells ~= nil and characters[id].priestSpells[currentSpellLevel] ~= nil then
 		for k,v in pairs(characters[id].priestSpells[currentSpellLevel]) do
 			if v.castableCount > 0 and mageScreen:SpellAllowedForContingency(v.level, v.resref) then
-				tableInsert(out, v)
+				table.insert(out, v)
 			end
 		end
 	end
@@ -8107,16 +7858,19 @@ function findFirstDifferenceInSpellList(oldList, newList)
 	if oldList ~= nil and newList ~= nil then
 		while oldList[spellIndex] ~= nil do
 			if newList[spellIndex] == nil then
+				print("New list empty at point "..spellIndex)
 				ret = spellIndex
 				break
 			end
 			if oldList[spellIndex].icon ~= newList[spellIndex].icon then
+				print("Lists differ at point "..spellIndex.." "..oldList[spellIndex].icon.." vs "..newList[spellIndex].icon)
 				ret = spellIndex
 				break
 			end
 			spellIndex = spellIndex + 1
 		end
 		if oldList[spellIndex] == nil and newList[spellIndex] ~= nil then
+			print("New list has a new spell at point "..spellIndex)
 			ret = spellIndex
 		end
 	end
@@ -8155,7 +7909,6 @@ function refreshMageBook()
 end
 
 function setMageBookLevel(num)
-	lastCurrentBookSpell = 0
 	currentBookSpell = 0
 	currentSpellLevel = num
 	mageScreen:SetSpellLevel(num-1)
@@ -8204,21 +7957,6 @@ function createMageMemorizationSparkle(x,y,w,h, fromList, listIndex)
 	end
 end
 
-function findMemorizedUncastable(resref)
-	local index = 1
-	local sparkle = -1
-	for index = 1, #(bottomSpells), 1 do
-		if bottomSpells[index].resref == resref then
-			if bottomSpells[index].castable == 0 then
-				sparkle = index
-				break
-			end
-		end
-	end
-
-	return sparkle
-end
-
 function unmemorizingMageSpell(resref)
 	local index = 1
 	local sparkle = -1
@@ -8232,12 +7970,6 @@ function unmemorizingMageSpell(resref)
 	end
 
 	createMageMemorizationSparkle(0, 0, 36, 36, 'memorizedListMage', sparkle)
-end
-
-function unmemorizeMageSpell(slot)
-	showMageMemorizationFlash = false
-	mageScreen:UnmemorizeSpell( bottomSpells[slot].level, bottomSpells[slot].memorizedIndex )
-	Infinity_PlaySound('GAM_44')
 end
 
 memorizationFlashes = 
@@ -8261,6 +7993,7 @@ menu
 {
 	name 'MAGE'
 	align center center
+	greyscale lua "mageBookEnabled == false"
 	modal lua "bookMode == 1"
 
 	onopen "
@@ -8436,14 +8169,13 @@ menu
 			}
 		}
 
-		area 112 412 302 156
+		area 112 186 302 384
 		
 		name 		"bookListMage"
 		rowheight	40
 		table		"bookSpells"
 		var		currentBookSpell
 		scrollbar	'GUISCRC'
-		sound		""
 		action		
 		"
 			contingencyDescription = 0
@@ -8456,15 +8188,14 @@ menu
 					end
 					mageScreen:MemorizeSpell( bookSpells[currentBookSpell].level, bookSpells[currentBookSpell].index )
 				elseif bookMode == 1 and #bottomSpells < #bottomSpellsPlaceHolder then
-					mageScreen:SequenceSpell( bookSpells[currentBookSpell].resref, bookSpells[currentBookSpell].masterResref )
+					mageScreen:SequenceSpell( bookSpells[currentBookSpell].resref )
 				end
 			end
 			if lastCurrentBookSpell == currentBookSpell and cellNumber == 2 then
 				currentBookSpell = 0
 				contingencyDescription = mageBookStrings[contingencyResRef].tip
-			else
-				lastCurrentBookSpell = currentBookSpell
 			end
+			lastCurrentBookSpell = currentBookSpell
 		"
 		actionalt
 		"
@@ -8560,7 +8291,7 @@ menu
 	text
 	{
 		name		"bookDescription"
-		area		448 412 322 156
+		area		448 186 322 384
 		text lua 	"mageBookDescription()"
 		text style	"normal_parchment"
 		scrollbar	'GUISCRC'
@@ -8606,18 +8337,15 @@ menu
 		enabled 	"#bottomSpells ~= 0"
 		rowwidth	36
 		table		"bottomSpells"
-		sound		""
 		var		currentBottomSpell
 		action		
 		"
 			if bookMode == 0 then
-				if findMemorizedUncastable(bottomSpells[currentBottomSpell].resref) == -1 and Infinity_GetOption(41, 9) ~= 0 then
-					popup2Button(11824, 'REMOVE_BUTTON', function() unmemorizeMageSpell(currentBottomSpell) end, 'CANCEL_BUTTON')
-				else
-					unmemorizeMageSpell(currentBottomSpell)
-				end
+				showMageMemorizationFlash = false
+				mageScreen:UnmemorizeSpell( bottomSpells[currentBottomSpell].level, bottomSpells[currentBottomSpell].memorizedIndex )
+				Infinity_PlaySound('GAM_44')
 			elseif bookMode == 1 then
-				mageScreen:UnSequenceSpell( bottomSpells[currentBottomSpell].resref, bottomSpells[currentBottomSpell].masterResref )
+				mageScreen:UnSequenceSpell( bottomSpells[currentBottomSpell].resref )
 				table.remove(sequencerSpells, currentBottomSpell)
 				bottomSpells = sequencerSpells
 				currentBottomSpell = 0
@@ -8646,8 +8374,8 @@ menu
 	}
 	button
 	{
-		area 60 588 236 52
-		bam GUIOSTLL
+		area 60 588 204 44
+		bam GUIOSTLM
 		enabled "bookMode == 1 or characters[id].hasMageBook"
 		clickable lua "#bottomSpells < #bottomSpellsPlaceHolder and currentBookSpell ~= 0"
 		text "MEMORIZE_BUTTON"
@@ -8657,10 +8385,9 @@ menu
 			if bookMode == 0 then
 				createMageMemorizationSparkle(0, 0, 40, 40, 'bookListMage', -1)
 				showMageMemorizationFlash = true
-				Infinity_PlaySound('GAM_24')
 				mageScreen:MemorizeSpell( characters[id].mageSpells[currentSpellLevel][currentBookSpell].level, characters[id].mageSpells[currentSpellLevel][currentBookSpell].index )
 			elseif bookMode == 1 then
-				mageScreen:SequenceSpell( bookSpells[currentBookSpell].resref, bookSpells[currentBookSpell].masterResref )
+				mageScreen:SequenceSpell( bookSpells[currentBookSpell].resref )
 			end
 
 		"
@@ -8669,7 +8396,7 @@ menu
 
 	button
 	{
-		area 572 588 236 52
+		area 588 584 236 52
 		enabled "bookMode == 1"
 		bam GUIOSTLR
 		text lua "contingencyDoneButtonText()"
@@ -8685,13 +8412,6 @@ menu
 			e:SelectEngine(worldScreen)
 		"
 		
-	}
-
-	label
-	{
-		area 0 0 865 710
-		fill        0 0 0 176
-		enabled "mageBookEnabled == false"
 	}
 
 }
@@ -8850,13 +8570,9 @@ menu
 		table		"preparedSpells"
 		var		"currentContingencySpell"
 		action		"
-            if (cellNumber == 7) and preparedSpells[currentContingencySpell].dispellable then
-                if Infinity_GetOption(41, 9) == 1 then
-                    popup2Button(32665, 'YES_BUTTON', function() mageScreen:OnDispellButtonClick(currentContingencySpell) end, 'NO_BUTTON')
-                else
-                    mageScreen:OnDispellButtonClick(currentContingencySpell)
-                end
-            end
+			if (cellNumber == 7) and preparedSpells[currentContingencySpell].dispellable then
+				popup2Button(24398, 'YES_BUTTON', function() mageScreen:OnDispellButtonClick(currentContingencySpell) end, 'NO_BUTTON')
+			end
 		"
 	}
 	
@@ -8984,7 +8700,6 @@ function refreshPriestBook()
 end
 
 function setPriestBookLevel(num)
-	lastCurrentBookSpell = 0
 	currentBookSpell = 0
 	currentSpellLevel = num
 	refreshPriestBook()
@@ -9015,17 +8730,12 @@ function unmemorizingPriestSpell(resref)
 	createPriestMemorizationSparkle(0, 0, 36, 36, 'memorizedListPriest', sparkle)
 end
 
-function unmemorizePriestSpell(slot)
-	showPriestMemorizationFlash = false
-	priestScreen:UnmemorizeSpell( bottomSpells[slot].level, bottomSpells[slot].memorizedIndex )
-	Infinity_PlaySound('GAM_44')
-end
-
 `
 menu
 {
 	name 'PRIEST'
 	align center center
+	greyscale lua "priestBookEnabled == false"
 
 	onopen 
 	"
@@ -9180,7 +8890,6 @@ menu
 		table		"characters[id].priestSpells[currentSpellLevel]"
 		var		currentBookSpell
 		scrollbar	'GUISCRC'
-		sound		""
 		action		"
 			if cellNumber == 1 then
 				if #bottomSpells < #bottomSpellsPlaceHolder then
@@ -9192,9 +8901,8 @@ menu
 			end
 			if lastCurrentBookSpell == currentBookSpell and cellNumber == 2 then
 				currentBookSpell = 0
-			else
-				lastCurrentBookSpell = currentBookSpell
 			end
+			lastCurrentBookSpell = currentBookSpell
 		"
 
 	}
@@ -9246,16 +8954,13 @@ menu
 		enabled 	"#bottomSpells ~= 0"
 		rowwidth	36
 		table		"bottomSpells"
-		sound		""
 		var		currentBottomSpell
 		action		
 		"
 			if bottomSpells[currentBottomSpell] then
-				if findMemorizedUncastable(bottomSpells[currentBottomSpell].resref) == -1 and Infinity_GetOption(41, 9) ~= 0 then
-					popup2Button(11824, 'REMOVE_BUTTON', function() unmemorizePriestSpell(currentBottomSpell) end, 'CANCEL_BUTTON')
-				else
-					unmemorizePriestSpell(currentBottomSpell)
-				end
+				showPriestMemorizationFlash = false
+				priestScreen:UnmemorizeSpell( bottomSpells[currentBottomSpell].level, bottomSpells[currentBottomSpell].memorizedIndex )
+				Infinity_PlaySound('GAM_44')
 			end
 		"
 	}
@@ -9280,19 +8985,11 @@ menu
 		action 
 		"
 			createPriestMemorizationSparkle(0, 0, 40, 40, 'bookListPriest', -1)
-			Infinity_PlaySound('GAM_24')
 			showPriestMemorizationFlash = true
 			priestScreen:MemorizeSpell( characters[id].priestSpells[currentSpellLevel][currentBookSpell].level, characters[id].priestSpells[currentSpellLevel][currentBookSpell].index )
 
 		"
 		
-	}
-
-	label
-	{
-		area 0 0 865 710
-		fill        0 0 0 176
-		enabled "priestBookEnabled == false"
 	}
 }
 `
@@ -9307,28 +9004,6 @@ menu
 	ignoreesc
 	align center center
 	onOpen "
-		--'Active Campaign' INI setting is not automatically updated by MoveToCampaign action
-		--there is no known way to retrieve in-game variable from within GUI, so we're checking Infinity_GetMaxChapterPage() instead
-		checkCampaign = Infinity_GetINIValue('Program Options','Active Campaign')
-		local chapter = Infinity_GetMaxChapterPage()
-		if (chapter == 0) and (checkCampaign ~= const.START_CAMPAIGN_BG1) and (checkCampaign ~= const.START_CAMPAIGN_BP1) and (checkCampaign ~= const.START_CAMPAIGN_BP2) and (checkCampaign ~= const.START_CAMPAIGN_TUT) then
-			currentCampaign = const.START_CAMPAIGN_BG1
-		elseif (chapter > 0) and (chapter < 7) and (checkCampaign ~= const.START_CAMPAIGN_BG1) then
-			currentCampaign = const.START_CAMPAIGN_BG1
-		elseif (chapter == 7) and (checkCampaign ~= const.START_CAMPAIGN_BG1) and (checkCampaign ~= const.START_CAMPAIGN_SOD) then
-			currentCampaign = const.START_CAMPAIGN_SOD
-		elseif (chapter > 7) and (chapter < 13) and (checkCampaign ~= const.START_CAMPAIGN_SOD) then
-			currentCampaign = const.START_CAMPAIGN_SOD
-		elseif (chapter == 13) and (checkCampaign ~= const.START_CAMPAIGN_SOD) and (checkCampaign ~= const.START_CAMPAIGN_SOA) then
-			currentCampaign = const.START_CAMPAIGN_SOA
-		elseif (chapter > 13) and (chapter < 20) and (checkCampaign ~= const.START_CAMPAIGN_SOA) then
-			currentCampaign = const.START_CAMPAIGN_SOA
-		elseif (chapter >= 20) and (checkCampaign ~= const.START_CAMPAIGN_TOB) then
-			currentCampaign = const.START_CAMPAIGN_TOB
-		end
-		if (checkCampaign ~= currentCampaign) then
-			Infinity_SetINIValue('Program Options','Active Campaign',currentCampaign)
-		end
 		versionString = CBaldurChitin:GetVersionString()
 		pushSidebars()
 	"
@@ -9350,18 +9025,6 @@ menu
 		text lua "versionString"
 		text style "normal"
 		text align center center
-	}
-	label
-	{
-		area 244 174 378 454
-		bam 'BIGLOGO'
-		align center center
-		frame lua "getBigLogo()"
-	}
-	label
-	{
-		area -6 165 868 466
-		mosaic 'GUIVERB2'
 	}
 	button
 	{
@@ -9446,20 +9109,12 @@ menu
 		text "QUIT_GAME_BUTTON"
 		action
 		"
-			if e:IsTouchUI() then
-				popup3Button(16456, 
-				'CANCEL_BUTTON', nil, 
-				'MAIN_MENU_BUTTON', function() optionsScreen:QuitGame() end, 
-				'SAVE_BUTTON', function() optionsScreen:SaveGame(0) end
-				)
-			else
-				popup4Button(16456, 
-				'CANCEL_BUTTON', nil, 
-				'MAIN_MENU_BUTTON', function() optionsScreen:QuitGame() end, 
-				'QUIT_BUTTON', function() Infinity_ShutdownGame() end, 
-				'SAVE_BUTTON', function() optionsScreen:SaveGame(0) end
-				)
-			end
+			popup4Button(16456, 
+			'CANCEL_BUTTON', nil, 
+			'MAIN_MENU_BUTTON', function() optionsScreen:QuitGame() end, 
+			'QUIT_BUTTON', function() Infinity_ShutdownGame() end, 
+			'SAVE_BUTTON', function() optionsScreen:SaveGame(0) end
+			) 
 		"
 	}
 	button
@@ -9475,6 +9130,14 @@ menu
 		"
 			optionsScreen:SaveGame(0)
 		"
+	}
+	
+	label
+	{
+		area 244 174 378 454
+		bam 'BIGLOGO'
+		align center center
+		frame lua 'logoFrame'
 	}
 }
 
@@ -9503,23 +9166,23 @@ menu
 	{
 		area 112 26 786 202	
 		bam 'TITLE'
-		sequence 0 -- sequence lua 'initCampaign == 0'
+		sequence 0
 		align center center
-		frame lua "getTitle()"
+		frame lua 'logoFrame'
 	}
 	label
 	{
 		area 338 192 352 456	
 		bam 'BIGLOGO'
 		align center center
-		frame lua "getTitle()"
+		frame lua 'logoFrame'
 	}
 
 	button
 	{
 		bam 'STARTMBT'
 		sequence 0
-		area 113 296 262 74
+		area 112 294 262 74
 		pad 10 8 10 8
 		text style "button"
 		text "SOUND_BUTTON"
@@ -9529,7 +9192,7 @@ menu
 	{
 		bam 'STARTMBT'
 		sequence 3
-		area 645 298 266 74
+		area 649 300 266 74
 		pad 10 8 10 8
 		text style "button"
 		text "GRAPHICS_BUTTON"
@@ -9539,7 +9202,7 @@ menu
 	{
 		bam 'STARTMBT'
 		sequence 1
-		area 112 375 236 84
+		area 112 374 236 84
 		pad 10 8 10 8
 		text style "button"
 		text "LANGUAGE_BUTTON"
@@ -9549,7 +9212,7 @@ menu
 	{
 		bam 'STARTMBT'
 		sequence 4
-		area 680 375 233 84
+		area 682 378 233 84
 		pad 10 8 10 8
 		text style "button"
 		text "MOVIES_BUTTON"
@@ -9559,7 +9222,7 @@ menu
 	{
 		bam 'STARTMBT'
 		sequence 2
-		area 114 461 262 76
+		area 116 462 262 76
 		pad 10 8 10 8
 		text style "button"
 		text "GAMEPLAY_BUTTON"
@@ -9568,7 +9231,7 @@ menu
 	button
 	{
 		on escape
-		area 649 463 260 76
+		area 649 462 260 76
 		bam 'STARTMBT'
 		sequence 5
 		pad 10 8 10 8
@@ -9579,13 +9242,6 @@ menu
 			Infinity_PopMenu()
 			e:SelectEngine(startEngine)
 		"
-	}
-label
-	{
-		area 463 0 94 47
-		text style 'normal'
-		text align center center
-		text lua "CBaldurChitin:GetVersionString()"
 	}
 }
 `
@@ -9627,7 +9283,7 @@ menu
 	{
 		area 74 8 184 74
 		name "AREA_MAP_TITLE"
-		text lua "Infinity_FetchString(103241)"
+		text "AREA_MAP_TITLE"
 		text style title
 	}
 		label
@@ -9733,16 +9389,7 @@ menu
 {
 	name 'NOTE_ADD'
 	align center center
-	onOpen 
-	"
-		if colorChoice == nil then
-			colorChoice = Infinity_FindUIItemByName('BUTTON_mapNoteColor_' .. mapScreen:GetColorChoice())
-		end
-	"
-	onClose
-	"
-		colorChoice = nil
-	"
+	onOpen "colorChoice = mapScreen:GetColorChoice()"
 	modal
 	label
 	{
@@ -9800,7 +9447,6 @@ menu
 	
 	button
 	{
-		name "BUTTON_mapNoteColor_0"
 		area 240 80 45 42
 		bam "FLAG1"
 		highlightgroup colorChoice
@@ -9812,7 +9458,6 @@ menu
 	}
 	button
 	{
-		name "BUTTON_mapNoteColor_1"
 		area 316 80 45 42
 		bam "FLAG1"
 		highlightgroup colorChoice
@@ -9824,7 +9469,6 @@ menu
 	}
 	button
 	{
-		name "BUTTON_mapNoteColor_2"
 		area 392 80 45 42
 		bam "FLAG1"
 		highlightgroup colorChoice
@@ -9836,7 +9480,6 @@ menu
 	}
 	button
 	{
-		name "BUTTON_mapNoteColor_3"
 		area 470 80 45 42
 		bam "FLAG1"
 		highlightgroup colorChoice
@@ -9848,7 +9491,6 @@ menu
 	}
 	button
 	{
-		name "BUTTON_mapNoteColor_4"
 		area 546 80 45 42
 		bam "FLAG1"
 		highlightgroup colorChoice
@@ -9860,7 +9502,6 @@ menu
 	}
 	button
 	{
-		name "BUTTON_mapNoteColor_5"
 		area 624 80 45 42
 		bam "FLAG1"
 		highlightgroup colorChoice
@@ -9872,7 +9513,6 @@ menu
 	}
 	button
 	{
-		name "BUTTON_mapNoteColor_6"
 		area 702 80 45 42
 		bam "FLAG1"
 		highlightgroup colorChoice
@@ -9884,7 +9524,6 @@ menu
 	}
 	button
 	{
-		name "BUTTON_mapNoteColor_7"
 		area 166 80 45 42
 		bam "FLAG1"
 		highlightgroup colorChoice
@@ -9911,6 +9550,15 @@ menu
 		area 211 22 583 44
 		text "WORLD_MAP_TITLE"
 		text style "title"
+	}
+	text
+	{
+		area 241 93 500 45
+		enabled	"e:IsMultiplayer()"
+		text lua "mpChatText"
+		scrollbar func "chatboxScroll"
+		scrollbar 'GUISCRC'
+		text style	normal
 	}
 	button
 	{
@@ -10139,10 +9787,9 @@ end
 menu
 {
 	name 'STORE_BUYSELL'
-	align center center
+	align center top
 	onOpen "storeScreen:UpdateBuySellPanel()"
 	ignoreEsc
-	size 864 710
 	label
 	{
 		area 0 0 864 598
@@ -10204,7 +9851,7 @@ menu
 	label
 	{
 		area 26 116 349 30
-		text lua "checkContainerText('STORE_LABEL',Infinity_FetchString(storeScreen:GetStoreName()))"
+		text "STORE_LABEL"
 		text style "label"
 		align left center
 	}
@@ -10254,12 +9901,10 @@ menu
 		scrollbar 'GUISCRC'
 		action
 		"
-			if store.storeItems[storeItemsVar].clickable == 1 then
-				if not storeScreen:IsCloseBagButtonClickable() or store.storeItems[storeItemsVar].valid == 1 then
-					local highlight = true
-					if(store.storeItems[storeItemsVar].highlight == 1) then highlight = false end
-					storeScreen:SelectStoreItem( storeItemsVar - 1,  highlight)
-				end
+			if not storeScreen:IsCloseBagButtonClickable() or store.storeItems[storeItemsVar].valid == 1 then
+				local highlight = true
+				if(store.storeItems[storeItemsVar].highlight == 1) then highlight = false end
+				storeScreen:SelectStoreItem( storeItemsVar - 1,  highlight)
 			end
 		"
 		actionalt
@@ -10268,12 +9913,10 @@ menu
 		"
 		actionDbl
 		"
-			if store.storeItems[storeItemsVar].clickable == 1 then
-				if not storeScreen:IsCloseBagButtonClickable() or store.storeItems[storeItemsVar].valid == 1 then
-					local maxCount = store.storeItems[storeItemsVar].maxCount
-					if(maxCount > 1) then
-						popupRequester(maxCount, storeSplitStack, false)
-					end
+			if not storeScreen:IsCloseBagButtonClickable() or store.storeItems[storeItemsVar].valid == 1 then
+				local maxCount = store.storeItems[storeItemsVar].maxCount
+				if(maxCount > 1) then
+					popupRequester(maxCount, storeSplitStack, false)
 				end
 			end
 		"
@@ -10282,7 +9925,7 @@ menu
 	label
 	{
 		area 467 116 250 30
-		text  lua "Infinity_GetSelectedCharacterName()"
+		text "GROUP_LABEL"
 		text style "label"
 		align left center
 	}
@@ -10352,7 +9995,7 @@ menu
 		else
 			if store.groupItems[storeGroupItemsVar].valid ~= 0 then
 				local count = store.groupItems[storeGroupItemsVar].item.count
-				local stock = store.groupItems[storeGroupItemsVar].numInStock or 0
+				local stock = store.groupItems[storeGroupItemsVar].numInStock
 				if(count > 1) then
 					popupRequester(count, groupSplitStack, true)
 				elseif stock > 1 then
@@ -10489,23 +10132,6 @@ menu
 		encumbrance
 	}
 
-	label
-	{
-		area 26 146 406 344
-		enabled "storeScreen:IsSpriteOrderable() == false"
-		rectangle 0
-		rectangle opacity 200
-		ignoreEvents
-	}
- 
-	label
-	{
-		area 462 146 372 344
-		enabled "storeScreen:IsSpriteOrderable() == false"
-		rectangle 0
-		rectangle opacity 200
-		ignoreEvents
-	}
 }
 `
 	identifyItemsVar = 0
@@ -10513,8 +10139,7 @@ menu
 menu
 {
 	name 'STORE_IDENTIFY'
-	align center center
-	size 864 710
+	align center top
 	onOpen
 	"
 		storeScreen:UpdateIdentifyPanel()
@@ -10647,9 +10272,8 @@ end
 menu
 {
 	name 'STORE_DONATE'
-	align center center
+	align center top
 	ignoreEsc
-	size 864 710
 	onOpen 
 	"
 		storeScreen:UpdateDonatePanel()
@@ -10766,8 +10390,7 @@ menu
 menu
 {
 	name 'STORE_ROOMS'
-	align center center
-	size 864 710
+	align center top
 	onOpen 
 	"
 		storeScreen:SetRoomType(0)
@@ -10940,10 +10563,9 @@ menu
 menu
 {
 	name 'STORE_HEALING'
-	align center center
+	align center top
 	onOpen "storeScreen:UpdateBuySpellPanel()"
 	ignoreEsc
-	size 864 710
 	label
 	{
 		area 0 0 864 598
@@ -11058,9 +10680,8 @@ menu
 menu
 {
 	name 'STORE_DRINKS'
-	align center center
+	align center top
 	ignoreEsc
-	size 864 710
 	onOpen 
 	"
 		storeScreen:UpdateBuyDrinksPanel()
@@ -11191,9 +10812,7 @@ menu
 menu
 {
 	name 'STORE_CHOOSER'
-	align center center
-	size 864 710
-
+	align center bottom
 	onOpen
 	"
 		local menuName = storeScreen:GetMenuName(storeCurMenuId)
@@ -11212,17 +10831,17 @@ menu
 	
 	label
 	{
-		area 0 598 864 112
+		area 0 0 864 112
 		mosaic GUISTBBB
 	}
 	label
 	{
-		area 22 616 80 70
+		area 22 18 80 70
 		bam lua "store.icon"
 	}
 	button
 	{
-		area 638 658 204 44
+		area 638 60 204 44
 		bam GUIOSTUM
 		text "DONE_BUTTON"
 		text style "button"
@@ -11234,7 +10853,7 @@ menu
 	button
 	{
 		name 'BUTTON_storechooser_0'
-		area 110 616 62 64
+		area 110 18 62 64
 		enabled "storeScreen:GetPanelButtonEnabled(0)"
 		bam GUISTBBC
 		highlightgroup storePanelButtonHighlightGroup
@@ -11248,7 +10867,7 @@ menu
 	button
 	{
 		name 'BUTTON_storechooser_1'
-		area 182 616 62 64
+		area 182 18 62 64
 		enabled "storeScreen:GetPanelButtonEnabled(1)"
 		bam GUISTBBC
 		highlightgroup storePanelButtonHighlightGroup
@@ -11262,7 +10881,7 @@ menu
 	button
 	{
 		name 'BUTTON_storechooser_2'
-		area 254 616 62 64
+		area 254 18 62 64
 		enabled "storeScreen:GetPanelButtonEnabled(2)"
 		bam GUISTBBC
 		highlightgroup storePanelButtonHighlightGroup
@@ -11276,7 +10895,7 @@ menu
 	button
 	{
 		name 'BUTTON_storechooser_3'
-		area 326 616 62 64
+		area 326 18 62 64
 		enabled "storeScreen:GetPanelButtonEnabled(3)"
 		bam GUISTBBC
 		highlightgroup storePanelButtonHighlightGroup
@@ -11321,7 +10940,6 @@ menu
 		end
 	end
 	groundItemsButtonToggle = 0
-	highlightButtonToggle = 0
 	worldChatEdit = ""
 `
 menu
@@ -11383,20 +11001,19 @@ menu
 		if(groundItemsButtonToggle == 1) then
 			worldScreen:StartGroundItems()
 		end
-		
+
 		-- BUBB EDIT LOOT START
 
 		worldScreen:StartGroundItems()
 		Infinity_PushMenu('BUBB_AUTOLOOT_TOGGLE')
 
 		-- BUBB EDIT LOOT END
-		worldScreen:SetHighlightEnabled(highlightButtonToggle == 1)
 	"
 	onClose 
 	"
 		Infinity_PopMenu('WORLD_QUICKLOOT');
 		Infinity_PopMenu('WORLD_MESSAGES');
-		
+
 		-- BUBB EDIT LOOT START
 
 		Infinity_PopMenu('BUBB_AUTOLOOT_TOGGLE')
@@ -11411,24 +11028,20 @@ menu
 	}
 	button
 	{
+		name "groundItemsButtonToggle"
 		area 21 12 32 32
 		bam ROUNDBUT
-		tooltip lua "Infinity_FetchString(99897)"
 		toggle groundItemsButtonToggle
 		action
 		"
 			if(groundItemsButtonToggle == 1) then
-				worldScreen:StartGroundItems()
+				--worldScreen:StartGroundItems()
+				worldQuicklootOverrideOpen = true
+				Infinity_PushMenu('WORLD_QUICKLOOT_OVERRIDE')
 			else
-				worldScreen:StopGroundItems()
-			end
-		"
-		actionAlt
-		"
-			if(groundItemsButtonToggle == 1) then
-				worldScreen:StartGroundItems()
-			else
-				worldScreen:StopGroundItems()
+				--worldScreen:StopGroundItems()
+				worldQuicklootOverrideOpen = false
+				Infinity_PopMenu('WORLD_QUICKLOOT_OVERRIDE')
 			end
 		"
 	}
@@ -11585,22 +11198,6 @@ menu
 			end
 		end
 	end
-	function showContainerItemDescription(index)
-		local idxScrolled = index + worldScreen:GetTopContainerItem()
-		if(loot.containerItems[idxScrolled] == nil or loot.containerItems[idxScrolled].item == nil) then
-			return nil
-		end
-		Infinity_GetContainerItemDescription(idxScrolled)
-		showItemDescription(loot.containerItems[idxScrolled].item, 2)
-	end
-	function showGroupItemDescription(index)
-		local idxScrolled = index + worldScreen:GetTopGroupItem()
-		if(loot.groupItems[idxScrolled] == nil or loot.groupItems[idxScrolled].item == nil) then
-			return nil
-		end
-		Infinity_GetGroupItemDescription(idxScrolled)
-		showItemDescription(loot.groupItems[idxScrolled].item, 2)
-	end
 `
 menu
 {
@@ -11633,7 +11230,6 @@ menu
 		count lua	"getContainerItemProperty(0,'count')"
 		usages lua	"getContainerItemProperty(0,'usages')"
 		action		"worldScreen:OnContainerButtonClick(0)"
-		actionAlt	"showContainerItemDescription(0)"
 		actionScroll "scrollContainerItems()"
 	}
 	button
@@ -11646,7 +11242,6 @@ menu
 		count lua	"getContainerItemProperty(1,'count')"
 		usages lua	"getContainerItemProperty(1,'usages')"
 		action		"worldScreen:OnContainerButtonClick(1)"
-		actionAlt	"showContainerItemDescription(1)"
 		actionScroll "scrollContainerItems()"
 	}
 	button
@@ -11659,7 +11254,6 @@ menu
 		count lua	"getContainerItemProperty(2,'count')"
 		usages lua	"getContainerItemProperty(2,'usages')"
 		action		"worldScreen:OnContainerButtonClick(2)"
-		actionAlt	"showContainerItemDescription(2)"
 		actionScroll "scrollContainerItems()"
 	}
 	button
@@ -11672,7 +11266,6 @@ menu
 		count lua	"getContainerItemProperty(3,'count')"
 		usages lua	"getContainerItemProperty(3,'usages')"
 		action		"worldScreen:OnContainerButtonClick(3)"
-		actionAlt	"showContainerItemDescription(3)"
 		actionScroll "scrollContainerItems()"
 	}
 	button
@@ -11685,7 +11278,6 @@ menu
 		count lua	"getContainerItemProperty(4,'count')"
 		usages lua	"getContainerItemProperty(4,'usages')"
 		action		"worldScreen:OnContainerButtonClick(4)"
-		actionAlt	"showContainerItemDescription(4)"
 		actionScroll "scrollContainerItems()"
 	}
 	button
@@ -11698,7 +11290,6 @@ menu
 		count lua	"getContainerItemProperty(5,'count')"
 		usages lua	"getContainerItemProperty(5,'usages')"
 		action		"worldScreen:OnContainerButtonClick(5)"
-		actionAlt	"showContainerItemDescription(5)"
 		actionScroll "scrollContainerItems()"
 	}
 	button
@@ -11745,7 +11336,6 @@ menu
 		count lua	"getGroupItemProperty(0,'count')"
 		usages lua	"getGroupItemProperty(0,'usages')"
 		action		"worldScreen:OnContainerButtonClick(10)"
-		actionAlt	"showGroupItemDescription(0)"
 		actionScroll "scrollGroupItems()"
 	}
 	button
@@ -11758,7 +11348,6 @@ menu
 		count lua	"getGroupItemProperty(1,'count')"
 		usages lua	"getGroupItemProperty(1,'usages')"
 		action		"worldScreen:OnContainerButtonClick(11)"
-		actionAlt	"showGroupItemDescription(1)"
 		actionScroll "scrollGroupItems()"
 	}
 	button
@@ -11771,7 +11360,6 @@ menu
 		count lua	"getGroupItemProperty(2,'count')"
 		usages lua	"getGroupItemProperty(2,'usages')"
 		action		"worldScreen:OnContainerButtonClick(12)"
-		actionAlt	"showGroupItemDescription(2)"
 		actionScroll "scrollGroupItems()"
 	}
 	button
@@ -11784,7 +11372,6 @@ menu
 		count lua	"getGroupItemProperty(3,'count')"
 		usages lua	"getGroupItemProperty(3,'usages')"
 		action		"worldScreen:OnContainerButtonClick(13)"
-		actionAlt	"showGroupItemDescription(3)"
 		actionScroll "scrollGroupItems()"
 	}
 	button
@@ -11822,16 +11409,6 @@ menu
 		text lua "game:GetPartyGold()"
 		text style "gold"
 	}
-	button
-	{
-		area 40 82 32 32
-		bam "ROUNDBUT"
-		scaleToClip
-		action
-		"
-			worldScreen:TakeAllFromContainer()
-		"
-	}
 }
 `
 	function getSlotContainerId(index)
@@ -11855,15 +11432,8 @@ menu
 				worldScreen:OnGroundButtonClick(slot.slotId, slot.containerId, slot.item.res)
 		end
 	end
-	
-	function showGroundItemDescription(slotId)
-		local slot = loot.groundItems[slotId + worldScreen:GetTopGroundItem()]
-			if(slot and slot.item) then
-				Infinity_GetGroundItemDescription(slotId + worldScreen:GetTopGroundItem(), slot.slotId, slot.containerId)
-				showItemDescription(slot.item, 2)
-		end
-	end
 `
+
 -- BUBB EDIT LOOT START
 
 menu
@@ -12053,6 +11623,7 @@ menu
 }
 
 -- BUBB EDIT LOOT END
+
 menu
 {
 	name 'WORLD_PICKPARTY'
@@ -12183,12 +11754,6 @@ function getSaveBackground(row)
 		return "GUISAVEB"
 	end
 end
-function getLoadMenuTitle()
-	if (gameSaves.isImporting~=1) then
-		return t('LOAD_TITLE')
-	end
-	return t('IMPORT_TITLE')
-end
 `
 
 menu
@@ -12209,7 +11774,7 @@ menu
 	label
 	{
 		area 162 16 700 30
-		text lua "getLoadMenuTitle()"
+		text "LOAD_TITLE"
 		text style "title"
 	}
 	
@@ -12343,6 +11908,7 @@ menu
 		text style	"button"
 		action
 		"
+			Infinity_PlaySound('GAM_09')
 			loadScreen:LoadGame(gameSaves.files[currentSave].fileName)
 		"
 	}
@@ -12510,7 +12076,7 @@ menu
 			}
 			label
 			{
-				area		24 70 200 44
+				area		24 70 195 40
 				bam 		GUIOSTLM
 				frame lua 	"currentCellCheck(2)"
 				sequence 	0
@@ -12793,7 +12359,7 @@ end
 		adjustItemGroup({"messagesRect","worldMessageBox"},0,newY,0,-newY)
 		
 		toolbarTop = toolbarTop - newY
-		Infinity_SetOffset('WORLD_QUICKLOOT',0, -toolbarTop)
+		Infinity_SetOffset('WORLD_QUICKLOOT_OVERRIDE',0, -toolbarTop)
 		
 		chatboxScrollToBottom = 1
 		worldMessageBoxTop = y + newY
@@ -12825,7 +12391,7 @@ menu
 	}
 	button
 	{
-		area 28 152 0 0
+		area 28 152 816 85
 		on pageup
 		action
 		"
@@ -12834,33 +12400,21 @@ menu
 	}
 	button
 	{
-	 	area 28 152 0 0
+	 	area 28 152 816 85
 		on pagedown
 		action
 		"
 			dragMessagesY(20)
 		"
 	}
-	list
+	text
 	{
-		column
-		{
-			width 100
-			label
-			{
-				area 0 0 810 -1
-					text lua "combatLog[rowNumber]"
-					text style "gamelog"
-			}
-		}
 		name "worldMessageBox"
 		area 28 135 816 102
-		rowheight dynamic
-		table "combatLog"
-		hideHighlight
+		text lua "worldMessageBoxText"
+		text style "normal"
 		scrollbar	'GUISCRC'
 		scrollbar func "chatboxScroll"
-		scrollbar skipReset
 	}
 	handle
 	{
@@ -12907,7 +12461,6 @@ menu
 	end
 
 	function resizeDialog()
-		buildResponsesList()
 		--fit the npc text area to the text height.
 		Infinity_ScaleToText("worldNPCDialog")
 		
@@ -12926,7 +12479,7 @@ menu
 		local desiredHeight = getDesiredDialogHeight()
 		
 		--make enough room for the choices and dialog
-		if(contentHeight < desiredHeight and contentHeight ~= 500) then
+		if(contentHeight < desiredHeight) then
 			resizeDialogContent(contentHeight - desiredHeight)
 		else
 
@@ -12936,18 +12489,8 @@ menu
 			 cH = contentHeight - npcH - (npcY - yD) - 32
 			 cY = npcY + npcH + 16
 			
-			if cH > 50 then
-				--set the new list area.
-				Infinity_SetArea('worldPlayerDialogChoicesList',nil,cY,nil,cH)
-			else
-				local heightDifference = 50 - cH
-				cY = cY - heightDifference
-				cH = cH + heightDifference
-				Infinity_SetArea('worldPlayerDialogChoicesList',nil,cY,nil,cH)
-
-				npcH = npcH - heightDifference
-				Infinity_SetArea('worldNPCDialog',nil,nil,nil,npcH)
-			end
+			--set the new list area.
+			Infinity_SetArea('worldPlayerDialogChoicesList',nil,cY,nil,cH)
 		end
 		
 	end
@@ -12964,8 +12507,7 @@ menu
 		end
 		if(contentHeight >= 500) then
 			-- upper bound as well because too high looks bad.
-			newY = hOld - 500
-			h = 500
+			return
 		end
 		
 		y = y + newY
@@ -13029,15 +12571,10 @@ menu
 	ignoreEsc
 	onOpen
 	"	
-		Infinity_PopMenu('ITEM_DESCRIPTION')
 		local x,y,w,h = Infinity_GetArea('worldDialogBackground')
 		toolbarTop = toolbarTop + h
 		
 		Infinity_PushMenu('WORLD_DIALOG_CONFIRM')
-		if(isTouchActionbar() and not dialogViewMode) then
-			Infinity_PushMenu('WORLD_DIALOG_LEFT')
-			Infinity_PushMenu('WORLD_DIALOG_RIGHT')
-		end
 		greySidebars()
 	"
 	onClose
@@ -13048,9 +12585,6 @@ menu
 		resizeDialogContent(h - 253)
 		
 		Infinity_PopMenu('WORLD_DIALOG_CONFIRM')
-		
-		Infinity_PopMenu('WORLD_DIALOG_LEFT')
-		Infinity_PopMenu('WORLD_DIALOG_RIGHT')
 		ungreySidebars()
 	"
 	label
@@ -13062,7 +12596,7 @@ menu
 	button
 	{
 		enabled "showWorldMessages"
-		area 28 152 0 0
+		area 28 152 816 85
 		on pageup
 		action
 		"
@@ -13073,7 +12607,7 @@ menu
 	button
 	{
 		enabled "showWorldMessages"
-	 	area 28 152 0 0
+	 	area 28 152 816 85
 		on pagedown
 		action
 		"
@@ -13092,7 +12626,7 @@ menu
 		name "worldNPCDialog"
 		area 84 22 749 38
 		text lua "worldNPCDialogText"
-		text style "gamelog"
+		text style "normal"
 		scrollbar	'GUISCRC'
 	}
 	text
@@ -13101,7 +12635,7 @@ menu
 		enabled "showWorldMessages"
 		area 20 -124 813 124
 		text lua "worldMessageBoxText"
-		text style "gamelog"
+		text style "normal"
 		scrollbar	'GUISCRC'
 		scrollbar func "chatboxScroll"
 	}
@@ -13119,7 +12653,6 @@ menu
 	{
 		name "worldDialogShowMessagesButton"
 		area 754 16 62 28
-		tooltip lua "t('LOG_HISTORY_TOOLTIP')"
 		bam "CHATHIST"
 		frame lua "showMessagesButtonFrame()"
 		action 
@@ -13150,7 +12683,7 @@ menu
 			{
 				area 0 0 -1 -1
 				text lua "getDialogEntryText(rowNumber)"
-				text style "gamelog"
+				text style "normal"
 			}
 		}
 		name "worldPlayerDialogChoicesList"
@@ -13175,7 +12708,7 @@ menu
 		action
 		"
 			--In confirm mode, just highlight the choice.
-			if((gameOptions.m_bConfirmDialog == true) or (worldPlayerDialogSelection <= 0)) then return end
+			if(gameOptions.m_bConfirmDialog == true) then return end
 			worldScreen:OnDialogReplyClick(worldPlayerDialogChoices[worldPlayerDialogSelection].marker)
 			worldPlayerDialogSelection = 0
 		"
@@ -13274,10 +12807,6 @@ menu
 		table "character_select"
 		var selectedCharacter
 		scrollbar GUISCRC
-		action
-		"
-			Infinity_OnCharacterImportItemSelect(selectedCharacter - 1)
-		"
 	}
 	button
 	{
@@ -13286,20 +12815,8 @@ menu
 		bam GUIOSTUL
 		text "BACK_BUTTON"
 		text style "button"
-		action 
-		"
-			createCharScreen:OnCancelButtonClick()
-			Infinity_PopMenu('CHARACTER_SELECT')
-		"
+		action "Infinity_PopMenu('CHARACTER_SELECT');"
 	}
-	button
-	{
-		area 438 718 206 44
-		bam GUIOSTUM
-		text "ACCEPT_BUTTON"
-		text style "button"
-		clickable 0
-	}	
 	button
 	{
 		area 650 718 238 44
@@ -13307,11 +12824,10 @@ menu
 		text style "button"
 		bam GUIOSTUR
 		clickable lua "selectedCharacter ~= 0"
-		action 
-		"
-			createCharScreen:OnDoneButtonClick() 
+		action "
+			createCharScreen:OnPrerollCharacterPick(character_select[selectedCharacter].id)
 			Infinity_PopMenu('CHARACTER_SELECT')
-		"
+			"
 	}
 
 }
@@ -13459,7 +12975,6 @@ menu
 		text "IMPORT_BUTTON"
 		text style "button"
 		bam GUIOSTUM
-		clickable lua "Infinity_GetCurrentScreenName() == 'CHARGEN'"
 		action "createCharScreen:OnImportCharacterButtonClick()"
 	}
 	button
@@ -13512,7 +13027,7 @@ menu
 }
 
 `
-createCharGenderHelp = 17236
+createCharGenderHelp = 24313
 `
 menu
 {
@@ -13554,6 +13069,7 @@ menu
 		toggle toggleFemale
 		action "toggleMale = 0; createCharScreen:OnGenderSelectButtonClick(2)"
 	}
+
 	button
 	{
 		on escape
@@ -13573,14 +13089,6 @@ menu
 		clickable lua "createCharScreen:IsDoneButtonClickable()"
 		action "Infinity_PopMenu(); createCharScreen:OnDoneButtonClick()"
 	}
-	button
-	{
-		area 650 718 238 44
-		text "CREATE_PARTY_BUTTON"
-		text style "button"
-		bam GUIOSTUR
-		clickable lua "false"
-	}		
 }
 
 menu
@@ -13632,7 +13140,6 @@ menu
 		bam GUIOSTCL
 		text "CUSTOM_BUTTON"
 		text style "button"
-		enabled "not e:IsTouchUI()"
 		action "
 			TEXT_popup_big = 17188
 			Infinity_PushMenu('POPUP_BIG')
@@ -13758,7 +13265,7 @@ menu
 	name 'CHARGEN_CLASS'
 	align center center
 	ignoreesc
-	onopen "currentChargenClass = nil currentChargenKit = nil"
+	onopen "currentChargenClass = nil"
 	label
 	{
 		area 0 0 1024 768
@@ -14442,7 +13949,7 @@ menu
 			width 10
 			label
 			{
-				area 0 0 40 54
+				area 0 0 60 54
 				text lua "chargen.thief_skill[rowNumber].value"
 				text style "normal"
 				text align left center
@@ -14543,7 +14050,7 @@ menu
 		enabled "chargen.levelingUp"
 		area 650 718 238 44
 		bam GUIOSTUR
-		text "HIGH_LEVEL_ABILITIES_BUTTON"
+		text "ABILITIES_BUTTON"
 		text style "button"
 		toggle "levelUpInfoToggle"
 		clickable lua "createCharScreen:IsHighLevelAbilitiesButtonClickable()"
@@ -14591,7 +14098,7 @@ function specialistFrame(num)
 	return 0
 end
 function spellLearnOrUnlearnText()
-	if currentChargenChooseMageSpell == nil or not chargen.choose_spell[currentChargenChooseMageSpell].enabled then
+	if chargen.extraSpells > 0 then
 		return t("BUTTON_LEARN")
 	else
 		return t("BUTTON_UNLEARN")
@@ -14629,59 +14136,16 @@ function nextOrDone()
 		return t('DONE_BUTTON')
 	end
 end
-function shouldShowSpecialistMessage()
-	local ret = false
-
-	if chargen.extraSpells == 0 and not createCharScreen:IsDoneButtonClickable() then
-		ret = true
-	end
-
-	return ret
-end
 `
 menu
 {
 	name 'CHARGEN_CHOOSE_SPELLS'
 	align center center
 	ignoreesc
-	onOpen 
-	"
+	onOpen "
 		table.sort(chargen.choose_spell, sortBySpellName)
 		currentChargenChooseMageSpell = nil
-
-		if currentChargenKit == nil then
-			currentChargenKit = 0
-		end
-
-		local currentKitName = ''
-
-		--gnome illusionists
-		if currentChargenRace ~= 6 and chargen.kit then
-			currentKitName = Infinity_FetchString(chargen.kit[currentChargenKit].name)
-		else
-			currentKitName = Infinity_FetchString(2862)
-		end
-		
-		if currentKitName == Infinity_FetchString(597) then
-			setStringTokenLua('<SCHOOLTOKEN>',t('ABJURATION_SCHOOL_TOKEN'))
-		elseif currentKitName == Infinity_FetchString(2179) then
-			setStringTokenLua('<SCHOOLTOKEN>',t('CONJURATION_SCHOOL_TOKEN'))
-		elseif currentKitName == Infinity_FetchString(2846) then
-			setStringTokenLua('<SCHOOLTOKEN>',t('DIVINATION_SCHOOL_TOKEN'))
-		elseif currentKitName == Infinity_FetchString(2861) then
-			setStringTokenLua('<SCHOOLTOKEN>',t('ENCHANTMENT_SCHOOL_TOKEN'))
-		elseif currentKitName == Infinity_FetchString(2862) then
-			setStringTokenLua('<SCHOOLTOKEN>',t('ILLUSION_SCHOOL_TOKEN'))
-		elseif currentKitName == Infinity_FetchString(3015) then
-			setStringTokenLua('<SCHOOLTOKEN>',t('EVOCATION_SCHOOL_TOKEN'))
-		elseif currentKitName == Infinity_FetchString(12744) then
-			setStringTokenLua('<SCHOOLTOKEN>',t('NECROMANCY_SCHOOL_TOKEN'))
-		elseif currentKitName == Infinity_FetchString(12745) then
-			setStringTokenLua('<SCHOOLTOKEN>',t('TRANSMUTATION_SCHOOL_TOKEN'))
-		elseif currentKitName == Infinity_FetchString(54893) then
-			setStringTokenLua('<SCHOOLTOKEN>',Infinity_FetchString(54893))
-		end
-	"
+		"
 	label
 	{
 		area 0 0 1024 768
@@ -14774,15 +14238,6 @@ menu
 		text lua "chargen.extraSpells"
 		text style "normal"
 		text align center center
-	}
-	label
-	{
-		area 598 568 360 40
-		enabled "shouldShowSpecialistMessage()"
-		text lua "t('SPECIALIST_SPELL_REQ')"
-		text style "normal"
-		text align center center
-		rectangle 0
 	}
 
 	button
@@ -15135,9 +14590,6 @@ menu
 	name 'CHARGEN_CUSTOMSOUNDS'
 	align center center
 	ignoreesc
-	onOpen "
-		prepareSounds(chargen.customSound)
-	"
 	label
 	{
 		area 0 0 1024 768
@@ -15163,7 +14615,7 @@ menu
 			label
 			{
 				area 0 0 384 18
-				text lua "getSoundStringRef(rowNumber, chargen.customSound)"
+				text lua "getFileNameStringRef(rowNumber, chargen.customSound)"
 				text style	"list"
 				pad 8 0 0 0
 			}
@@ -15175,7 +14627,7 @@ menu
 		scrollbar	'GUISCRC'
 		action
 		"
-			createCharScreen:OnSoundItemSelect(chargen.customSound[currentChargenCustomSound].index-1)
+			createCharScreen:OnSoundItemSelect(currentChargenCustomSound-1)
 		"
 	}
 	text
@@ -15189,7 +14641,7 @@ menu
 	{
 		area 82 624 300 44
 		bam GUIOSTCL
-		text "PLAY_SOUND_BUTTON"
+		text "PLAY_GAME_BUTTON"
 		text style "button"
 		action "createCharScreen:OnPlayButtonClick()"
 	}
@@ -15310,12 +14762,12 @@ menu
 	ignoreesc
 	onopen 
 	"
+		Infinity_FocusTextEdit('charNameEditArea')
 		if chargen.name then
 			charNameEdit = chargen.name
 		else
 			charNameEdit = ''
 		end
-		Infinity_FocusTextEdit('charNameEditArea')
 	"
 	label
 	{
@@ -15373,15 +14825,6 @@ menu
 	name 'CHARGEN_BIO'
 	align center center
 	ignoreesc
-	onopen
-	"
-		generateBioText()
-		if bioRace == '' then
-			createBioEdit = bioClass
-		else
-			createBioEdit = bioClass .. '\n\n' .. bioRace
-		end
-	"
 	label
 	{
 		area 0 154 1024 614
@@ -15671,7 +15114,7 @@ menu
 	button
 	{
 		area 210 653 236 44
-		clickable lua "false"
+		clickable false
 		bam GUIOSTUL
 		text "BACK_BUTTON"
 		text style "button"
@@ -15864,7 +15307,7 @@ menu
 	label
 	{
 		area 74 10 716 52
-		text "HIGH_LEVEL_ABILITIES_TITLE"
+		text "ABILITIES_TITLE"
 		text style "title"
 	}
 	label
@@ -15941,6 +15384,7 @@ menu
 		var currentHLASelection
 		action 
 		"
+			print(chargen.HLAs[currentHLASelection].count)
 			if cellNumber == 3 and chargenHLAPlusMinusFrame(3, currentHLASelection) ~= 3 then
 				createCharScreen:OnHLAButtonClick(currentHLASelection, 1)
 			elseif cellNumber == 4 and chargenHLAPlusMinusFrame(4, currentHLASelection) ~= 3 then
@@ -16139,7 +15583,7 @@ function chooseNetworkProtocol(num)
 	connectionScreen:SelectServiceProvider(num)
 end
 function joinGameEnabled()
-	if selectedMp <= 0 or mp_shownSessions[selectedMp]['actualIndex'] == nil then
+	if selectedMp <= 0 then
 		return 0
 	else
 		return 1
@@ -16188,23 +15632,14 @@ function connectionGetGameType(slot)
 	return ret
 end
 function matchMultiplayerGameType(gameVersion)
-	if gameVersion == "bgee-main" then
-		startEngine:OnCampaignButtonClick('BG1',false)
-		e:CheckGUISong()
-	elseif gameVersion == "bgee-bp" then
-		startEngine:OnCampaignButtonClick('BP1',false)
-		e:CheckGUISong()
-	elseif gameVersion == "bgee-sod" then
-		startEngine:OnCampaignButtonClick('SOD',false)
-		e:CheckGUISong()
-	elseif gameVersion == "bg2ee-main" then
-		startEngine:OnCampaignButtonClick('SOA',false)
+	if gameVersion == "bg2ee-main" then
+		startEngine:OnSoAButtonClick(false)
 		e:CheckGUISong()
 	elseif gameVersion == "bg2ee-bp" then
-		startEngine:OnCampaignButtonClick('BP2',false)
+		startEngine:OnTBPButtonClick(false)
 		e:CheckGUISong()
 	elseif gameVersion == "bg2ee-tob" then
-		startEngine:OnCampaignButtonClick('TOB',false)
+		startEngine:OnToBButtonClick(false)
 		e:CheckGUISong()
 	end
 end
@@ -16426,9 +15861,6 @@ menu
 		tooltip lua "t('CONNECTION_REFRESH_TOOLTIP')"
 		action
 		"
-			selectedMp = 0
-			mp_shownSessions = {}
-			mp_sessions = {}
 			connectionScreen:ClearSessions()
 		"
 	}
@@ -16444,9 +15876,7 @@ menu
 		action
 		"
 			Infinity_GetPasswordRequired(mp_shownSessions[selectedMp]['actualIndex'])
-			if string.find(connectionPlayerNameEdit, '%S') == nil then
-				Infinity_PushMenu('CONNECTION_NAME')
-			elseif passwordReq == 0 then
+			if passwordReq == 0 then
 				Infinity_PopMenu(); 
 				Infinity_PopMenu(); 
 				mp_sessions[mp_shownSessions[selectedMp]['actualIndex']]['password'] = passwordMp
@@ -16500,7 +15930,6 @@ menu
 		text  "DONE_BUTTON"
 		text style	"button"
 		on		return
-		clickable lua "connectionScreen:IsValidAddress(connectionTCPIPEdit)"
 		action
 		"
 			Infinity_PopMenu();
@@ -16545,10 +15974,10 @@ connectionPasswordProtected = 0
 connectionLocalNetworkGame = 0
 
 function connectionCreateGameClickable()
-	local ret = string.find(connectionPlayerNameEdit, '%S') ~= nil and string.find(connectionSessionNameEdit, '%S') ~= nil
+	local ret = connectionPlayerNameEdit ~= '' and connectionSessionNameEdit ~= ''
 
 	if connectionPasswordProtected == 1 then
-		ret = ret and string.find(connectionSessionPasswordEdit, '%S') ~= nil
+		ret = ret and connectionSessionPasswordEdit ~= ""
 	end
 
 	return ret
@@ -16578,12 +16007,7 @@ function connectionSetDefaultGameSettings()
 	else
 		connectionPasswordProtected = 0
 	end
-
-	if connectionScreen:HasServiceProvider() then
-		connectionLocalNetworkGame = 0
-	else
-		connectionLocalNetworkGame = 1
-	end
+	connectionLocalNetworkGame = 0
 end
 `
 menu
@@ -16694,9 +16118,7 @@ menu
 		tooltip lua "t('CONNECTION_LOCAL_NETWORK_GAME_TOOLTIP')"
 		action
 		"
-			if connectionScreen:HasServiceProvider() then
-				connectionLocalNetworkGame = 1 - connectionLocalNetworkGame
-			end
+			connectionLocalNetworkGame = 1 - connectionLocalNetworkGame
 		"
 	}
 
@@ -16727,16 +16149,6 @@ menu
 		text			"CREATEGAME_BUTTON"
 		action		
 		"
-			local stringStart = string.find(connectionPlayerNameEdit, '%S');
-			connectionPlayerNameEdit = string.sub(connectionPlayerNameEdit, stringStart, string.len(connectionPlayerNameEdit))
-			stringStart = string.find(connectionSessionNameEdit, '%S');
-			connectionSessionNameEdit = string.sub(connectionSessionNameEdit, stringStart, string.len(connectionSessionNameEdit))
-
-			if connectionPasswordProtected == 1 then
-				stringStart = string.find(connectionSessionPasswordEdit, '%S');
-				connectionSessionPasswordEdit = string.sub(connectionSessionPasswordEdit, stringStart, string.len(connectionSessionPasswordEdit))
-			end
-	
 			if connectionPasswordProtected == 0 then
 				connectionSessionPasswordEdit = ''
 			end
@@ -16882,141 +16294,25 @@ menu
 		"
 			--On return pressed
 			if (key_pressed == 13) then
-				local stringStart = string.find(connectionNameNameEdit, '%S')
-				if stringStart ~= nil then
-					local stringStart = string.find(connectionPasswordPasswordEdit, '%S')
-					mp_sessions[selectedMp]['password'] = string.sub(connectionPasswordPasswordEdit, stringStart, string.len(connectionPasswordPasswordEdit) )
-					Infinity_PopMenu()
-					Infinity_JoinMultiplayerGame(mp_shownSessions[selectedMp]['actualIndex'])
-				end
-				return -1
-			end
-			return 1
-		"
-	}
-
-	button
-	{
-		area 		416 166 204 44
-		bam			'GUIOSTUM'	
-		text style	"button"
-		text		"DONE_BUTTON"
-		clickable lua "connectionPasswordPasswordEdit ~='' and string.find(connectionPasswordPasswordEdit, '%S') ~= nil"
-		action		
-		"
-			Infinity_PopMenu(); 
-			local stringStart = string.find(connectionPasswordPasswordEdit, '%S')
-			mp_sessions[selectedMp]['password'] = string.sub(connectionPasswordPasswordEdit, stringStart, string.len(connectionPasswordPasswordEdit) )
-			Infinity_JoinMultiplayerGame(mp_shownSessions[selectedMp]['actualIndex'])
-		"
-	}
-
-	button
-	{
-		area 		34 166 204 44
-		bam			'GUIOSTUM'	
-		text style	"button"
-		text		"BACK_BUTTON"
-		action		
-		"
-			Infinity_PopMenu()
-		"
-	}
-}
-`
-connectionNameNameEdit = ""
-`
-menu
-{
-	name 'CONNECTION_NAME'
-	align center center
-	modal
-	onOpen
-	"
-		connectionNameNameEdit = ''
-		Infinity_FocusTextEdit('connectionNameNameEditArea')
-	"
-
-	label
-	{
-		area 0 0 660 240
-		mosaic "GUIERR6"
-	}
-	label
-	{
-		area		12 16 632 70
-		text		style 'title'
-		text  		"PLAYER_NAME_LABEL"
-	}
-
-	button
-	{
-		bam 		GUIOSW
-		on esc
-		area 		616 0 44 44
-		sequence 	2
-		action 
-		"	
-			Infinity_PopMenu()
-		"
-	}
-
-	edit
-	{
-		name		"connectionNameNameEditArea"
-		area		12 82 632 50
-		var			connectionNameNameEdit
-		text style	"edit"
-		text align 	center center
-		maxlines	1
-		fill        112 111 111 64
-		action
-		"
-			--On return pressed
-			if (key_pressed == 13) then
-				local stringStart = string.find(connectionNameNameEdit, '%S')
-				if stringStart ~= nil then
-					connectionPlayerNameEdit = string.sub(connectionNameNameEdit, stringStart, string.len(connectionNameNameEdit) )
-					Infinity_PopMenu()
-
-					Infinity_GetPasswordRequired(mp_shownSessions[selectedMp]['actualIndex'])
-					if passwordReq == 0 then
-						Infinity_PopMenu(); 
-						Infinity_PopMenu(); 
-						mp_sessions[mp_shownSessions[selectedMp]['actualIndex']]['password'] = passwordMp
-						Infinity_JoinMultiplayerGame(mp_shownSessions[selectedMp]['actualIndex'])
-					else
-						Infinity_PushMenu('CONNECTION_PASSWORD')
-					end
-				end
-				return -1
-			end
-			return 1
-		"
-	}
-
-	button
-	{
-		area 		416 166 204 44
-		bam			'GUIOSTUM'	
-		text style	"button"
-		text		"DONE_BUTTON"
-		clickable lua "connectionNameNameEdit ~='' and string.find(connectionNameNameEdit, '%S') ~= nil"
-		action		
-		"
-			Infinity_PopMenu(); 
-			local stringStart = string.find(connectionNameNameEdit, '%S')
-			connectionPlayerNameEdit = string.sub(connectionNameNameEdit, stringStart, string.len(connectionNameNameEdit) )
-
-			Infinity_GetPasswordRequired(mp_shownSessions[selectedMp]['actualIndex'])
-			if passwordReq == 0 then
-				Infinity_PopMenu(); 
-				Infinity_PopMenu(); 
-				mp_sessions[mp_shownSessions[selectedMp]['actualIndex']]['password'] = passwordMp
+				mp_sessions[selectedMp]['password'] = connectionPasswordPasswordEdit
 				Infinity_JoinMultiplayerGame(mp_shownSessions[selectedMp]['actualIndex'])
-			else
-				Infinity_PushMenu('CONNECTION_PASSWORD')
 			end
+			return 1
+		"
+	}
+
+	button
+	{
+		area 		416 166 204 44
+		bam			'GUIOSTUM'	
+		text style	"button"
+		text		"DONE_BUTTON"
+		clickable lua "connectionPasswordPasswordEdit ~=''"
+		action		
+		"
+			Infinity_PopMenu(); 
+			mp_sessions[selectedMp]['password'] = connectionPasswordPasswordEdit
+			Infinity_JoinMultiplayerGame(mp_shownSessions[selectedMp]['actualIndex'])
 		"
 	}
 
@@ -17185,43 +16481,14 @@ menu
 
 	label
 	{
-		area 0 0 682 234
-		mosaic GUIERR6
+		area 0 0 408 418
+		mosaic GUIERR
 	}
 	label --Title
 	{
-		area 14 8 628 124
+		area 70 78 258 84
 		text "CONNECTION_FINDING_DEVICES"
 		text style	"label"
-	}
-	button
-	{
-		area 		79 170 234 44
-		bam			GUIOSTUL
-		sequence	0
-		text  		"CANCEL_BUTTON"
-		text style	"button"
-		on			escape
-		action
-		"
-			Infinity_PopMenu('CONNECTION_WAITING_FOR_PROVIDER')
-			Infinity_PopMenu('CONNECTION');
-			connectionScreen:OnMainCancelButtonClick()
-		"	
-	}
-	button
-	{
-		area 		343 170 234 44
-		bam			GUIOSTUR
-		sequence	0
-		text  		"CONNECTION_LOCAL_NETWORK_GAME"
-		text style	"button"
-		on			return
-		action
-		"
-			Infinity_PopMenu('CONNECTION_WAITING_FOR_PROVIDER')
-			connectionScreen:StopConnectingToProvider()
-		"	
 	}
 }
 
@@ -17283,7 +16550,7 @@ multiplayerInPermissionForPlayer = 0
 
 multiplayerSessionName = ""
 multiplayerSaveName = ""
-multiplayerChapter = ""
+multiplayerLocationName = ""
 multiplayerTimePlayed = ""
 multiplayerDifficultyLabel = ""
 multiplayerDifficultyImage = 0
@@ -17405,32 +16672,6 @@ function getMultiplayerCharacterButtonText(slot)
 
 	return ret
 end
-function shouldGreyscaleEditButton(slot)
-	local ret = false
-	local storedString = t("MULTIPLAYER_VIEW_DETAILS_BUTTON")
-
-	if multiplayerFromInGame == true then
-		ret = true
-	end
-
-	if ret == true and getMultiplayerCharacterButtonText(slot) == storedString  then
-		ret = false
-	end
-
-	if ret == true and (multiplayerLocalPlayerID == 1 or multiplayer.player[multiplayerLocalPlayerID].permissions[7] == true) then
-		ret = false
-	end
-
-	if ret == true and mpaCharacters[slot]["name"] == "" then
-		ret = false
-	end
-
-	if ret == false and mpaCharacters[slot]['ready'] == true and getMultiplayerCharacterButtonText(slot) ~= storedString and multiplayerFromInGame == false then
-		ret = true
-	end
-
-	return ret
-end
 function getMultiplayerCharacterReadyText(slot)
 	local ret = ""
 
@@ -17532,13 +16773,13 @@ function getStartGameButtonTooltip()
 	end
 end
 
-function updateMultiplayerSessionData(sessionName, saveName, chapter, timePlayed, difficulty)
+function updateMultiplayerSessionData(sessionName, saveName, areaName, timePlayed, difficulty)
 	local gold = "^0xffc7f8fb"
 	multiplayerSessionName = gold..sessionName.."^-"
 
 	if areaName ~= "" then
 		multiplayerSaveName = gold..t("MULTIPLAYER_SAVED_GAME_LABEL").."^- ^0xffffffff"..saveName.."^-"
-		multiplayerChapter = gold..t("MULTIPLAYER_CHAPTER_LABEL").."^- ^0xffffffff"..chapter.."^-"
+		multiplayerLocationName = gold..t("MULTIPLAYER_LOCATION_LABEL").."^- ^0xffffffff"..areaName.."^-"
 		multiplayerTimePlayed = gold..t("MULTIPLAYER_TIME_PLAYED_LABEL").."^- ^0xffffffff"..timePlayed.."^-"
 		if difficulty > 0 then
 			mulitplayerPreexistingDifficulty = difficulty
@@ -17547,7 +16788,7 @@ function updateMultiplayerSessionData(sessionName, saveName, chapter, timePlayed
 		end
 	else
 		multiplayerSaveName = gold..t("MULTIPLAYER_NEW_GAME_LABEL").."^- ^0xffffffff"..saveName.."^-"
-		multiplayerChapter = gold..t("MULTIPLAYER_CHAPTER_LABEL").."^- ^0xffffffff"..chapter.."^-"
+		multiplayerLocationName = gold..t("MULTIPLAYER_LOCATION_NEW_GAME").."^-"
 		multiplayerTimePlayed = gold..t("MULTIPLAYER_TIME_PLAYED_NEW_GAME").."^-"
 		if difficulty > 0 then
 			multiplayerDifficultyLabel = gold..t("MULTIPLAYER_DIFFICULTY_LABEL").."^- ^0xffffffff"..t(difficulties[difficulty].name).."^-"
@@ -17557,6 +16798,7 @@ function updateMultiplayerSessionData(sessionName, saveName, chapter, timePlayed
 end
 
 function broadcastCharacterControlChange(slot, newPlayer)
+	print("newPlayer "..newPlayer.." current "..currentMultiplayerSelectPlayer.." playernumber "..mpaCharacters[slot]["player"])
 	if mpaCharacters[slot]["player"] ~= newPlayer then
 		local host = getMultiplayerPlayerName(1,false,false)
 		local player = getMultiplayerPlayerName(newPlayer,false,false)
@@ -17565,6 +16807,7 @@ function broadcastCharacterControlChange(slot, newPlayer)
 		local message = t("MULTIPLAYER_SLOT_"..slot.."_ASSIGNED_TO")
 		removeStringTokenLua("<PLAYER_NAME_1>")
 		removeStringTokenLua("<PLAYER_NAME_2>")
+		print(message)
 		Infinity_SendChatMessage(message, true) 
 	end
 end
@@ -17577,6 +16820,7 @@ function broadcastCharacterAdded(slot)
 	local message = t("MULTIPLAYER_HAS_ADDED")
 	removeStringTokenLua("<PLAYER_NAME_1>")
 	removeStringTokenLua("<CHARACTER_NAME_1>")
+	print(message)
 	Infinity_SendChatMessage(message, true) 
 end
 
@@ -17588,6 +16832,7 @@ function broadcastCharacterRemoved(slot)
 	local message = t("MULTIPLAYER_HAS_REMOVED")
 	removeStringTokenLua("<PLAYER_NAME_1>")
 	removeStringTokenLua("<CHARACTER_NAME_1>")
+	print(message)
 	Infinity_SendChatMessage(message, true) 
 end
 
@@ -17596,6 +16841,7 @@ function broadcastCharacterReady(slot)
 	setStringTokenLua("<CHARACTER_NAME_1>",character)
 	local message = t("MULTIPLAYER_IS_READY_TO_START")
 	removeStringTokenLua("<CHARACTER_NAME_1>")
+	print(message)
 	Infinity_SendChatMessage(message, true) 
 end
 
@@ -17604,6 +16850,7 @@ function broadcastCharacterNotReady(slot)
 	setStringTokenLua("<CHARACTER_NAME_1>",character)
 	local message = t("MULTIPLAYER_IS_NO_LONGER_READY")
 	removeStringTokenLua("<CHARACTER_NAME_1>")
+	print(message)
 	Infinity_SendChatMessage(message, true) 
 end
 
@@ -17612,6 +16859,7 @@ function broadcastPlayerAdded(slot)
 	setStringTokenLua("<PLAYER_NAME_1>",player)
 	local message = t("MULTIPLAYER_HAS_JOINED_THE_GAME")
 	removeStringTokenLua("<PLAYER_NAME_1>")
+	print(message)
 	Infinity_SendChatMessage(message, true) 
 end
 
@@ -17620,6 +16868,7 @@ function broadcastPlayerRemoved(slot)
 	setStringTokenLua("<PLAYER_NAME_1>",player)
 	local message = t("MULTIPLAYER_HAS_LEFT_THE_GAME")
 	removeStringTokenLua("<PLAYER_NAME_1>")
+	print(message)
 	Infinity_SendChatMessage(message, true) 
 end
 
@@ -17628,6 +16877,7 @@ mpDraggedPortrait = 'NOCTRL'
 
 function multiplayerStartSwapPortraits(player, character)
 	if multiplayerLocalPlayerID == 1 and player > 0 and player < 7 and mpaPlayers[player]["name"] ~= "" then
+		print("Starting the drag of player "..player.." character slot "..character)
 		mpDraggedCharacter = character
 		multiplayerScreen:SetModifiedCharacterSlot(character - 1)
 		currentMultiplayerSelectPlayer = player
@@ -17638,9 +16888,6 @@ end
 function multiplayerStopSwapPortraits(player)
 	if multiplayerLocalPlayerID == 1 then
 		if player > 0 and player < 7 and mpaPlayers[player]["name"] ~= "" and currentMultiplayerSelectPlayer ~= nil then
-			if mpaCharacters[mpDraggedCharacter]['ready'] == true and mpaCharacters[mpDraggedCharacter]['player'] ~= player then 
-				multiplayerScreen:OnReadyButtonClick(mpDraggedCharacter-1)
-			end
 			broadcastCharacterControlChange(mpDraggedCharacter, player)
 			multiplayerScreen:OnPlayerSelection(player-1)
 		end
@@ -17857,12 +17104,6 @@ menu
 				text lua 	"getMultiplayerCharacterButtonText(rowNumber)"
 				text style 	"button"
 			}
-			label
-			{
-				area		8 45 195 44
-				fill 		0 0 0 170
-				enabled 	"shouldGreyscaleEditButton(rowNumber)"
-			}
 
 		}
 		column --ready
@@ -17893,7 +17134,7 @@ menu
 						multiplayerScreen:SetModifiedCharacterSlot(selectedCharacter - 1)
 						currentMultiplayerSelectPlayer = mpaCharacters[selectedCharacter]['player']
 						Infinity_PushMenu('MP_PICKPLAYER')
-					elseif shouldGreyscaleEditButton(selectedCharacter) == false then
+					elseif multiplayerLocalPlayerID == 1 or multiplayer.player[multiplayerLocalPlayerID].permissions[1] == true then
 						multiplayerScreen:OnModifyButtonClick()
 					end
 				end
@@ -17901,32 +17142,32 @@ menu
 				cellNumber = nil
 			elseif cellNumber == 3 then
 				cellNumber = nil
-				if shouldGreyscaleEditButton(selectedCharacter) == false then
-					if getMultiplayerCharacterButtonText(selectedCharacter) == t('MULTIPLAYER_VIEW_DETAILS_BUTTON') then
-						multiplayerScreen:OnPortraitButtonClick(selectedCharacter-1)
-					elseif getMultiplayerCharacterButtonText(selectedCharacter) == t('CREATE_CHAR_BUTTON') then
-						if multiplayerFromInGame == false then
-							multiplayerScreen:SetModifiedCharacterSlot(selectedCharacter-1)
-							multiplayerScreen:UpdateModifyCharacterPanel()
-						elseif shouldGreyscaleEditButton(selectedCharacter) == false then
-							multiplayerScreen:OnModifyButtonClick()
-						end
-					elseif getMultiplayerCharacterButtonText(selectedCharacter) == t('MULTIPLAYER_EDIT_CHAR_BUTTON') then
-						if multiplayerFromInGame == false then
-							mpModifyingCharacter = selectedCharacter - 1
-							Infinity_PushMenu('MP_MODIFYCHARACTER')
-						elseif shouldGreyscaleEditButton(selectedCharacter) == false then
-							multiplayerScreen:OnModifyButtonClick()
-						end
+				print(getMultiplayerCharacterButtonText(selectedCharacter))
+				if getMultiplayerCharacterButtonText(selectedCharacter) == t('MULTIPLAYER_VIEW_DETAILS_BUTTON') then
+					print('1')
+					multiplayerScreen:OnPortraitButtonClick(selectedCharacter-1)
+				elseif getMultiplayerCharacterButtonText(selectedCharacter) == t('CREATE_CHAR_BUTTON') then
+					print('2')
+					if multiplayerFromInGame == false then
+					print('2a')
+						multiplayerScreen:SetModifiedCharacterSlot(selectedCharacter-1)
+						multiplayerScreen:UpdateModifyCharacterPanel()
+					elseif multiplayerLocalPlayerID == 1 or multiplayer.player[multiplayerLocalPlayerID].permissions[1] == true then
+					print('2b')
+						multiplayerScreen:OnModifyButtonClick()
+					end
+				elseif getMultiplayerCharacterButtonText(selectedCharacter) == t('MULTIPLAYER_EDIT_CHAR_BUTTON') then
+					print('3')
+					if multiplayerFromInGame == false then
+						mpModifyingCharacter = selectedCharacter - 1
+						Infinity_PushMenu('MP_MODIFYCHARACTER')
+					elseif multiplayerLocalPlayerID == 1 or multiplayer.player[multiplayerLocalPlayerID].permissions[1] == true then
+						multiplayerScreen:OnModifyButtonClick()
 					end
 				end
 			elseif cellNumber == 4 then
 				cellNumber = nil
 			end
-		"
-		actionAlt
-		"
-			cellNumber = nil
 		"
 	}
 
@@ -18236,7 +17477,7 @@ menu
 		area		446 395 46 45
 		bam 			GUMPBUTX
 		sequence 		3
-		clickable lua	"mpaPlayers[2]['name'] ~= '' and multiplayerLocalPlayerID == 1"
+		clickable lua	"mpaPlayers[2]['name'] ~= ''"
 		align 		center center
 		tooltip lua	"t('MULTIPALYER_PERMISSION_TOOLTIP')"
 		action
@@ -18253,7 +17494,7 @@ menu
 		area		446 446 46 45
 		bam 			GUMPBUTX
 		sequence 		3
-		clickable lua	"mpaPlayers[3]['name'] ~= '' and multiplayerLocalPlayerID == 1"
+		clickable lua	"mpaPlayers[3]['name'] ~= ''"
 		align 		center center
 		tooltip lua	"t('MULTIPALYER_PERMISSION_TOOLTIP')"
 		action
@@ -18270,7 +17511,7 @@ menu
 		area		446 497 46 45
 		bam 			GUMPBUTX
 		sequence 		3
-		clickable lua	"mpaPlayers[4]['name'] ~= '' and multiplayerLocalPlayerID == 1"
+		clickable lua	"mpaPlayers[4]['name'] ~= ''"
 		align 		center center
 		tooltip lua	"t('MULTIPALYER_PERMISSION_TOOLTIP')"
 		action
@@ -18287,7 +17528,7 @@ menu
 		area		446 548 46 45
 		bam 			GUMPBUTX
 		sequence 		3
-		clickable lua	"mpaPlayers[5]['name'] ~= '' and multiplayerLocalPlayerID == 1"
+		clickable lua	"mpaPlayers[5]['name'] ~= ''"
 		align 		center center
 		tooltip lua	"t('MULTIPALYER_PERMISSION_TOOLTIP')"
 		action
@@ -18304,7 +17545,7 @@ menu
 		area		446 599 46 45
 		bam 			GUMPBUTX
 		sequence 		3
-		clickable lua	"mpaPlayers[6]['name'] ~= '' and multiplayerLocalPlayerID == 1"
+		clickable lua	"mpaPlayers[6]['name'] ~= ''"
 		align 		center center
 		tooltip lua	"t('MULTIPALYER_PERMISSION_TOOLTIP')"
 		action
@@ -18343,12 +17584,8 @@ menu
 		align 				center center
 		actionSimpleDrag	
 		"
-			if multiplayerFromInGame == false then
-				local slot = getMultiplayerPlayerControlledCharacterSlot(1,2)
-				multiplayerStartSwapPortraits(1,slot)
-			elseif multiplayerLocalPlayerID == 1 or multiplayer.player[multiplayerLocalPlayerID].permissions[1] == true then
-				multiplayerScreen:OnModifyButtonClick()
-			end
+			local slot = getMultiplayerPlayerControlledCharacterSlot(1,2)
+			multiplayerStartSwapPortraits(1,slot)
 		"
 		actionSimpleDrop	
 		"
@@ -18363,12 +17600,8 @@ menu
 		align 				center center
 		actionSimpleDrag	
 		"
-			if multiplayerFromInGame == false then
-				local slot = getMultiplayerPlayerControlledCharacterSlot(1,3)
-				multiplayerStartSwapPortraits(1,slot)
-			elseif multiplayerLocalPlayerID == 1 or multiplayer.player[multiplayerLocalPlayerID].permissions[1] == true then
-				multiplayerScreen:OnModifyButtonClick()
-			end
+			local slot = getMultiplayerPlayerControlledCharacterSlot(1,3)
+			multiplayerStartSwapPortraits(1,slot)
 		"
 		actionSimpleDrop	
 		"
@@ -18383,12 +17616,8 @@ menu
 		align 				center center
 		actionSimpleDrag	
 		"
-			if multiplayerFromInGame == false then
-				local slot = getMultiplayerPlayerControlledCharacterSlot(1,4)
-				multiplayerStartSwapPortraits(1,slot)
-			elseif multiplayerLocalPlayerID == 1 or multiplayer.player[multiplayerLocalPlayerID].permissions[1] == true then
-				multiplayerScreen:OnModifyButtonClick()
-			end
+			local slot = getMultiplayerPlayerControlledCharacterSlot(1,4)
+			multiplayerStartSwapPortraits(1,slot)
 		"
 		actionSimpleDrop	
 		"
@@ -18403,12 +17632,8 @@ menu
 		align 				center center
 		actionSimpleDrag	
 		"
-			if multiplayerFromInGame == false then
-				local slot = getMultiplayerPlayerControlledCharacterSlot(1,5)
-				multiplayerStartSwapPortraits(1,slot)
-			elseif multiplayerLocalPlayerID == 1 or multiplayer.player[multiplayerLocalPlayerID].permissions[1] == true then
-				multiplayerScreen:OnModifyButtonClick()
-			end
+			local slot = getMultiplayerPlayerControlledCharacterSlot(1,5)
+			multiplayerStartSwapPortraits(1,slot)
 		"
 		actionSimpleDrop	
 		"
@@ -18423,12 +17648,8 @@ menu
 		align 				center center
 		actionSimpleDrag	
 		"
-			if multiplayerFromInGame == false then
-				local slot = getMultiplayerPlayerControlledCharacterSlot(1,6)
-				multiplayerStartSwapPortraits(1,slot)
-			elseif multiplayerLocalPlayerID == 1 or multiplayer.player[multiplayerLocalPlayerID].permissions[1] == true then
-				multiplayerScreen:OnModifyButtonClick()
-			end
+			local slot = getMultiplayerPlayerControlledCharacterSlot(1,6)
+			multiplayerStartSwapPortraits(1,slot)
 		"
 		actionSimpleDrop	
 		"
@@ -18974,10 +18195,10 @@ menu
 		text style 	'label'
 		align 		left center
 	}
-	label -- chapter
+	label -- location
 	{
 		area 		206 180 288 44
-		text lua	"multiplayerChapter"
+		text lua	"multiplayerLocationName"
 		text style 	'label'
 		align 		left center
 	}
@@ -19076,12 +18297,12 @@ menu
 `
 multiplayerPermissions = 
 {
-	{'MULTIPLAYER_PERMISSIONS_MODIFY',	'MULTIPLAYER_PERMISSIONS_MODIFY_TOOLTIP',	false, false, 7},
-	{'MULTIPLAYER_PERMISSIONS_GOLD',	'MULTIPLAYER_PERMISSIONS_GOLD_TOOLTIP',		false, false, 0},
-	{'MULTIPLAYER_PERMISSIONS_TRAVEL',	'MULTIPLAYER_PERMISSIONS_TRAVEL_TOOLTIP',	false, false, 1},
-	{'MULTIPLAYER_PERMISSIONS_VIEW',	'MULTIPLAYER_PERMISSIONS_VIEW_TOOLTIP',		false, false, 3},
-	{'MULTIPLAYER_PERMISSIONS_DIALOGUE','MULTIPLAYER_PERMISSIONS_DIALOGUE_TOOLTIP',	false, false, 2},
-	{'MULTIPLAYER_PERMISSIONS_PAUSE',	'MULTIPLAYER_PERMISSIONS_PAUSE_TOOLTIP',	false, false, 4}
+	{'MULTIPLAYER_PERMISSIONS_MODIFY',	'MULTIPLAYER_PERMISSIONS_MODIFY_TOOLTIP',	false, false},
+	{'MULTIPLAYER_PERMISSIONS_GOLD',	'MULTIPLAYER_PERMISSIONS_GOLD_TOOLTIP',		false, false},
+	{'MULTIPLAYER_PERMISSIONS_TRAVEL',	'MULTIPLAYER_PERMISSIONS_TRAVEL_TOOLTIP',	false, false},
+	{'MULTIPLAYER_PERMISSIONS_VIEW',	'MULTIPLAYER_PERMISSIONS_VIEW_TOOLTIP',		false, false},
+	{'MULTIPLAYER_PERMISSIONS_DIALOGUE','MULTIPLAYER_PERMISSIONS_DIALOGUE_TOOLTIP',	false, false},
+	{'MULTIPLAYER_PERMISSIONS_PAUSE',	'MULTIPLAYER_PERMISSIONS_PAUSE_TOOLTIP',	false, false}
 }
 
 function broadcastPermissionChange(player,permission,setting)
@@ -19096,6 +18317,7 @@ function broadcastPermissionChange(player,permission,setting)
 	end
 	removeStringTokenLua("<PLAYER_NAME_1>")
 	removeStringTokenLua("<PERMISSION>")
+	print(message)
 	Infinity_SendChatMessage(message, true) 
 end
 
@@ -19116,29 +18338,9 @@ menu
 	onOpen
 	"
 		local index = 1
-		for index = 0, #(multiplayer.player[multiplayerInPermissionForPlayer].permissions), 1 do
-			local luaIndex = -1
-			local loopLuaIndex = -1
-
-			for loopLuaIndex = 1, #multiplayerPermissions, 1 do
-				if multiplayerPermissions[loopLuaIndex][5] == index then
-					luaIndex = loopLuaIndex
-					break
-				end
-			end
-
-			if luaIndex ~= -1 then
-				if multiplayer.player[multiplayerInPermissionForPlayer].permissions[index] == true then
-					multiplayerPermissions[luaIndex][3] = true
-					multiplayerPermissions[luaIndex][4] = true
-				elseif multiplayer.player[multiplayerInPermissionForPlayer].permissions[index] == false then
-					multiplayerPermissions[luaIndex][3] = false
-					multiplayerPermissions[luaIndex][4] = false
-				else
-					multiplayerPermissions[luaIndex][3] = false
-					multiplayerPermissions[luaIndex][4] = false
-				end
-			end
+		for index = 1, #(multiplayerPermissions), 1 do
+			multiplayerPermissions[index][3] = multiplayer.player[multiplayerInPermissionForPlayer].permissions[index]
+			multiplayerPermissions[index][4] = multiplayerPermissions[index][3]
 		end
 	"
 
@@ -19200,10 +18402,10 @@ menu
 		action 
 		"
 			local index = 1
-			for index = #(multiplayerPermissions), 1, -1 do
+			for index = 1, #(multiplayerPermissions), 1 do
 				if multiplayerPermissions[index][3] ~= multiplayerPermissions[index][4] then
 					broadcastPermissionChange(multiplayerInPermissionForPlayer,index,multiplayerPermissions[index][3])
-					multiplayerScreen:OnPermissionButtonClick(multiplayerInPermissionForPlayer - 1, multiplayerPermissions[index][5])
+					multiplayerScreen:OnPermissionButtonClick(multiplayerInPermissionForPlayer - 1, index)
 				end
 			end
 
@@ -19385,6 +18587,7 @@ function broadcastOptionChange(slot, onOff)
 			message = t("MULTIPLAYER_IMPORT_SETTINGS_CHANGE")
 			removeStringTokenLua("<IMPORT_RULES>")
 		end
+		print(message)
 		Infinity_SendChatMessage(message, true) 
 	end
 end
@@ -19589,25 +18792,7 @@ menu
 		"
 	}
 }
-`
-	function getActivePlayerIndex(index)
-		local ret = -1
-		local count = 0
-		local slot = 0
 
-		for slot = 1, 6, 1 do
-			if mpaPlayers[slot]["name"] ~= '' then
-				count = count + 1
-			end
-			if count == index then
-				ret = slot
-				break
-			end
-		end
-
-		return ret
-	end
-`
 menu
 {
 	name 'MP_PICKPLAYER'
@@ -19634,7 +18819,7 @@ menu
 			label
 			{
 				area 0 0 340 32
-				text lua "getMultiplayerPlayerName(getActivePlayerIndex(rowNumber), false, true)"
+				text lua "getMultiplayerPlayerName(rowNumber, false, true)"
 				text style "normal"
 				align left center
 			}
@@ -19687,11 +18872,8 @@ menu
 		sequence 0
 		action
 		"	
-			if mpaCharacters[selectedCharacter]['ready'] == true and mpaCharacters[selectedCharacter]['player'] ~= getActivePlayerIndex(currentMultiplayerSelectPlayer) then
-				multiplayerScreen:OnReadyButtonClick(selectedCharacter-1)
-			end
-			broadcastCharacterControlChange(selectedCharacter, getActivePlayerIndex(currentMultiplayerSelectPlayer))
-			multiplayerScreen:OnPlayerSelection(getActivePlayerIndex(currentMultiplayerSelectPlayer)-1)
+			broadcastCharacterControlChange(selectedCharacter, currentMultiplayerSelectPlayer)
+			multiplayerScreen:OnPlayerSelection(currentMultiplayerSelectPlayer-1)
 			Infinity_PopMenu()
 		"
 	}
@@ -19942,42 +19124,6 @@ menu
 		Infinity_SetArea('mpChatEditBackground',nil,nil,nil,h + offset)
 		Infinity_SetArea('mpChatHandle',nil,y+h+(offset/2),nil,nil)
 	end
-
-	function mpChatboxScroll(top, height, contentHeight)
-		if(mpChatboxJumpToBottom and contentHeight > height) then
-			mpChatboxJumpToBottom = nil
-			return height-contentHeight
-		end
-		if(mpChatboxScrollToBottom == 0 and mpChatboxScrollLastHeight == contentHeight) then
-			--defer to default scrolling
-			return nil
-		elseif mpChatboxScrollToBottom == 0 then
-			mpChatboxScrollLastHeight = contentHeight
-			return height-contentHeight
-		end
-		if(contentHeight < height) then
-			--no scrolling required, content fits
-			mpChatboxScrollToBottom = nil
-			return nil
-		end
-		local dT = Infinity_GetClockTicks() - mpChatboxScrollTimeLast
-		mpChatboxScrollTimeLast = Infinity_GetClockTicks()
-		top = top + lastTrimmedContentHeight
-		lastTrimmedContentHeight = 0
-		local newTop = (dT * -0.25) + top
-		if (newTop + contentHeight > height + 200) then
-			return (height - contentHeight + 200)
-		end
-		if(newTop + contentHeight < height) then
-			mpChatboxScrollToBottom = 0
-			return height - contentHeight
-		end
-		return newTop
-	end
-
-	mpChatboxScrollLastHeight = 0
-	mpChatboxScrollToBottom = nil
-	mpChatboxScrollTimeLast = 0
 	mpChatEditOverlay = ""
 `
 menu
@@ -19986,7 +19132,7 @@ menu
 	enabled "e:IsMultiplayer()"
 	align right top
 	ignoreEsc
-	offset -80 0
+	offset -120 0
 	onOpen
 	"
 		chatViewed = 1
@@ -20034,12 +19180,6 @@ menu
 		action
 		"
 			chatViewed = 1
-			mpChatboxScrollToBottom = 1
-			if showMpChat == 1 then
-				Infinity_FocusTextEdit('mpChatEdit')
-			else
-				Infinity_FocusTextEdit('')
-			end
 		"
 	}
 	
@@ -20051,7 +19191,6 @@ menu
 		area 0 42 300 18
 		text style "normal"
 		text lua "getMPMessage()"
-		ignoreEvents
 		pad 8 8 8 8
 		rectangle 1
 	}
@@ -20090,7 +19229,6 @@ menu
 					Infinity_PlaySound('WAL_19B')
 					mpChatEditOverlay=''
 					resizeMpEditBox()
-					mpChatboxScrollToBottom = 1
 					return -1
 				end
 			end
@@ -20115,33 +19253,9 @@ menu
 	}
 }
 `
-function reinitQuests()
-	for questIdx, quest in pairs(quests) do
-		local noquest = true
-		for objIdx,objective in pairs(quest.objectives) do
-			local noobjective = true
-			for entryIdx,entry in pairs(objective.entries) do
-				if quests[questIdx].objectives[objIdx].entries[entryIdx].stateType ~= const.ENTRY_TYPE_NONE and quests[questIdx].objectives[objIdx].entries[entryIdx].stateType ~= nil then
-					noobjective = false
-				end
-			end
-			if noobjective then
-				quests[questIdx].objectives[objIdx].stateType = const.ENTRY_TYPE_NONE
-			end
-			if quests[questIdx].objectives[objIdx].stateType ~= const.ENTRY_TYPE_NONE and quests[questIdx].objectives[objIdx].stateType ~= nil then
-				noquest = false
-			end
-		end
-		if noquest then
-			quests[questIdx].stateType = const.ENTRY_TYPE_NONE
-		end
-	end
-end
-
 function initQuests()
 	--instead of always searching the quests, just map entry ids to their quests
 	entryToQuest = {}
-	buildQuestsTable()
 	for questIdx, quest in pairs(quests) do
 		quests[questIdx].stateType = const.ENTRY_TYPE_NONE
 		for objIdx,objective in pairs(quest.objectives) do
@@ -20185,16 +19299,12 @@ function updateJournalEntry(journalId, recvTime, stateType, chapter, timeStamp)
 		return
 	end
 	--find the quest that is parent to this entry.
+
 	--NOTE this can be placed in a loop if there needs to be more than quest to an entry
 	--this would just mean entryToQuest returns a table that we iterate over
 	local questId = entryToQuest[journalId]
-	if questId == nil or stateType == const.ENTRY_TYPE_INFO then
+	if questId == nil then
 		--add loose entries into the looseEntries table so they still get displayed.
-		for _,entry in pairs(looseEntries) do
-			if entry.text == journalId then
-				return
-			end
-		end
 		local entry = buildEntry(journalId, recvTime, stateType, chapter, timeStamp)
 		table.insert(looseEntries,entry)
 		
@@ -20304,7 +19414,7 @@ function buildQuestDisplay()
 					
 					--fix for missing data in bg1 and bg2.
 					--if we have an objective title unique from the quest, use it. otherwise use the timestamp from my first(only) entry.
-					if(objective.text == Infinity_FetchString(quest.text) or objective.text == nil) then
+					if(objective.text == Infinity_FetchString(quest.text)) then
 						objective.text = objective.entries[1].timeStamp
 					end
 					
@@ -20558,9 +19668,7 @@ menu
 	align left top
 	offset 80 0
 	ignoreEsc
-	enabled "sidebarsGreyed ~= 1"
 	onopen "
-		reinitQuests()
 		buildQuestDisplay()
 		chapter = math.max(0,Infinity_GetMaxChapterPage());
 	"
@@ -20817,7 +19925,6 @@ menu
 			journalMode = const.JOURNAL_MODE_EDIT
 			journalNoteEdit = ''
 			journalNoteEditRef = nil
-			Infinity_FocusTextEdit('journalNoteEditArea')
 		"
 	}
 	button
@@ -20862,7 +19969,6 @@ menu
 	}
 	edit
 	{
-		name "journalNoteEditArea"
 		enabled "journalMode == const.JOURNAL_MODE_EDIT"
 		area		58 186 382 383
 		text style	"edit_parchment"
@@ -20984,1600 +20090,3 @@ menu
 		text style	"label"
 	}
 }
-`
-function getDLCDescription()
-	return Infinity_FetchString(dlcScreen:GetDLCDescription())
-end
-function getDLCTitle()
-	return Infinity_FetchString(dlcScreen:GetDLCTitle())
-end
-function getDLCIndex()
-	return dlcScreen:GetDLCIndex() .. "/" .. dlcScreen:GetDLCCount()
-end
-function isDLCBuyButtonClickable()
-	local isBought = dlcScreen:GetDLCBought()
-	return isBought == false
-end
-
-function setDLCPurchased(index, purchaseLevel)
-	purchasedDLC[index] = purchaseLevel;
-end
-`
-menu
-{
-	name 'START_DLC'
-	align center center
-
-	label
-	{
-		area 0 0 1024 768
-		mosaic 'GUIDLC'
-	}
-
-	label
-	{
-		area		60 14 906 42
-		text        103043
-		text style  'title'
-		text align	center center
-	}
-
-	label
-	{
-		area		574 582 346 28
-		text lua	"getDLCIndex()"
-		text style  'title'
-		text align	center center
-	}
-
-	label
-	{
-		area		578 162 336 52
-		text lua	"getDLCTitle()"
-		text style  'title'
-		text align	center center
-	}
-		
-	text
-	{
-		area		578 220 336 362
-		text lua	"getDLCDescription()"
-		text style  'normal'
-		scrollbar	'GUISCRC'		
-	}
-	
-	label
-	{
-		area 154 98 366 566
-		bitmap lua "dlcScreen:GetDLCImage()"
-	}
-
-	button 
-	{
-		bam 'GUIPRC'
-		sequence 0
-		area 22 274 56 140
-		align center center
-		action 
-		"
-			dlcScreen:DecrementDLCIndex()
-		"
-	}
-
-	button 
-	{
-		bam 'GUIPRC'
-		sequence 1
-		area 946 270 52 140
-		align center center
-		action 
-		"
-			dlcScreen:IncrementDLCIndex()
-		"
-	}
-
-	button 
-	{
-		bam 'GUIOSTUL'
-		sequence 0
-		area 280 710 240 48
-		align center center
-		text style "button"
-		text "BACK_BUTTON"
-		action 
-		"
-			dlcScreen:OnDoneButtonClick()
-		"
-	}
-
-	button 
-	{
-		bam 'GUIOSTCL'
-		sequence 0
-		area 602 646 302 46
-		align center center
-		text style "button"
-		text "STRREF_GUI_DLC_RESTORE_PURCHASES"
-		clickable lua "not e:IsAndroid()"
-		action 
-		"
-			dlcScreen:RestorePurchases()
-		"
-	}
-
-	button 
-	{
-		bam 'BUYBUTT'
-		sequence 2
-		area 530 710 238 48
-		align center center
-		text style "button"
-		text "BUY_BUTTON"
-		clickable lua "isDLCBuyButtonClickable()"
-		action 
-		"
-			dlcScreen:OnBuyButtonClick()
-		"
-	}
-}
-
-`
-dlcStatusDescriptionText = ""
-dlcStatusButtonText = ""
-dlcStatusState = 0
-
-DLC_STATE_WAITING = 0
-DLC_STATE_IN_PROGRESS = 1
-DLC_STATE_SUCCESS = 2
-DLC_STATE_FAILED = 3
-DLC_STATE_CANCELLED = 4
-DLC_STATE_RESTORING_PURCHASES = 5
-DLC_STATE_RESTORING_PURCHASES_COMPLETE = 6
-DLC_STATE_DOWNLOADING = 7
-
-function checkDLCState()
-	dlcStatusState = dlcScreen:GetDLCState()
-	if dlcStatusState == DLC_STATE_WAITING then
-		dlcStatusDescriptionText = t("STRREF_GUI_DLC_WAITING")
-		dlcStatusButtonText = t("BACK_BUTTON")
-	elseif dlcStatusState == DLC_STATE_IN_PROGRESS then
-		dlcStatusDescriptionText = t("STRREF_GUI_DLC_IN_PROGRESS")
-		dlcStatusButtonText = t("BACK_BUTTON")
-	elseif dlcStatusState == DLC_STATE_SUCCESS then
-		dlcStatusDescriptionText = t("STRREF_GUI_DLC_SUCCESS")
-		dlcStatusButtonText = t("CONTINUE_BUTTON")
-	elseif dlcStatusState == DLC_STATE_FAILED then
-		dlcStatusDescriptionText = t("STRREF_GUI_DLC_FAILED")
-		dlcStatusButtonText = t("CONTINUE_BUTTON")
-	elseif dlcStatusState == DLC_STATE_CANCELLED then
-		dlcStatusDescriptionText = t("STRREF_GUI_DLC_CANCELLED")
-		dlcStatusButtonText = t("CONTINUE_BUTTON")
-	elseif dlcStatusState == DLC_STATE_RESTORING_PURCHASES then
-		dlcStatusDescriptionText = t("STRREF_GUI_DLC_RESTORING_PURCHASES")
-		dlcStatusButtonText = t("BACK_BUTTON")
-	elseif dlcStatusState == DLC_STATE_RESTORING_PURCHASES_COMPLETE then
-		dlcStatusDescriptionText = t("STRREF_GUI_DLC_RESTORING_PURCHASES_COMPLETE")
-		dlcStatusButtonText = t("CONTINUE_BUTTON")
-	elseif dlcStatusState == DLC_STATE_DOWNLOADING then
-		dlcScreen:GetDownloadString()
-		dlcStatusButtonText = ""
-	else
-		dlcStatusDescriptionText = "WAFFLES_Dont Know How We Got Here_WAFFLES"
-		dlcStatusButtonText = "WAFFLES_WAFFLES_WAFFLES"
-	end
-end
-
-function getDLCStatusText()
-	checkDLCState()
-	return dlcStatusDescriptionText
-end
-`
-menu
-{
-	name 'START_DLC_STATUS'
-	align center center
-
-	label
-	{
-		area 0 0 408 420
-		mosaic 'GUIERR'
-	}
-
-	label
-	{
-		area 86 76 236 84
-		text style "label"
-		text lua "getDLCStatusText()"
-	}
-
-	button 
-	{
-		bam 'GUIOSTUM'
-		sequence 0
-		area 104 320 202 46
-		align center center
-		text style "button"
-		text lua "dlcStatusButtonText"
-		enabled "dlcStatusState ~= DLC_STATE_DOWNLOADING"
-		action 
-		"
-			dlcScreen:OnErrorButtonClick();
-		"
-	}
-}
-`	
-	dialogTable = {}
-	dialogOverflowTable = {}
-	hasDialogResponse = nil
-	
-	chatboxScrollToBottom = nil
-	chatboxScrollTimeLast = 0
-	chatboxContentHeight = 0
-	chatboxOverflowed = nil
-	chatboxJumpToBottom = nil
-	
-	-- The following two values determine how many item entries can exist.  We trim 
-	-- the number of entries to numDialogTrimEntries once it has overflowed that value
-	-- by numDialogOverflowLimit.
-	numDialogTrimEntries = 512
-	numDialogOverflowEntries = numDialogTrimEntries + 128
-	
-	lastTrimmedContentHeight = 0
-	
-	function getNumDialogTableEntries()
-		local count = 0
-		for _ in pairs(dialogTable) do count = count + 1 end
-		return count
-	end
-	
-	function trimDialogTableSize()
-		local  numTableEntries = getNumDialogTableEntries()
-		if (numTableEntries > numDialogOverflowEntries) then
-			local numEntriesToRemove = numTableEntries - numDialogTrimEntries
-			while (numEntriesToRemove > 0) do
-				-- Get our table entry and calculate its size
-				local tableEntry = dialogTable[1]
-				local delta = Infinity_GetContentHeight(styles.normal.font, w, tableEntry.text, styles.normal.point, 1, styles.normal.useFontZoom) --1 for indent.
-				chatboxContentHeight = chatboxContentHeight - delta
-				lastTrimmedContentHeight = lastTrimmedContentHeight + delta
-					
-				table.remove(dialogTable, 1)
-				numEntriesToRemove = numEntriesToRemove - 1
-			end
-		end
-	end
-	
-	function buildResponsesList()
-
-		hasDialogResponse = nil
-		dialogResponses = {}
-		for k,v in pairs(worldPlayerDialogChoices) do
-			if v.marker then
-				table.insert(dialogResponses, v)
-				hasDialogResponse = 1
-			end
-		end
-	end
-	function canShowDialogButton(num)
-		-- Show the buttons if we have a response, and the dialog button is not enabled
-		return dialogResponses and dialogResponses[num] ~= nil and showDialogButtonChoices()
-	end
-	
-	function addDialogMessage(text,marker,makeTop)
-		local tab = {}
-		tab.text = text
-		tab.marker = marker
-		if(marker) then 
-			dialogViewMode = nil
-			if(text == "") then
-				--empty markers are a signal, we shouldn't actually display them.
-				if(makeTop == true) then
-					--we'll ensure the next line is included in the visible content.
-					chatboxContentHeight = 0
-				end
-				return
-			else
-				hasDialogResponse = 1
-			end
-		end
-		
-		--Calculate running total of dialog content height
-		local x,y,w,h = Infinity_GetArea("worldPlayerDialogChoicesList")
-		w = w - 18 --account for scrollbar influence on width
-		local delta = Infinity_GetContentHeight(styles.normal.font, w, text, styles.normal.point, 1, styles.normal.useFontZoom) --1 for indent.
-		chatboxContentHeight = chatboxContentHeight + delta
-		
-		if(marker and chatboxContentHeight > h) then
-			--More to display than we have room for, put the responses in overflow and hide them behind button
-			table.insert(dialogOverflowTable,tab)
-		else
-			table.insert(dialogTable,tab)
-		end
-		
-		if(makeTop == true) then
-			--we'll ensure the next line is included in the visible content.
-			chatboxContentHeight = 0
-		end
-		
-		trimDialogTableSize()
-		
-		triggerChatboxScroll()
-		
-		buildResponsesList()
-	end
-	function clearDialogResponses()
-		for k,v in pairs(dialogTable) do
-			if(v.marker) then
-				table.remove(dialogTable,k)
-				clearDialogResponses()
-			end
-		end
-		hasDialogResponse = nil
-		chatboxOverflowed = nil
-		chatboxContentHeight = 0
-		dialogOverflowTable = {}
-	end
-	function dialogEntrySelectable(row)
-		return (dialogTable[row].marker ~= nil)
-	end
-	function showDialogButtonChoices()
-		return not (not hasDialogResponse or dialogViewMode or #dialogOverflowTable > 0)
-	end
-	function getResponsePickable()
-		return not hasDialogResponse or dialogViewMode or (gameOptions.m_bConfirmDialog == true)
-	end
-	function getDialogButtonText()
-		if(dialogViewMode) then
-			return t("DONE_BUTTON")
-		end
-		
-		if(#dialogOverflowTable > 0) then
-			return t("SHOW_MORE_RESPONSES_BUTTON")
-		end
-		
-		if(gameOptions.m_bConfirmDialog == true) then
-			return t("CHOOSE_RESPONSE_BUTTON")
-		end
-		
-		return dialogButtonText
-	end
-	function triggerChatboxScroll()
-		chatboxScrollToBottom = 1
-		chatboxScrollTimeLast = Infinity_GetClockTicks()
-	end
-	function chatboxScroll(top, height, contentHeight)
-		if(chatboxJumpToBottom and contentHeight > height) then
-			chatboxJumpToBottom = nil
-			return height-contentHeight
-		end
-		if(chatboxScrollToBottom == 0) then
-			--defer to default scrolling
-			return nil
-		end
-		if(contentHeight < height) then
-			--no scrolling required, content fits
-			chatboxScrollToBottom = nil
-			return nil
-		end
-		local dT = Infinity_GetClockTicks() - chatboxScrollTimeLast
-		chatboxScrollTimeLast = Infinity_GetClockTicks()
-		top = top + lastTrimmedContentHeight
-		lastTrimmedContentHeight = 0
-		local newTop = (dT * -0.25) + top
-		if (newTop + contentHeight > height + 200) then
-			return (height - contentHeight + 200)
-		end
-		if(newTop + contentHeight < height) then
-			chatboxScrollToBottom = 0
-			return height - contentHeight
-		end
-		return newTop
-	end
-	function displayOverflowResponses()
-		for k,v in pairs(dialogOverflowTable) do
-			table.insert(dialogTable,v)
-		end
-		dialogOverflowTable = {}
-		triggerChatboxScroll()
-		buildResponsesList()
-	end
-	function GetFirstMarkedResponse()
-		for k,v in pairs(dialogTable) do
-			if v.marker ~= nil then
-				return k
-			end
-		end
-		return -1	
-	end
-	function onDialogButtonClick()
-		if(dialogViewMode) then
-			--In dialog view mode this button closes the menu.
-			worldScreen:StopDialogHistory()
-			return
-		end
-		
-		if(#dialogOverflowTable > 0) then
-			displayOverflowResponses()
-			return
-		end
-
-		if(gameOptions.m_bConfirmDialog == true and hasDialogResponse) then
-			-- if confirm dialog and choices available.
-			worldScreen:OnDialogReplyClick(dialogTable[worldPlayerDialogSelection].marker)
-			worldPlayerDialogSelection = 0
-			return
-		else
-			-- no choices, just step.
-			worldScreen:StepDialog()
-		end
-	end
-	function getDialogRowClickable(row)
-		return dialogTable[row].marker ~= nil
-	end
-	function isTouchActionbar()
-		--Make this read from an option to make it easy to switch out.
-		local default = 0
-		if(e:IsTouchUI()) then default = 1 end
-		local val = Infinity_GetINIValue('Program Options', 'Use Touch Actionbar', default)
-		if (val ~= 0) then
-			return 1
-		else
-			return nil
-		end
-	end
-`
-menu
-{
-	name 'WORLD_DIALOG_LEFT'
-	align left center
-	ignoreEsc
-	--ignoreFocus 1
-	onOpen
-	"
-		Infinity_PushMenu('WORLD_DIALOG_LEFT_BUTTONS')
-	"
-	onClose
-	"
-		Infinity_PopMenu('WORLD_DIALOG_LEFT_BUTTONS')
-	"
-	label
-	{
-		area 0 0 80 1536
-		mosaic GUIWLSP
-	}
-}
-menu
-{
-	name 'WORLD_DIALOG_LEFT_BUTTONS'
-	align left center
-	ignoreEsc
-	--ignoreFocus 1
-	label
-	{
-		area 0 0 85 780
-		rectangle 4
-	}
-	button
-	{
-		area 15 25 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'...'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "not showDialogButtonChoices()"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			onDialogButtonClick()
-		"
-	}
-
-	button
-	{
-		area 15 25 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'1'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(1)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[1].marker)
-		"
-	}
-	button
-	{
-		area 15 100 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'2'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(2)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[2].marker)
-		"
-	}
-	button
-	{
-		area 15 175 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'3'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(3)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[3].marker)
-		"
-	}
-	button
-	{
-		area 15 250 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'4'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(4)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[4].marker)
-		"
-	}
-	button
-	{
-		area 15 325 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'5'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(5)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[5].marker)
-		"
-	}
-	button
-	{
-		area 15 400 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'6'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(6)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[6].marker)
-		"
-	}
-	button
-	{
-		area 15 475 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'7'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(7)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[7].marker)
-		"
-	}
-
-	button
-	{
-		area 15 550 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'8'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(8)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[8].marker)
-		"
-	}
-
-	button
-	{
-		area 15 625 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'9'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(9)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[9].marker)
-		"
-	}
-	button
-	{
-		area 15 700 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'10'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(10)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[10].marker)
-		"
-	}
-}
-menu
-{
-	name 'WORLD_DIALOG_RIGHT'
-	align right center
-	ignoreEsc
-	--ignoreFocus 1
-	enabled "canShowDialogButton(11)"
-	onOpen
-	"
-		Infinity_PushMenu('WORLD_DIALOG_RIGHT_BUTTONS')
-	"
-	onClose
-	"
-		Infinity_PopMenu('WORLD_DIALOG_RIGHT_BUTTONS')
-	"
-	label
-	{
-		area 0 0 80 1536
-		mosaic GUIWRSP
-	}
-}
-menu
-{
-	name 'WORLD_DIALOG_RIGHT_BUTTONS'
-	align right center
-	ignoreEsc
-	--ignoreFocus 1
-	enabled "canShowDialogButton(11)"
-	label
-	{
-		area 0 0 85 780
-		rectangle 4
-	}
-	button
-	{
-		area 15 25 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'11'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(11)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[11].marker)
-		"
-	}
-	button
-	{
-		area 15 100 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'12'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(12)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[12].marker)
-		"
-	}
-	button
-	{
-		area 15 175 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'13'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(13)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[13].marker)
-		"
-	}
-	button
-	{
-		area 15 250 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'14'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(14)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[14].marker)
-		"
-	}
-	button
-	{
-		area 15 325 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'15'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(15)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[15].marker)
-		"
-	}
-	button
-	{
-		area 15 400 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'16'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(16)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[16].marker)
-		"
-	}
-	button
-	{
-		area 15 475 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'17'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(17)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[17].marker)
-		"
-	}
-
-	button
-	{
-		area 15 550 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'18'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(18)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[18].marker)
-		"
-	}
-
-	button
-	{
-		area 15 625 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'19'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(19)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[19].marker)
-		"
-	}
-	button
-	{
-		area 15 700 54 54
-		bam CBUTT
-		scaleToClip
-		text lua "'20'"
-		text style "button"
-		pad -3 -6 0 0
-		enabled "canShowDialogButton(20)"
-		clickable lua "not dialogEntryGreyed()"
-		action
-		"
-			worldScreen:OnDialogReplyClick(dialogResponses[20].marker)
-		"
-	}
-}
-`
-	currentButtonHelp = 11
-	buttonHelp = 
-	{
-		{'GUILS10', 	 0,	-1,	0,	0, -1,			'',	'HELPTUTORIAL_RETURNTOGAME'}, 			--  1	return to game
-		{'GUILS10', 	 1,	-1,	0,	0, -1,			'',	'HELPTUTORIAL_MAP'}, 					--  2	map
-		{'GUILS10', 	 2,	-1,	0,	0, -1,			'',	'HELPTUTORIAL_JOURNAL'},				--  3	journal
-		{'GUILS10', 	 3,	-1,	0,	0, -1,			'',	'HELPTUTORIAL_INVENTORY'}, 				--  4	inventory
-		{'GUILS10', 	 4,	-1,	0,	0, -1,			'',	'HELPTUTORIAL_CHARACTERRECORD'}, 		--  5	record
-		{'GUILS10', 	 5,	-1,	0,	0, -1,			'',	'HELPTUTORIAL_MAGESPELLS'}, 			--  6	mage book
-		{'GUILS10', 	 6,	-1,	0,	0, -1,			'',	'HELPTUTORIAL_PRIESTSPELLS'}, 			--  7	priest scroll
-		{'GUILS10', 	 7,	-1,	0,	0, -1,			'',	'HELPTUTORIAL_OPTIONS'}, 				--  8	options
-		{'GUILS10', 	 8,	-1,	0,	0, -1,			'',	'HELPTUTORIAL_CHARACTERARBITRATION'}, 	--  9	arbitration
-		{'GUILS10', 	15,	-1,	0,	0, -1,			'',	'HELPTUTORIAL_QUICKSAVE'}, 				-- 10	quick save
-		{'GUILS10', 	16,	-1,	0,	0, -1,			'',	'HELPTUTORIAL_HELP'}, 					-- 11	help
-		{'GUILS10', 	 9,	-1,	0,	0, -1,			'',	'HELPTUTORIAL_REST'}, 					-- 12	rest
-		{'GUILS10', 	14,	-1,	0,	0, -1,			'',	'HELPTUTORIAL_SELECT'}, 				-- 13	drag
-		{'GUILS10', 	11,	-1,	0,	0, -1,			'',	'HELPTUTORIAL_HIGHLIGHT'}, 				-- 14	highlight
-		{'GUILS10', 	10,	-1,	0,	0, -1,			'',	'HELPTUTORIAL_TOGGLEAI'}, 				-- 15	ai
-		{'GUILS10', 	13,	-1,	0,	0, -1,			'',	'HELPTUTORIAL_SELECTALL'}, 				-- 16	select all
-		{'',            -1,	0,	0,	0, -1,			'',	'HELPTUTORIAL_CHARACTERPORTRAITS'}, 	-- 17	player 1
-		{'',            -1,	1,	0,	0, -1,			'',	'HELPTUTORIAL_CHARACTERPORTRAITS'}, 	-- 18	player 2
-		{'',            -1,	2,	0,	0, -1,			'',	'HELPTUTORIAL_CHARACTERPORTRAITS'}, 	-- 19	player 3
-		{'',            -1,	3,	0,	0, -1,			'',	'HELPTUTORIAL_CHARACTERPORTRAITS'}, 	-- 20	player 4
-		{'',            -1,	4,	0,	0, -1,			'',	'HELPTUTORIAL_CHARACTERPORTRAITS'}, 	-- 21	player 5
-		{'',            -1,	5,	0,	0, -1,			'',	'HELPTUTORIAL_CHARACTERPORTRAITS'}, 	-- 22	player 6
-		{'',            -1,	-1,	1,	0, -1,			'',	'HELPTUTORIAL_CLOCK'}, 					-- 23	clock
-		{'ROUNDBUT',	 0,	-1,	0,	1, -1,			'',	'HELPTUTORIAL_QUICKLOOT'}, 				-- 24	quick loot
-		{'GUIBTACT',	64,	-1,	0,	0,  0,			'',	'HELPTUTORIAL_ARROWLEFT'}, 				-- 25
-		{'GUIBTACT',	66,	-1,	0,	0,  1,			'',	'HELPTUTORIAL_ARROWRIGHT'}, 			-- 26
-		{'GUIBTACT',	22,	-1,	0,	0,  2,			'',	'HELPTUTORIAL_BARDSONG'}, 				-- 27
-		{'GUIBTACT',	12,	-1,	0,	0,  3,			'',	'HELPTUTORIAL_CASTSPELLS'}, 			-- 28
-		{'GUIBTACT',	34,	-1,	0,	0,  4,			'',	'HELPTUTORIAL_FINDTRAPS'}, 				-- 29
-		{'GUIBTACT',	 4,	-1,	0,	0,  5,			'',	'HELPTUTORIAL_DIALOG'}, 				-- 30
-		{'GUIBTACT',	20,	-1,	0,	0,  6,			'',	'HELPTUTORIAL_QUICKFORMATION'}, 		-- 31
-		{'GUIBTACT',	 0,	-1,	0,	0,  7,			'',	'HELPTUTORIAL_DEFEND'}, 				-- 32
-		{'GUIBTACT',	14,	-1,	0,	0,  8,			'',	'HELPTUTORIAL_ATTACK'}, 				-- 33
-		{'GUIBTACT',	40,	-1,	0,	0,  9,			'',	'HELPTUTORIAL_SHAPECHANGE'}, 			-- 34
-		{'GUIBTACT',	38,	-1,	0,	0, 10,			'',	'HELPTUTORIAL_SPECIALABILITIES'}, 		-- 35
-		{'GUIBTACT',	30,	-1,	0,	0, 11,			'',	'HELPTUTORIAL_STEALTH'}, 				-- 36
-		{'GUIBTACT',	26,	-1,	0,	0, 12,			'',	'HELPTUTORIAL_THIEVING'}, 				-- 37
-		{'GUIBTACT',	 8,	-1,	0,	0, 13,			'',	'HELPTUTORIAL_TURNUNDEAD'}, 			-- 38
-		{'GUIBTACT',	18,	-1,	0,	0, 14,			'',	'HELPTUTORIAL_USEITEM'}, 				-- 39
-		{'GUIBTACT',	58,	-1,	0,	0, 15,			'',	'HELPTUTORIAL_STOP'}, 					-- 40
-		{'GUIBTACT',	20,	-1,	0,	0, 16,			'',	'HELPTUTORIAL_QUICKFORMATION'}, 		-- 41
-		{'GUIBTACT',	20,	-1,	0,	0, 17,			'',	'HELPTUTORIAL_QUICKFORMATION'}, 		-- 42
-		{'GUIBTACT',	20,	-1,	0,	0, 18,			'',	'HELPTUTORIAL_QUICKFORMATION'}, 		-- 43
-		{'GUIBTACT',	20,	-1,	0,	0, 19,			'',	'HELPTUTORIAL_QUICKFORMATION'}, 		-- 44
-		{'GUIBTACT',	20,	-1,	0,	0, 20,			'',	'HELPTUTORIAL_QUICKFORMATION'}, 		-- 45
-		{'STONSLOT',	-1,	-1,	0,	0, 21,	'STONITEM',	'HELPTUTORIAL_QUICKITEM'}, 				-- 46
-		{'STONSLOT',	-1,	-1,	0,	0, 22,	'STONITEM',	'HELPTUTORIAL_QUICKITEM'}, 				-- 47
-		{'STONSLOT',	-1,	-1,	0,	0, 23,	'STONITEM',	'HELPTUTORIAL_QUICKITEM'}, 				-- 48
-		{'STONSLOT',	12,	-1,	0,	0, 24,	'STONSPEL',	'HELPTUTORIAL_QUICKSPELLS'}, 			-- 49
-		{'STONSLOT',	12,	-1,	0,	0, 25,	'STONSPEL',	'HELPTUTORIAL_QUICKSPELLS'}, 			-- 50
-		{'STONSLOT',	12,	-1,	0,	0, 26,	'STONSPEL',	'HELPTUTORIAL_QUICKSPELLS'}, 			-- 51
-		{'STONSLOT',	-1,	-1,	0,	0, 27,	'STONWEAP',	'HELPTUTORIAL_QUICKWEAPON'}, 			-- 52
-		{'STONSLOT',	-1,	-1,	0,	0, 28,	'STONWEAP',	'HELPTUTORIAL_QUICKWEAPON'}, 			-- 53
-		{'STONSLOT',	-1,	-1,	0,	0, 29,	'STONWEAP',	'HELPTUTORIAL_QUICKWEAPON'}, 			-- 54
-		{'STONSLOT',	-1,	-1,	0,	0, 30,	'STONWEAP',	'HELPTUTORIAL_QUICKWEAPON'}, 			-- 55
-		{'STONSLOT',	-1,	-1,	0,	0, 31,			'',	'HELPTUTORIAL_CONFIGURATION'}, 			-- 56
-		{'STONSLOT',	-1,	-1,	0,	0, 32,			'',	'HELPTUTORIAL_CONFIGURATION'}, 			-- 57
-		{'STONSLOT',	-1,	-1,	0,	0, 33,			'',	'HELPTUTORIAL_CONFIGURATION'}, 			-- 58
-		{'STONSLOT',	-1,	-1,	0,	0, 34,			'',	'HELPTUTORIAL_CONFIGURATION'}, 			-- 59
-		{'STONSLOT',	-1,	-1,	0,	0, 35,			'',	'HELPTUTORIAL_CONFIGURATION'}, 			-- 60
-		{'STONSLOT',	-1,	-1,	0,	0, 36,			'',	'HELPTUTORIAL_CONFIGURATION'}, 			-- 61
-		{'STONSLOT',	-1,	-1,	0,	0, 37,			'',	'HELPTUTORIAL_CONFIGURATION'}, 			-- 62
-		{'STONSLOT',	-1,	-1,	0,	0, 38,			'',	'HELPTUTORIAL_CONFIGURATION'}, 			-- 63
-		{'STONSLOT',	-1,	-1,	0,	0, 39,			'',	'HELPTUTORIAL_CONFIGURATION'}, 			-- 64
-		{'STONSLOT',	-1,	-1,	0,	0, 40,			'',	'HELPTUTORIAL_CONFIGURATION'}, 			-- 65
-		{'STONSLOT',	-1,	-1,	0,	0, 41,			'',	'HELPTUTORIAL_CONFIGURATION'}, 			-- 66
-		{'STONSLOT',	-1,	-1,	0,	0, 42,			'',	'HELPTUTORIAL_CONFIGURATION'}, 			-- 67
-		{'STONSLOT',	-1,	-1,	0,	0, 43,			'',	'HELPTUTORIAL_ARROWLEFT'}, 				-- 68
-		{'STONSLOT',	-1,	-1,	0,	0, 44,			'',	'HELPTUTORIAL_ARROWRIGHT'}, 			-- 69
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{'STONSLOT',	-1,	-1,	0,	0, 67,			'',	'HELPTUTORIAL_SWITCHTOMAGE'}, 			-- 91
-		{},
-		{'STONSLOT',	-1,	-1,	0,	0, 69,			'',	'HELPTUTORIAL_SWITCHTOCLERIC'}, 		-- 93
-	}
-`
-menu
-{
-	name 'HELP'
-	align center center
-	ignoreEsc
-	onOpen
-	"
-		currentButtonHelp = 11
-		Infinity_PushMenu('LEFT_SIDEBAR_HELP')
-		Infinity_PushMenu('RIGHT_SIDEBAR_HELP')
-		Infinity_PushMenu('WORLD_ACTIONBAR_HELP')
-	"
-	onClose
-	"
-		Infinity_PopMenu('LEFT_SIDEBAR_HELP')
-		Infinity_PopMenu('RIGHT_SIDEBAR_HELP')
-		Infinity_PopMenu('WORLD_ACTIONBAR_HELP')
-	"
-	label
-	{
-		area 0 0 912 244
-		mosaic GUIERR7
-	}
-	label
-	{
-		enabled "buttonHelp[currentButtonHelp][3] == -1 and buttonHelp[currentButtonHelp][4] == 0 and buttonHelp[currentButtonHelp][5] == 0 and buttonHelp[currentButtonHelp][6] == -1"
-		area 34 24 75 54
-		bam lua "buttonHelp[currentButtonHelp][1]"
-		sequence lua "buttonHelp[currentButtonHelp][2]"
-	}
-	label
-	{
-		enabled "buttonHelp[currentButtonHelp][3] == -1 and buttonHelp[currentButtonHelp][4] == 0 and buttonHelp[currentButtonHelp][5] ~= 0 and buttonHelp[currentButtonHelp][6] == -1"
-		area 34 24 44 44
-		bam lua "buttonHelp[currentButtonHelp][1]"
-		sequence lua "buttonHelp[currentButtonHelp][2]"
-		scaleToClip
-	}
-	label
-	{
-		enabled "buttonHelp[currentButtonHelp][3] == -1 and buttonHelp[currentButtonHelp][4] == 0 and buttonHelp[currentButtonHelp][5] == 0 and buttonHelp[currentButtonHelp][6] ~= -1"
-		area 34 24 75 54
-		bam lua "buttonHelp[currentButtonHelp][1]"
-		frame lua "buttonHelp[currentButtonHelp][2]"
-	}
-	button
-	{
-		area 34 24 64 90
-		enabled "buttonHelp[currentButtonHelp][3] ~= -1"
-		portrait lua "buttonHelp[currentButtonHelp][3]"
-	}
-
-	label
-	{
-		enabled "buttonHelp[currentButtonHelp][4] ~= 0"
-		area 29 16 95 120
-		bam "CGEAR"
-		frame lua "timer:GetCurrentTime() % 24"
-	}
-	label
-	{
-		enabled "buttonHelp[currentButtonHelp][4] ~= 0"
-		area 29 16 95 120
-		bam "CDIAL"
-		frame lua "timer:GetCurrentHour() % timer.TIMESCALE_HOUR_PER_DAY"
-	}
-	label
-	{
-		enabled "buttonHelp[currentButtonHelp][4] ~= 0"
-		area 29 16 95 120
-		bam "CPEN"
-		frame lua "timer:GetCurrentTime() % 24"
-	}
-
-	label
-	{
-		enabled "buttonHelp[currentButtonHelp][7] ~= ''"
-		area 34 24 52 52
-		align center center
-		bam lua "buttonHelp[currentButtonHelp][7]"
-		frame lua "buttonHelp[currentButtonHelp][7]"
-	}
-
-	label
-	{
-		area 124 16 752 112
-		text lua "t(buttonHelp[currentButtonHelp][8])"
-		text style	"label"
-		text align left top
-	}
-	button
-	{
-		area 306 164 300 44
-		bam GUIOSTCL
-		text "DONE_BUTTON"
-		text style	"button"
-		action 
-		"
-			Infinity_PopMenu('HELP')
-		"
-	}
-}
-
-menu
-{
-	name 'LEFT_SIDEBAR_HELP'
-	align left top
-	ignoreEsc
-	onOpen 
-	"
-		Infinity_PushMenu('LEFT_SIDEBAR_BOTTOM_HELP')
-	"
-	onClose 
-	"
-		Infinity_PopMenu('LEFT_SIDEBAR_BOTTOM_HELP')
-	"
-	label
-	{
-		name 'leftSidebarBackground'
-		area 0 0 80 1536
-		mosaic GUIWLSP
-	}
-	label
-	{
-
-		area 0 1536 80 1536
-		mosaic GUIWLSP
-	}
-	button
-	{
-		area 3 14 73 55
-		bam GUILS10
-		sequence 0
-		tooltip lua "getTooltipWithHotkey(2,16313)"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 1
-		"
-	}
-	button
-	{
-		area 3 69 73 55
-		bam GUILS10
-		sequence 1
-		tooltip lua "getTooltipWithHotkey(4,15418)"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 2
-		"
-	}
-	button
-	{
-		area 3 124 73 55
-		bam GUILS10
-		sequence 2
-		tooltip lua "getTooltipWithHotkey(3,16308)"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 3
-		"
-	}
-	button
-	{
-		area 3 179 73 55
-		bam GUILS10
-		sequence 3
-		tooltip lua "getTooltipWithHotkey(0,16307)"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 4
-		"
-	}
-	button
-	{
-		area 3 234 73 55
-		bam GUILS10
-		sequence 4
-		tooltip lua "getTooltipWithHotkey(1,16306)"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 5
-		"
-	}
-	button
-	{
-		area 3 289 73 55
-		bam GUILS10
-		sequence 5
-		tooltip lua "getTooltipWithHotkey(5,16309)"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 6
-		"
-	}
-	button
-	{
-		area 3 344 73 55
-		bam GUILS10
-		sequence 6
-		tooltip lua "getTooltipWithHotkey(6,14930)"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 7
-		"
-	}
-	button
-	{
-		area 3 399 73 55
-		bam GUILS10
-		sequence 7
-		tooltip lua "getTooltipWithHotkey(7,16311)"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 8
-		"
-	}
-	button
-	{
-		area 3 454 73 55
-		enabled "e:IsMultiplayer()"
-		bam GUILS10
-		sequence 8
-		tooltip lua "getTooltipWithHotkey(8,16312)"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 9
-		"
-	}
-}
-menu
-{
-	name 'LEFT_SIDEBAR_BOTTOM_HELP'
-	align left bottom
-	offset 0 -22
-	--combined height of these buttons makes a menu with height = 231, menu is placed into lower left. y pos is offset from top of this menu.
-	ignoreEsc
-	button
-	{
-		area 3 0 73 55
-		enabled "worldScreen == e:GetActiveEngine()"
-		bam GUILS10
-		sequence 15
-		tooltip lua "getTooltipWithHotkey(28,74261)"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 10
-		"
-	}
-	button
-	{
-		area 3 56 73 55
-		enabled "worldScreen == e:GetActiveEngine()"
-		bam GUILS10
-		sequence 16
-		tooltip lua "Infinity_FetchString(74270)" --"getTooltipWithHotkey(16,74270)"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 11
-		"
-	}
-	button
-	{
-		area 3 110 73 55
-		bam GUILS10
-		sequence 9
-		tooltip lua "getTooltipWithHotkey(31,11942)"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 12
-		"
-	}
-	
-	
-	--begin clock
-	label
-	{
-		enabled "worldScreen == e:GetActiveEngine()"
-		area 0 182 73 55
-		bam "CGEAR"
-		frame lua "timer:GetCurrentTime() % 24"
-		useOverlayTint "worldScreen:CheckIfPaused()"
-		overlayTint 180 180 180
-	}
-	label
-	{
-		enabled "worldScreen == e:GetActiveEngine()"
-		area 0 182 73 55
-		bam "CDIAL"
-		frame lua "timer:GetCurrentHour() % timer.TIMESCALE_HOUR_PER_DAY"
-		useOverlayTint "worldScreen:CheckIfPaused()"
-		overlayTint 180 180 180
-	}
-	label
-	{
-		enabled "worldScreen == e:GetActiveEngine()"
-		area 0 182 73 55
-		bam "CPEN"
-		frame lua "timer:GetCurrentTime() % 24"
-		useOverlayTint "worldScreen:CheckIfPaused()"
-		overlayTint 180 180 180
-	}
-	button
-	{
-		enabled "worldScreen == e:GetActiveEngine()"
-		area 0 182 73 55
-		tooltip lua "worldScreen:GetCurrentTimeString()"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 23
-		"
-	}
-	--end clock
-	label
-	{
-		--area is preset
-		enabled "gameOptions.m_bRenderFrameTimes"
-		frameTimes
-	}
-}
-
-menu
-{
-	name 'RIGHT_SIDEBAR_HELP'
-	align right top
-	ignoreEsc
-	onOpen
-	"
-		Infinity_PushMenu('RIGHT_SIDEBAR_BOTTOM_HELP')
-	"
-	onClose
-	"
-		Infinity_PopMenu('RIGHT_SIDEBAR_BOTTOM_HELP')
-	"
-	label
-	{
-		name 'rightSidebarBackground'
-		area 0 0 80 1536
-		mosaic GUIWRSP
-	}
-	label
-	{
-		area 0 1536 80 1536
-		mosaic GUIWRSP
-	}
-	button
-	{
-		area 11 14 64 90
-		portrait 0
-		bam GUIRSP10
-		enabled "Infinity_GetNumCharacters() > 0"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 17
-		"
-		tooltip lua "Infinity_GetPortraitTooltip(0)"
-	}
-	button
-	{
-		area 11 106 64 90
-		portrait 1
-		bam GUIRSP10
-		enabled "Infinity_GetNumCharacters() > 1"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 18
-		"
-		tooltip lua "Infinity_GetPortraitTooltip(1)"
-	}
-	button
-	{
-		area 11 198 64 90
-		portrait 2
-		bam GUIRSP10
-		enabled "Infinity_GetNumCharacters() > 2"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 19
-		"
-		tooltip lua "Infinity_GetPortraitTooltip(2)"
-	}
-	button
-	{
-		area 11 290 64 90
-		portrait 3
-		bam GUIRSP10
-		enabled "Infinity_GetNumCharacters() > 3"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 20
-		"
-		tooltip lua "Infinity_GetPortraitTooltip(3)"
-	}
-	button
-	{
-		area 11 382 64 90
-		portrait 4
-		bam GUIRSP10
-		enabled "Infinity_GetNumCharacters() > 4"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 21
-		"
-		tooltip lua "Infinity_GetPortraitTooltip(4)"
-	}
-	button
-	{
-		area 11 474 64 90
-		portrait 5
-		bam GUIRSP10
-		enabled "Infinity_GetNumCharacters() > 5"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 22
-		"
-		tooltip lua "Infinity_GetPortraitTooltip(5)"
-	}
-}
-menu
-{
-	name 'RIGHT_SIDEBAR_BOTTOM_HELP'
-	align right bottom
-	ignoreEsc
-	--Buttons form a menu aligned bottom right, with height = 197, y is offset from top of that menu.
-	button
-	{
-		area 6 0 71 48
-		enabled "e:IsTouchUI() and worldScreen == e:GetActiveEngine()"
-		bam GUILS10
-		sequence 14
-		glow lua "true"
-		tooltip lua "Infinity_FetchString(11942)"
-		action
-		"
-			currentButtonHelp = 13
-		"
-	}
-	button
-	{
-		area 6 49 71 48
-		enabled "worldScreen == e:GetActiveEngine()"
-		tooltip lua "Infinity_FetchString(103144)"
-		bam GUILS10
-		sequence 11
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 14
-		"
-	}
-	button
-	{
-		area 6 99 71 48
-		enabled "worldScreen == e:GetActiveEngine()"
-		tooltip lua "getPartyAITooltip()"
-		bam GUILS10
-		sequence 10
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 15
-		"
-	}
-	button
-	{
-		area 6 149 71 48
-		enabled "worldScreen == e:GetActiveEngine()"
-		tooltip lua "Infinity_FetchString(10485)"
-		bam GUILS10
-		sequence 13
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 16
-		"
-	}
-}
-menu
-{
-	name "WORLD_ACTIONBAR_HELP"
-	align center bottom
-	onOpen 
-	"
-	"
-	onClose 
-	"
-	"
-	ignoreEsc
-	label
-	{
-		area 0 0 746 57
-		mosaic GUWBTP10
-	}
-	button
-	{
-		area 21 12 32 32
-		bam ROUNDBUT
-		glow lua "true"
-		scaleToClip
-		action
-		"
-			currentButtonHelp = 24
-		"
-	}
-	button
-	{
-		area 68 1 52 52
-		actionBar 0
-		enabled "buttonArray:GetButtonEnabled(0)"
-		tooltip lua "actionBarTooltip[0]"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 25 + buttonArray:GetButtonType(0)
-		"
-	}
-	button
-	{
-		area 122 1 52 52
-		actionBar 1
-		enabled "buttonArray:GetButtonEnabled(1)"
-		tooltip lua "actionBarTooltip[1]"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 25 + buttonArray:GetButtonType(1)
-		"
-	}
-	button
-	{
-		area 177 1 52 52
-		actionBar 2
-		enabled "buttonArray:GetButtonEnabled(2)"
-		tooltip lua "actionBarTooltip[2]"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 25 + buttonArray:GetButtonType(2)
-		"
-	}
-	button
-	{
-		area 231 1 52 52
-		actionBar 3
-		enabled "buttonArray:GetButtonEnabled(3)"
-		tooltip lua "actionBarTooltip[3]"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 25 + buttonArray:GetButtonType(3)
-		"
-	}
-	button
-	{
-		area 299 1 52 52
-		actionBar 4
-		enabled "buttonArray:GetButtonEnabled(4)"
-		tooltip lua "actionBarTooltip[4]"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 25 + buttonArray:GetButtonType(4)
-		"
-	}
-	button
-	{
-		area 353 1 52 52
-		actionBar 5
-		enabled "buttonArray:GetButtonEnabled(5)"
-		tooltip lua "actionBarTooltip[5]"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 25 + buttonArray:GetButtonType(5)
-		"
-	}
-	button
-	{
-		area 407 1 52 52
-		actionBar 6
-		enabled "buttonArray:GetButtonEnabled(6)"
-		tooltip lua "actionBarTooltip[6]"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 25 + buttonArray:GetButtonType(6)
-		"
-	}
-	button
-	{
-		area 461 1 52 52
-		actionBar 7
-		enabled "buttonArray:GetButtonEnabled(7)"
-		tooltip lua "actionBarTooltip[7]"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 25 + buttonArray:GetButtonType(7)
-		"
-	}
-	
-	button
-	{
-		area 528 1 52 52
-		actionBar 8
-		enabled "buttonArray:GetButtonEnabled(8)"
-		tooltip lua "actionBarTooltip[8]"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 25 + buttonArray:GetButtonType(8)
-		"
-	}
-	button
-	{
-		area 582 1 52 52
-		actionBar 9
-		enabled "buttonArray:GetButtonEnabled(9)"
-		tooltip lua "actionBarTooltip[9]"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 25 + buttonArray:GetButtonType(9)
-		"
-	}
-	button
-	{
-		area 636 1 52 52
-		actionBar 10
-		enabled "buttonArray:GetButtonEnabled(10)"
-		tooltip lua "actionBarTooltip[10]"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 25 + buttonArray:GetButtonType(10)
-		"
-	}
-	button
-	{
-		area 689 1 52 52
-		actionBar 11
-		enabled "buttonArray:GetButtonEnabled(11)"
-		tooltip lua "actionBarTooltip[11]"
-		glow lua "true"
-		action
-		"
-			currentButtonHelp = 25 + buttonArray:GetButtonType(11)
-		"
-	}
-}
-

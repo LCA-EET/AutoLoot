@@ -7,12 +7,10 @@ BEGIN @2 /*~Bubb's Auto Loot BG2EE / EET~*/
 REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~UI.MENU~ @1 /*~UI.MENU not found in game.~*/
 REQUIRE_PREDICATE (GAME_IS ~bg2ee eet~) @3 /*~Game not supported.~*/
 
-	INCLUDE ~%MOD_FOLDER%/bubb_lib.tph~
-	
 	ACTION_IF (GAME_IS ~eet~) THEN BEGIN
-		COPY ~%MOD_FOLDER%\copy\eet\UI.MENU~ ~override\UI.MENU~ 
+		COPY ~%MOD_FOLDER%\copy\UI_eet.MENU~ ~override\UI.MENU~ 
 	END ELSE BEGIN
-		COPY ~%MOD_FOLDER%\copy\bg2ee\UI.MENU~ ~override\UI.MENU~
+		COPY ~%MOD_FOLDER%\copy\UI_bg2ee.MENU~ ~override\UI.MENU~
 	END
 	
 	PRINT @0 /*~Processing items. Please wait...~*/
@@ -23,7 +21,7 @@ REQUIRE_PREDICATE (GAME_IS ~bg2ee eet~) @3 /*~Game not supported.~*/
 	COPY_EXISTING_REGEXP ~.*\.ITM~ ~override~
 
 		READ_LONG 0x0018 flags
-		LPF GET_BIT INT_VAR number = flags nth_bit = 0 RET critical_bit = bit_value END
+		SET xa_criticalBit = (flags MODULO 2)
 		READ_LONG 0x0034 price
 		READ_LONG 0x004c weight
 		READ_LONG 0x0060 enchantment
@@ -32,7 +30,7 @@ REQUIRE_PREDICATE (GAME_IS ~bg2ee eet~) @3 /*~Game not supported.~*/
 			APPEND ~BGEE.LUA~ 	~
 								%TAB%['%SOURCE_RES%'] =
 								%TAB%{
-								%TAB%%TAB%['critical'] = %critical_bit%,
+								%TAB%%TAB%['critical'] = %xa_criticalBit%,
 								%TAB%%TAB%['price'] = %price%,
 								%TAB%%TAB%['weight'] = %weight%,
 								%TAB%%TAB%['enchantment'] = %enchantment%,
