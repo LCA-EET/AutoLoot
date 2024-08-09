@@ -7,7 +7,8 @@ $testDir = "F:\Baldur's Gate EE\00783\"
 $folders = @(
 'copy',
 'tra',
-'work'
+'work',
+'lua_ext'
 )
 
 Remove-Item -LiteralPath $archive -Force

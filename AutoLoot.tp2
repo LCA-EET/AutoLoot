@@ -7,11 +7,7 @@ BEGIN @2 /*~Bubb's Auto Loot BG2EE / EET~*/
 REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~UI.MENU~ @1 /*~UI.MENU not found in game.~*/
 REQUIRE_PREDICATE (GAME_IS ~bg2ee eet~) @3 /*~Game not supported.~*/
 
-	ACTION_IF (GAME_IS ~eet~) THEN BEGIN
-		COPY ~%MOD_FOLDER%\copy\UI_eet.MENU~ ~override\UI.MENU~ 
-	END ELSE BEGIN
-		COPY ~%MOD_FOLDER%\copy\UI_bg2ee.MENU~ ~override\UI.MENU~
-	END
+	INCLUDE ~%MOD_FOLDER%/lua_ext/menupatch.tph~
 	
 	PRINT @0 /*~Processing items. Please wait...~*/
 	
@@ -41,4 +37,5 @@ REQUIRE_PREDICATE (GAME_IS ~bg2ee eet~) @3 /*~Game not supported.~*/
 	BUT_ONLY_IF_IT_CHANGES
 
 	APPEND ~BGEE.LUA~ ~}~
+	
 PRINT @7 /*@7 = ~Installation was successful. Enjoy!~*/
