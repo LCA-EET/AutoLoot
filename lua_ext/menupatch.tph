@@ -1,19 +1,37 @@
-OUTER_SET xa_matchCount = 0
+OUTER_SET xa_matchCountA = 0
+OUTER_SET xa_matchCountB = 0
 
 COPY_EXISTING ~UI.MENU~ ~override/UI.MENU~
-COUNT_REGEXP_INSTANCES EVALUATE_REGEXP %menu[^~]+name 'WORLD_QUICKLOOT'%  xa_matchCount
 
-ACTION_IF (xa_matchCount = 1) THEN BEGIN
+COUNT_REGEXP_INSTANCES EVALUATE_REGEXP %menu[^menu]+name 'WORLD_QUICKLOOT'[^~]+menu% xa_matchCountA
+
+COUNT_REGEXP_INSTANCES EVALUATE_REGEXP %end[^"]+worldScreen:SetHighlightEnabled[^"]+% xa_matchCountB
+
+//PRINT ~Match Count A: %xa_matchCountA%~
+//PRINT ~Match Count B: %xa_matchCountB%~
+
+ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 	PRINT ~Patching UI.MENU.~
+	
 	COPY_EXISTING ~UI.MENU~ ~override/UI.MENU~
-	REPLACE_TEXTUALLY ~Infinity_PushMenu('WORLD_MESSAGES')~ 
-	%
-		Infinity_PushMenu('WORLD_MESSAGES')
-		-- BUBB EDIT LOOT START
-		worldScreen:StartGroundItems()
-		Infinity_PushMenu('BUBB_AUTOLOOT_TOGGLE')
-		-- BUBB EDIT LOOT END
-	%
+	//{ Match A - Tested OK
+		REPLACE_TEXTUALLY CASE_SENSITIVE %menu[^menu]+name 'WORLD_QUICKLOOT'[^~]+menu% ~menu~
+	//}
+	
+	//{ Match B - Tested OK
+		REPLACE_TEXTUALLY CASE_SENSITIVE  %end[^"]+worldScreen:SetHighlightEnabled[^"]+% 
+		~
+			end
+			-- BUBB EDIT LOOT START
+
+			worldScreen:StartGroundItems()
+			Infinity_PushMenu('BUBB_AUTOLOOT_TOGGLE')
+
+			-- BUBB EDIT LOOT END
+			worldScreen:SetHighlightEnabled(highlightButtonToggle == 1)
+		~
+	//}
+	
 
 	REPLACE_TEXTUALLY ~Infinity_PopMenu('WORLD_MESSAGES');~ 
 	%
