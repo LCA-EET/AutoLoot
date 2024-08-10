@@ -1,6 +1,6 @@
 @0 = ~Processing items. This will take a while... please wait.~
 @1 = ~UI.MENU not found in game.~
-@2 = ~Bubb's Auto Loot BG2EE / EET~
+@2 = ~Bubb's Auto Loot, for Baldur's Gate Enhanced Edition Games~
 @3 = ~Game not supported.~
 @4 = ~This installer can attempt to patch UI.MENU instead of overriding it on Windows platforms; which installation method do you wish to perform?%WNL% 1] Patch%WNL% 2] Override~
 @5 = ~Bubb (Original Author), Daniel Valle lcamod@danielvalle.net (EET version)~
