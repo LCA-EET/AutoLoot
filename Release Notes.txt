@@ -2,6 +2,9 @@
 
 # Report any bugs to LCAMod@danielvalle.net
 
+# v1.1a 2024-08-11
+* The pre-built UI files now include the refactored functionality introduced in v1.1.
+
 # v1.1 2024-08-11
 * The original auto loot item evaluation and pickup loop was refactored to significantly improve performance when many items are on the ground.
 
