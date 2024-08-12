@@ -265,6 +265,25 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 
 	REPLACE_TEXTUALLY ~xa_alreplace2~ 
 	%
+		-- XA functions
+		
+		function xa_spaceRemaining()
+			characters = {}
+			Infinity_UpdateLuaStats()
+			local emptySpaces = 0
+			for key, character in pairs(characters) do
+				local equipment = character.equipment
+				for i = 0, 15, 1 do
+					local groupKey = "group"..i
+					local isEmpty = equipment[groupKey].empty
+					if isEmpty == 1 then
+						emptySpaces = emptySpaces + 1
+					end
+				end
+			end
+			return emptySpaces
+		end
+	
 		-- BUBB EDIT LOOT START
 		function doesCharacterHaveSpace()
 			characters = {}
@@ -294,43 +313,30 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 		function decideWhetherToPickUp(itemRes, itemInfo)
 
 			-- Critical Items
-			if bubbAutolootOptionsCriticalItemsToggle == 1 then
+			if bubbALOptCriticalItemsToggle == 1 then
 				if itemInfo.critical == 1 then
 					return true
 				end
 			end
 
 			-- Enchanted Weapons
-			if bubbAutolootOptionsEnchantedWeaponsToggle == 1 then
-				if bubbAutolootOptionsEnchantedWeaponsField ~= "" then
-					if itemInfo.enchantment >= tonumber(bubbAutolootOptionsEnchantedWeaponsField) then
-						return true
-					end
-				end
-			end
-
-			-- Gold
-			if bubbAutolootOptionsGoldToggle == 1 then
-				if itemRes == "MISC07" then
+			if bubbALOptEnchantedWeaponsToggle == 1 then
+				if itemInfo.enchantment >= tonumber(bubbALOptEnchantedWeaponsField) then
 					return true
 				end
 			end
 
 			-- Price
-			if bubbAutolootOptionsPriceToggle == 1 then
-				if bubbAutolootOptionsPriceField ~= "" then
-					if itemInfo.price >= tonumber(bubbAutolootOptionsPriceField) then
-						return true
-					end
+			if bubbALOptPriceToggle == 1 then
+				if itemInfo.price >= tonumber(bubbALOptPriceField) then
+					return true
 				end
 			end
 
 			-- Price per Weight
-			if bubbAutolootOptionsPricePerWeightToggle == 1 then
-				if bubbAutolootOptionsPricePerWeightField ~= "" then
-					if getPricePerWeight(itemInfo.price, itemInfo.weight) >= tonumber(bubbAutolootOptionsPricePerWeightField) then
-						return true
-					end
+			if bubbALOptPricePerWeightToggle == 1 then
+				if getPricePerWeight(itemInfo.price, itemInfo.weight) >= tonumber(bubbALOptPricePerWeightField) then
+					return true
 				end
 			end
 
@@ -338,84 +344,138 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 		end
 
 		function pickupLoot()
-			if bubbAutolootOptionsOnToggle == 1 then
+			if bubbALOptOnToggle == 1 then
 				-- Stupid check because LUA starts tables at index 1
+				local spaceRemaining = 0
 				if loot.groundItems[0] == nil then
 					return
 				end
+				
 				local groundItemCount = #loot.groundItems
+				
+				if (groundItemCount == 0) then
+					return
+				end
+				
+				if (xa_itemCheckNeeded == true) then
+					spaceRemaining = xa_spaceRemaining()
+					-- Infinity_DisplayString("[Auto Loot] Space Remaining:"..spaceRemaining)
+				end
+				
 				for i = 0, groundItemCount, 1 do
-					if doesCharacterHaveSpace() then
-						local groundItemSlot = loot.groundItems[i]
-						local groundItem = groundItemSlot.item
-						local info = lootInfo[groundItem.res]
-
-						if decideWhetherToPickUp(groundItem.res, info) then
-
-							Infinity_DisplayString("[Auto Loot] Picking up "..groundItem.name)
+					local groundItemSlot = loot.groundItems[i]
+					local groundItem = groundItemSlot.item
+					local info = lootInfo[groundItem.res]
+					
+					-- Gold doesn't need an empty space check
+					if groundItem.res == "MISC07" then 
+						if (bubbALOptGoldToggle == 1) then
+							Infinity_DisplayString("[Auto Loot] Picking up gold.")
 							worldScreen:OnGroundButtonClick(groundItemSlot.slotId, groundItemSlot.containerId, groundItem.res)
 						end
-					else
-						return
+					elseif (xa_itemCheckNeeded == true) and (spaceRemaining > 0) then
+						if decideWhetherToPickUp(groundItem.res, info) then
+							Infinity_DisplayString("[Auto Loot] Picking up "..groundItem.name)
+							worldScreen:OnGroundButtonClick(groundItemSlot.slotId, groundItemSlot.containerId, groundItem.res)
+							spaceRemaining = (spaceRemaining - 1)
+						end
 					end
 				end
 			end
 		end
-
+		function xa_validateEntry(toggle, field)
+			if(toggle == 1) then
+				if(field == "") then
+					return 0
+				end
+			end
+			return toggle
+		end
+		function writeAutolootOptions()
+			-- Infinity_DisplayString("[Auto Loot] On Close Called.") 
+			
+			bubbALOptPriceToggle = xa_validateEntry(bubbALOptPriceToggle, bubbALOptPriceField)
+			bubbALOptEnchantedWeaponsToggle = xa_validateEntry(bubbALOptEnchantedWeaponsToggle, bubbALOptEnchantedWeaponsField)
+			bubbALOptPricePerWeightToggle = xa_validateEntry(bubbALOptPricePerWeightToggle, bubbALOptPricePerWeightField)
+		
+			if ((bubbALOptCriticalItemsToggle == 1) or
+				(bubbALOptEnchantedWeaponsToggle == 1) or
+				(bubbALOptPriceToggle == 1) or
+				(bubbALOptPricePerWeightToggle == 1))
+			then
+				-- Infinity_DisplayString("[Auto Loot] IC Needed = true.") 
+				xa_itemCheckNeeded = true
+			else
+				-- Infinity_DisplayString("[Auto Loot] IC Needed = false.") 
+				xa_itemCheckNeeded = false
+			end
+			
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptOnToggle',               tostring(bubbALOptOnToggle))
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptCriticalItemsToggle',    tostring(bubbALOptCriticalItemsToggle))
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsToggle', tostring(bubbALOptEnchantedWeaponsToggle))
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsField',  bubbALOptEnchantedWeaponsField)
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptGoldToggle',             tostring(bubbALOptGoldToggle))
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptPriceToggle',            tostring(bubbALOptPriceToggle))
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptPriceField',             bubbALOptPriceField)
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightToggle',   tostring(bubbALOptPricePerWeightToggle))
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightField',    bubbALOptPricePerWeightField)
+		end
+		
 		function initializeAutolootOptionsMenu(itemName)
+			-- Infinity_DisplayString("[Auto Loot] On Open Called.") 
 			local screenWidth, screenHeight = Infinity_GetScreenSize()
-			local backgroundX, backgroundY, backgroundWidth, backgroundHeight = Infinity_GetArea('bubbAutolootOptionsBackground')
+			local backgroundX, backgroundY, backgroundWidth, backgroundHeight = Infinity_GetArea('bubbALOptBackground')
 			local horizontalMargin = screenWidth - backgroundWidth
 			local newBackGroundX = horizontalMargin / 2
 			local verticalMargin = screenHeight - backgroundHeight
 			local newBackGroundY = verticalMargin / 2
 
 			-- Background
-			Infinity_SetArea('bubbAutolootOptionsBackground', newBackGroundX, newBackGroundY, nil, nil)
+			Infinity_SetArea('bubbALOptBackground', newBackGroundX, newBackGroundY, nil, nil)
 
 			-- Exit Button
-			Infinity_SetArea('bubbAutolootOptionsExitButton', newBackGroundX + backgroundWidth - 54, newBackGroundY + 10, nil, nil)
+			Infinity_SetArea('bubbALOptExitButton', newBackGroundX + backgroundWidth - 54, newBackGroundY + 10, nil, nil)
 
 			-- Autoloot On
-			Infinity_SetArea('bubbAutolootOptionsOnToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 0, nil, nil)
-			Infinity_SetArea('bubbAutolootOptionsOn',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 0, nil, nil)
+			Infinity_SetArea('bubbALOptOnToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 0, nil, nil)
+			Infinity_SetArea('bubbALOptOn',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 0, nil, nil)
 
 			-- Critical Items
-			Infinity_SetArea('bubbAutolootOptionsCriticalItemsToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 1, nil, nil)
-			Infinity_SetArea('bubbAutolootOptionsCriticalItems',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 1, nil, nil)
+			Infinity_SetArea('bubbALOptCriticalItemsToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 1, nil, nil)
+			Infinity_SetArea('bubbALOptCriticalItems',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 1, nil, nil)
 
 			-- Enchanted Weapons
-			Infinity_SetArea('bubbAutolootOptionsEnchantedWeaponsToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
-			Infinity_SetArea('bubbAutolootOptionsEnchantedWeapons',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
-			Infinity_SetArea('bubbAutolootOptionsEnchantedWeaponsField',  newBackGroundX + 52 + 356 + 5, newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
+			Infinity_SetArea('bubbALOptEnchantedWeaponsToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
+			Infinity_SetArea('bubbALOptEnchantedWeapons',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
+			Infinity_SetArea('bubbALOptEnchantedWeaponsField',  newBackGroundX + 52 + 356 + 5, newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
 
 			-- Gold
-			Infinity_SetArea('bubbAutolootOptionsGoldToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
-			Infinity_SetArea('bubbAutolootOptionsGold',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
+			Infinity_SetArea('bubbALOptGoldToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
+			Infinity_SetArea('bubbALOptGold',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
 
 			-- Price
-			Infinity_SetArea('bubbAutolootOptionsPriceToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
-			Infinity_SetArea('bubbAutolootOptionsPrice',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
-			Infinity_SetArea('bubbAutolootOptionsPriceField',  newBackGroundX + 52 + 218 + 5, newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
+			Infinity_SetArea('bubbALOptPriceToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
+			Infinity_SetArea('bubbALOptPrice',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
+			Infinity_SetArea('bubbALOptPriceField',  newBackGroundX + 52 + 218 + 5, newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
 
 			-- Price per Weight
-			Infinity_SetArea('bubbAutolootOptionsPricePerWeightToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
-			Infinity_SetArea('bubbAutolootOptionsPricePerWeight',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
-			Infinity_SetArea('bubbAutolootOptionsPricePerWeightField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
+			Infinity_SetArea('bubbALOptPricePerWeightToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
+			Infinity_SetArea('bubbALOptPricePerWeight',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
+			Infinity_SetArea('bubbALOptPricePerWeightField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
 
 		end
 
-		bubbAutolootOptionsOnToggle =               Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsOnToggle',               0)
-		bubbAutolootOptionsCriticalItemsToggle =    Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsCriticalItemsToggle',    0)
-		bubbAutolootOptionsEnchantedWeaponsToggle = Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsEnchantedWeaponsToggle', 0)
-		bubbAutolootOptionsEnchantedWeaponsField =  Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsEnchantedWeaponsField',  '1')
-		bubbAutolootOptionsGoldToggle =             Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsGoldToggle',             0)
-		bubbAutolootOptionsPriceToggle =            Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPriceToggle',            0)
-		bubbAutolootOptionsPriceField =             Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPriceField',             '1')
-		bubbAutolootOptionsPricePerWeightToggle =   Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPricePerWeightToggle',   0)
-		bubbAutolootOptionsPricePerWeightField =    Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPricePerWeightField',    '1')
+		bubbALOptOnToggle =               Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptOnToggle',               0)
+		bubbALOptCriticalItemsToggle =    Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptCriticalItemsToggle',    0)
+		bubbALOptEnchantedWeaponsToggle = Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsToggle', 0)
+		bubbALOptEnchantedWeaponsField =  Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsField',  '1')
+		bubbALOptGoldToggle =             Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptGoldToggle',             0)
+		bubbALOptPriceToggle =            Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPriceToggle',            0)
+		bubbALOptPriceField =             Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPriceField',             '1')
+		bubbALOptPricePerWeightToggle =   Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightToggle',   0)
+		bubbALOptPricePerWeightField =    Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightField',    '1')
 
-		bubbAutolootOptionsPausedOnOpen = false
+		bubbALOptPausedOnOpen = false
 		-- BUBB EDIT LOOT END
 	%
 
@@ -432,13 +492,13 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 				groundItemsButtonToggleY, 
 				groundItemsButtonToggleWidth, 
 				groundItemsButtonToggleHeight = Infinity_GetArea('groundItemsButtonToggle')
-				Infinity_SetArea('bubbAutolootOptionsToggle', groundItemsButtonToggleX - 44, groundItemsButtonToggleY - 24, nil, nil)
+				Infinity_SetArea('bubbALOptToggle', groundItemsButtonToggleX - 44, groundItemsButtonToggleY - 24, nil, nil)
 			"
 			ignoreEsc
 			
 			button
 			{
-				name "bubbAutolootOptionsToggle"
+				name "bubbALOptToggle"
 				area -804 0 32 44
 				bam ROUNDBUT
 				tooltip "Autoloot Options"
@@ -456,27 +516,20 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 			onOpen 
 			"
 				if not worldScreen:CheckIfPaused() then
-					bubbAutolootOptionsPausedOnOpen = false
+					bubbALOptPausedOnOpen = false
 					worldScreen:TogglePauseGame(true)
 				else
-					bubbAutolootOptionsPausedOnOpen = true
+					bubbALOptPausedOnOpen = true
 				end
 
 				initializeAutolootOptionsMenu()
 			"
 			onClose 
 			"
-				Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsOnToggle',               tostring(bubbAutolootOptionsOnToggle))
-				Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsCriticalItemsToggle',    tostring(bubbAutolootOptionsCriticalItemsToggle))
-				Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsEnchantedWeaponsToggle', tostring(bubbAutolootOptionsEnchantedWeaponsToggle))
-				Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsEnchantedWeaponsField',  bubbAutolootOptionsEnchantedWeaponsField)
-				Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsGoldToggle',             tostring(bubbAutolootOptionsGoldToggle))
-				Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPriceToggle',            tostring(bubbAutolootOptionsPriceToggle))
-				Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPriceField',             bubbAutolootOptionsPriceField)
-				Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPricePerWeightToggle',   tostring(bubbAutolootOptionsPricePerWeightToggle))
-				Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPricePerWeightField',    bubbAutolootOptionsPricePerWeightField)
-
-				if not bubbAutolootOptionsPausedOnOpen then
+				writeAutolootOptions()
+				
+				
+				if not bubbALOptPausedOnOpen then
 					worldScreen:TogglePauseGame(true)
 				end
 			"
@@ -484,7 +537,7 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 			-- Background
 			label
 			{
-				name "bubbAutolootOptionsBackground"
+				name "bubbALOptBackground"
 				area -1 -1 500 265
 				rectangle 0
 			}
@@ -492,7 +545,7 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 			-- Exit Button
 			button
 			{
-				name "bubbAutolootOptionsExitButton"
+				name "bubbALOptExitButton"
 				bam GUIOSW
 				area -1 -1 44 44
 				sequence 2
@@ -505,14 +558,14 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 			-- Autoloot On
 			button
 			{
-				name "bubbAutolootOptionsOnToggle"
+				name "bubbALOptOnToggle"
 				area -1 -1 32 32
 				bam ROUNDBUT
-				toggle bubbAutolootOptionsOnToggle
+				toggle bubbALOptOnToggle
 			}
 			label
 			{
-				name "bubbAutolootOptionsOn"
+				name "bubbALOptOn"
 				area -1 -1 102 32
 				text "Autoloot On"
 				text style 'normal'
@@ -522,14 +575,14 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 			-- Critical Items
 			button
 			{
-				name "bubbAutolootOptionsCriticalItemsToggle"
+				name "bubbALOptCriticalItemsToggle"
 				area -1 -1 32 32
 				bam ROUNDBUT
-				toggle bubbAutolootOptionsCriticalItemsToggle
+				toggle bubbALOptCriticalItemsToggle
 			}
 			label
 			{
-				name "bubbAutolootOptionsCriticalItems"
+				name "bubbALOptCriticalItems"
 				area -1 -1 102 32
 				text "Critical Items"
 				text style 'normal'
@@ -539,14 +592,14 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 			-- Enchanted Weapons
 			button
 			{
-				name "bubbAutolootOptionsEnchantedWeaponsToggle"
+				name "bubbALOptEnchantedWeaponsToggle"
 				area -1 -1 32 32
 				bam ROUNDBUT
-				toggle bubbAutolootOptionsEnchantedWeaponsToggle
+				toggle bubbALOptEnchantedWeaponsToggle
 			}
 			label
 			{
-				name "bubbAutolootOptionsEnchantedWeapons"
+				name "bubbALOptEnchantedWeapons"
 				area -1 -1 356 32
 				text "Enchanted Weapons equal to or higher than enchantment level:"
 				text style 'normal'
@@ -554,16 +607,16 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 			}
 			edit
 			{
-				name "bubbAutolootOptionsEnchantedWeaponsField"
+				name "bubbALOptEnchantedWeaponsField"
 				area -1 -1 20 32
-				var bubbAutolootOptionsEnchantedWeaponsField
+				var bubbALOptEnchantedWeaponsField
 				text style "edit"
 				align left center
 				maxlines 1
 				action
 				"
 					if((tonumber(letter_pressed) ~= nil
-						and #tostring(bubbAutolootOptionsEnchantedWeaponsField) < 1)
+						and #tostring(bubbALOptEnchantedWeaponsField) < 1)
 						or not letter_pressed)
 					then
 						return 1
@@ -576,14 +629,14 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 			-- Gold
 			button
 			{
-				name "bubbAutolootOptionsGoldToggle"
+				name "bubbALOptGoldToggle"
 				area -1 -1 32 32
 				bam ROUNDBUT
-				toggle bubbAutolootOptionsGoldToggle
+				toggle bubbALOptGoldToggle
 			}
 			label
 			{
-				name "bubbAutolootOptionsGold"
+				name "bubbALOptGold"
 				area -1 -1 356 32
 				text "Gold"
 				text style 'normal'
@@ -593,14 +646,14 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 			-- Price
 			button
 			{
-				name "bubbAutolootOptionsPriceToggle"
+				name "bubbALOptPriceToggle"
 				area -1 -1 32 32
 				bam ROUNDBUT
-				toggle bubbAutolootOptionsPriceToggle
+				toggle bubbALOptPriceToggle
 			}
 			label
 			{
-				name "bubbAutolootOptionsPrice"
+				name "bubbALOptPrice"
 				area -1 -1 218 32
 				text "Price equal to or higher than:"
 				text style 'normal'
@@ -608,16 +661,16 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 			}
 			edit
 			{
-				name "bubbAutolootOptionsPriceField"
+				name "bubbALOptPriceField"
 				area -1 -1 50 32
-				var bubbAutolootOptionsPriceField
+				var bubbALOptPriceField
 				text style "edit"
 				align left center
 				maxlines 1
 				action
 				"
 					if((tonumber(letter_pressed) ~= nil
-						and #tostring(bubbAutolootOptionsPriceField) < 5)
+						and #tostring(bubbALOptPriceField) < 5)
 						or not letter_pressed)
 					then
 						return 1
@@ -630,14 +683,14 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 			-- Price per Weight
 			button
 			{
-				name "bubbAutolootOptionsPricePerWeightToggle"
+				name "bubbALOptPricePerWeightToggle"
 				area -1 -1 32 32
 				bam ROUNDBUT
-				toggle bubbAutolootOptionsPricePerWeightToggle
+				toggle bubbALOptPricePerWeightToggle
 			}
 			label
 			{
-				name "bubbAutolootOptionsPricePerWeight"
+				name "bubbALOptPricePerWeight"
 				area -1 -1 308 32
 				text "Price per Weight equal to or higher than:"
 				text style 'normal'
@@ -645,16 +698,16 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 			}
 			edit
 			{
-				name "bubbAutolootOptionsPricePerWeightField"
+				name "bubbALOptPricePerWeightField"
 				area -1 -1 50 32
-				var bubbAutolootOptionsPricePerWeightField
+				var bubbALOptPricePerWeightField
 				text style "edit"
 				align left center
 				maxlines 1
 				action
 				"
 					if((tonumber(letter_pressed) ~= nil
-						and #tostring(bubbAutolootOptionsPricePerWeightField) < 5)
+						and #tostring(bubbALOptPricePerWeightField) < 5)
 						or not letter_pressed)
 					then
 						return 1
