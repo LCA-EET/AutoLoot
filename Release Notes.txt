@@ -3,7 +3,7 @@
 # Report any bugs to LCAMod@danielvalle.net
 
 # v1.1 2024-08-11
-* The original auto loot item evaluation and pickup loop was refactored to address and correct a slow down that occurred when many items were on the ground.
+* The original auto loot item evaluation and pickup loop was refactored to significantly improve performance when many items are on the ground.
 
 # v1.0.3 2024-08-09
 * This version patches the UI by default, for all platforms, and removes the dependency on UIUtil. If the UI cannot be patched (for example, because key portions were modified by another mod), then the pre-built UI included in the copy folder will be used.

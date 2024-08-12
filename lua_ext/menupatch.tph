@@ -344,6 +344,11 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 		end
 
 		function pickupLoot()
+			if (xa_iterations < 10) then
+				xa_iterations = xa_iterations + 1
+				return
+			end
+			xa_iterations = 0
 			if bubbALOptOnToggle == 1 then
 				-- Stupid check because LUA starts tables at index 1
 				local spaceRemaining = 0
@@ -477,6 +482,7 @@ ACTION_IF (xa_matchCountA = 1) AND (xa_matchCountB = 1) THEN BEGIN
 
 		bubbALOptPausedOnOpen = false
 		-- BUBB EDIT LOOT END
+		xa_iterations = 0;
 	%
 
 	APPEND ~UI.MENU~ 
