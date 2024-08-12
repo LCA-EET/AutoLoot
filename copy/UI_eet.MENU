@@ -7,639 +7,382 @@ else
 end
 listMetaInfo = {}
 combatLog = {}
-
-
 currentPanelID = 0
-
--- BUBB EDIT DEBUG DUMP START
-
-function alphanumericSortEntries(o)
-   local function conv(s)
-      local res, dot = "", ""
-      for n, m, c in tostring(s):gmatch"(0*(%d*))(.?)" do
-         if n == "" then
-            dot, c = "", dot..c
-         else
-            res = res..(dot == "" and ("%03d%s"):format(#m, m)
-                                  or "."..n)
-            dot, c = c:match"(%.?)(.*)"
-         end
-         res = res..c:gsub(".", "\0%0")
-      end
-      return res
-   end
-   table.sort(o,
-      function (a, b)
-         local ca, cb = conv(a.string), conv(b.string)
-         return ca < cb or ca == cb and a.string < b.string
-      end)
-   return o
-end
-
-function fillDumpLevel(tableName, levelTable, levelToFill, levelTableKey)
-
-	local tableKey, tableValue = next(levelTable, levelTableKey)
-	while tableValue ~= nil do
-
-		local tableValueType = type(tableValue)
-
-		if tableValueType == 'string' or tableValueType == 'number' or tableValueType == 'boolean' then
-
-			local entry = {}
-			entry.string = tableValueType..' '..tableKey..' = '
-			entry.value = tableValue
-			table.insert(levelToFill, entry)
-
-		elseif tableValueType == 'table' then
-
-			if tableKey ~= '_G' then
-
-				local entry = {}
-				entry.string = tableValueType..' '..tableKey..':\n'
-				entry.value = {} --entry.value is a levelToFill
-
-				entry.value.previous = {}
-				entry.value.previous.tableName = tableName
-				entry.value.previous.levelTable = levelTable
-				entry.value.previous.levelToFill = levelToFill
-				entry.value.previous.levelTableKey = tableKey
-
-				table.insert(levelToFill, entry)
-
-				return fillDumpLevel(tableKey, tableValue, entry.value)
-			end
-		elseif tableValueType == 'userdata' then
-
-			metatable = getmetatable(tableValue)
-			local entry = {}
-
-			if metatable ~= nil then
-
-				entry.string = tableValueType..' '..tableKey..':\n'
-				entry.value = {} --entry.value is a levelToFill
-
-				entry.value.previous = {}
-				entry.value.previous.tableName = tableName
-				entry.value.previous.levelTable = levelTable
-				entry.value.previous.levelToFill = levelToFill
-				entry.value.previous.levelTableKey = tableKey
-
-				table.insert(levelToFill, entry)
-
-				return fillDumpLevel(tableKey, metatable, entry.value)
-			else
-
-				entry.string = tableValueType..' '..tableKey..' = '
-				entry.value = 'nil'
-				table.insert(levelToFill, entry)
-			end
-		else
-
-			local entry = {}
-			entry.string = tableValueType..' '..tableKey
-			entry.value = nil
-			table.insert(levelToFill, entry)
+		
+		-- BUBB EDIT DEBUG DUMP START
+		function alphanumericSortEntries(o)
+		   local function conv(s)
+			  local res, dot = "", ""
+			  for n, m, c in tostring(s):gmatch"(0*(%d*))(.?)" do
+				 if n == "" then
+					dot, c = "", dot..c
+				 else
+					res = res..(dot == "" and ("%03d%s"):format(#m, m)
+										  or "."..n)
+					dot, c = c:match"(%.?)(.*)"
+				 end
+				 res = res..c:gsub(".", "xa_alreplace0%0")
+			  end
+			  return res
+		   end
+		   table.sort(o,
+			  function (a, b)
+				 local ca, cb = conv(a.string), conv(b.string)
+				 return ca < cb or ca == cb and a.string < b.string
+			  end)
+		   return o
 		end
-
-		--Iteration
-		tableKey, tableValue = next(levelTable, tableKey)
-		--Iteration
-	end
-
-	--Sort the now finished level
-	alphanumericSortEntries(levelToFill)
-	--Sort the now finished level
-
-	local previous = levelToFill.previous
-
-	if previous ~= nil then
-
-		--Clear out "previous" metadata, as it is no longer needed.
-		local previousTableName = previous.tableName
-		local previousLevelTable = previous.levelTable
-		local previousLevelToFill = previous.levelToFill
-		local previousLevelTableKey = previous.levelTableKey
-		levelToFill.previous = nil
-		--Clear out "previous" metadata, as it is no longer needed.
-
-		return fillDumpLevel(previousTableName, previousLevelTable,
-							 previousLevelToFill, previousLevelTableKey)
-	else
-		return levelToFill
-	end
-end
-
-function printEntries(entriesTable, indentLevel, indentStrings, previousState, levelTableKey)
-
-	tableEntryKey, tableEntry = next(entriesTable, levelTableKey)
-	while(tableEntry ~= nil) do
-
-		tableEntryString = tableEntry.string
-		tableEntryValue = tableEntry.value
-		indentString = indentStrings[indentLevel]
-
-		if tableEntryValue ~= nil then
-
-			if type(tableEntryValue) ~= 'table' then
-
-				valueToPrint = string.gsub(tostring(tableEntryValue), '\n', '\\n')
-				print(indentString..tableEntryString..valueToPrint)
+		
+		function fillDumpLevel(tableName, levelTable, levelToFill, levelTableKey)
+			local tableKey, tableValue = next(levelTable, levelTableKey)
+			while tableValue ~= nil do
+				local tableValueType = type(tableValue)
+				if tableValueType == 'string' or tableValueType == 'number' or tableValueType == 'boolean' then
+					local entry = {}
+					entry.string = tableValueType..' '..tableKey..' = '
+					entry.value = tableValue
+					table.insert(levelToFill, entry)
+				elseif tableValueType == 'table' then
+					if tableKey ~= '_G' then
+						local entry = {}
+						entry.string = tableValueType..' '..tableKey..':\n'
+						entry.value = {} --entry.value is a levelToFill
+						entry.value.previous = {}
+						entry.value.previous.tableName = tableName
+						entry.value.previous.levelTable = levelTable
+						entry.value.previous.levelToFill = levelToFill
+						entry.value.previous.levelTableKey = tableKey
+						table.insert(levelToFill, entry)
+						return fillDumpLevel(tableKey, tableValue, entry.value)
+					end
+				elseif tableValueType == 'userdata' then
+					metatable = getmetatable(tableValue)
+					local entry = {}
+					if metatable ~= nil then
+						entry.string = tableValueType..' '..tableKey..':\n'
+						entry.value = {} --entry.value is a levelToFill
+						entry.value.previous = {}
+						entry.value.previous.tableName = tableName
+						entry.value.previous.levelTable = levelTable
+						entry.value.previous.levelToFill = levelToFill
+						entry.value.previous.levelTableKey = tableKey
+						table.insert(levelToFill, entry)
+						return fillDumpLevel(tableKey, metatable, entry.value)
+					else
+						entry.string = tableValueType..' '..tableKey..' = '
+						entry.value = 'nil'
+						table.insert(levelToFill, entry)
+					end
+				else
+					local entry = {}
+					entry.string = tableValueType..' '..tableKey
+					entry.value = nil
+					table.insert(levelToFill, entry)
+				end
+				--Iteration
+				tableKey, tableValue = next(levelTable, tableKey)
+				--Iteration
+			end
+			--Sort the now finished level
+			alphanumericSortEntries(levelToFill)
+			--Sort the now finished level
+			local previous = levelToFill.previous
+			if previous ~= nil then
+				--Clear out "previous" metadata, as it is no longer needed.
+				local previousTableName = previous.tableName
+				local previousLevelTable = previous.levelTable
+				local previousLevelToFill = previous.levelToFill
+				local previousLevelTableKey = previous.levelTableKey
+				levelToFill.previous = nil
+				--Clear out "previous" metadata, as it is no longer needed.
+				return fillDumpLevel(previousTableName, previousLevelTable,
+									 previousLevelToFill, previousLevelTableKey)
 			else
+				return levelToFill
+			end
+		end
+		function printEntries(entriesTable, indentLevel, indentStrings, previousState, levelTableKey)
+			tableEntryKey, tableEntry = next(entriesTable, levelTableKey)
+			while(tableEntry ~= nil) do
+				tableEntryString = tableEntry.string
+				tableEntryValue = tableEntry.value
+				indentString = indentStrings[indentLevel]
+				if tableEntryValue ~= nil then
+					if type(tableEntryValue) ~= 'table' then
+						valueToPrint = string.gsub(tostring(tableEntryValue), '\n', '\n')
+						print(indentString..tableEntryString..valueToPrint)
+					else
+			
+						print(indentString..tableEntryString)
+						print(indentString..'{')
+						local previous = {}
+						previous.entriesTable = entriesTable
+						previous.indentLevel = indentLevel
+						previous.levelTableKey = tableEntryKey
+						previous.previousState = previousState
+						indentLevel = indentLevel + 1
+						indentStringsSize = #indentStrings
+						if indentLevel > indentStringsSize then
+							indentStrings[indentStringsSize + 1] = indentStrings[indentStringsSize]..'\t'
+						end
+						return printEntries(tableEntryValue, indentLevel, indentStrings, previous)
+					end
+				else
+					print(indentString..tableEntryString)
+				end
+				--Increment
+				tableEntryKey, tableEntry = next(entriesTable, tableEntryKey)
+				--Increment
+			end
+			print(indentStrings[indentLevel - 1]..'}')
+			--Finish previous levels
+			if previousState ~= nil then
+				return printEntries(previousState.entriesTable, previousState.indentLevel, indentStrings,
+									previousState.previousState, previousState.levelTableKey)
+			end
+		end
+		function dump(key, valueToDump)
+			valueToDumpType = type(valueToDump)
+			if valueToDumpType == 'string' or valueToDumpType == 'number' or valueToDumpType == 'boolean' then
+				print(valueToDumpType..' '..key..' = '..valueToDump)
+			elseif valueToDumpType == 'table' then
+				print(valueToDumpType..' '..key..':')
+				print('{')
+				entries = fillDumpLevel(key, valueToDump, {})
+				printEntries(entries, 1, {[0] = '', [1] = '\t'})
+			elseif valueToDumpType == 'userdata' then
+				metatable = getmetatable(valueToDump)
+				if metatable ~= nil then
+					print(valueToDumpType..' '..key..':')
+					print('{')
+					entries = fillDumpLevel(key, metatable, {})
+					printEntries(entries, 1, {[0] = '', [1] = '\t'})
+				else
+					print(valueToDumpType..' '..key..' = nil')
+				end
+			else
+				print(valueToDumpType..' '..key)
+			end
+		end
+		
+		-- BUBB EDIT DEBUG DUMP END
+		
+		
+		-- XA functions
+		
+		function xa_spaceRemaining()
+			characters = {}
+			Infinity_UpdateLuaStats()
+			local emptySpaces = 0
+			for key, character in pairs(characters) do
+				local equipment = character.equipment
+				for i = 0, 15, 1 do
+					local groupKey = "group"..i
+					local isEmpty = equipment[groupKey].empty
+					if isEmpty == 1 then
+						emptySpaces = emptySpaces + 1
+					end
+				end
+			end
+			return emptySpaces
+		end
 	
-				print(indentString..tableEntryString)
-				print(indentString..'{')
-
-				local previous = {}
-				previous.entriesTable = entriesTable
-				previous.indentLevel = indentLevel
-				previous.levelTableKey = tableEntryKey
-				previous.previousState = previousState
-
-				indentLevel = indentLevel + 1
-
-				indentStringsSize = #indentStrings
-				if indentLevel > indentStringsSize then
-					indentStrings[indentStringsSize + 1] = indentStrings[indentStringsSize]..'\t'
+		-- BUBB EDIT LOOT START
+		function doesCharacterHaveSpace()
+			characters = {}
+			Infinity_UpdateLuaStats()
+			for key, character in pairs(characters) do
+				local equipment = character.equipment
+				for i = 0, 15, 1 do
+					local groupKey = "group"..i
+					local isEmpty = equipment[groupKey].empty
+					if isEmpty == 1 then
+						return true
+					end
 				end
-
-				return printEntries(tableEntryValue, indentLevel, indentStrings, previous)
 			end
-		else
-			print(indentString..tableEntryString)
+			return false
 		end
-
-		--Increment
-		tableEntryKey, tableEntry = next(entriesTable, tableEntryKey)
-		--Increment
-	end
-
-	print(indentStrings[indentLevel - 1]..'}')
-
-	--Finish previous levels
-	if previousState ~= nil then
-
-		return printEntries(previousState.entriesTable, previousState.indentLevel, indentStrings,
-							previousState.previousState, previousState.levelTableKey)
-	end
-end
-
-function dump(key, valueToDump)
-
-	valueToDumpType = type(valueToDump)
-
-	if valueToDumpType == 'string' or valueToDumpType == 'number' or valueToDumpType == 'boolean' then
-
-		print(valueToDumpType..' '..key..' = '..valueToDump)
-
-	elseif valueToDumpType == 'table' then
-
-		print(valueToDumpType..' '..key..':')
-		print('{')
-		entries = fillDumpLevel(key, valueToDump, {})
-		printEntries(entries, 1, {[0] = '', [1] = '\t'})
-
-	elseif valueToDumpType == 'userdata' then
-
-		metatable = getmetatable(valueToDump)
-
-		if metatable ~= nil then
-
-			print(valueToDumpType..' '..key..':')
-			print('{')
-			entries = fillDumpLevel(key, metatable, {})
-			printEntries(entries, 1, {[0] = '', [1] = '\t'})
-		else
-
-			print(valueToDumpType..' '..key..' = nil')
-		end
-	else
-
-		print(valueToDumpType..' '..key)
-	end
-end
-
--- BUBB EDIT DEBUG DUMP END
-
--- BUBB EDIT LOOT START
-
-function doesCharacterHaveSpace()
-	characters = {}
-	Infinity_UpdateLuaStats()
-	for key, character in pairs(characters) do
-		local equipment = character.equipment
-		for i = 0, 15, 1 do
-			local groupKey = "group"..i
-			local isEmpty = equipment[groupKey].empty
-			if isEmpty == 1 then
-				return true
-			end
-		end
-	end
-	return false
-end
-
-function getPricePerWeight(price, weight)
-	if price == 0 then
-		return 0
-	elseif weight == 0 then
-		return price
-	else
-		return price / weight
-	end
-end
-
-function decideWhetherToPickUp(itemRes, itemInfo)
-
-	-- Critical Items
-	if bubbAutolootOptionsCriticalItemsToggle == 1 then
-		if itemInfo.critical == 1 then
-			return true
-		end
-	end
-
-	-- Enchanted Weapons
-	if bubbAutolootOptionsEnchantedWeaponsToggle == 1 then
-		if bubbAutolootOptionsEnchantedWeaponsField ~= "" then
-			if itemInfo.enchantment >= tonumber(bubbAutolootOptionsEnchantedWeaponsField) then
-				return true
-			end
-		end
-	end
-
-	-- Gold
-	if bubbAutolootOptionsGoldToggle == 1 then
-		if itemRes == "MISC07" then
-			return true
-		end
-	end
-
-	-- Price
-	if bubbAutolootOptionsPriceToggle == 1 then
-		if bubbAutolootOptionsPriceField ~= "" then
-			if itemInfo.price >= tonumber(bubbAutolootOptionsPriceField) then
-				return true
-			end
-		end
-	end
-
-	-- Price per Weight
-	if bubbAutolootOptionsPricePerWeightToggle == 1 then
-		if bubbAutolootOptionsPricePerWeightField ~= "" then
-			if getPricePerWeight(itemInfo.price, itemInfo.weight) >= tonumber(bubbAutolootOptionsPricePerWeightField) then
-				return true
-			end
-		end
-	end
-
-	return false
-end
-
-function pickupLoot()
-	if bubbAutolootOptionsOnToggle == 1 then
-		-- Stupid check because LUA starts tables at index 1
-		if loot.groundItems[0] == nil then
-			return
-		end
-		local groundItemCount = #loot.groundItems
-		for i = 0, groundItemCount, 1 do
-			if doesCharacterHaveSpace() then
-				local groundItemSlot = loot.groundItems[i]
-				local groundItem = groundItemSlot.item
-				local info = lootInfo[groundItem.res]
-
-				if decideWhetherToPickUp(groundItem.res, info) then
-
-					Infinity_DisplayString("[Auto Loot] Picking up "..groundItem.name)
-					worldScreen:OnGroundButtonClick(groundItemSlot.slotId, groundItemSlot.containerId, groundItem.res)
-				end
+		function getPricePerWeight(price, weight)
+			if price == 0 then
+				return 0
+			elseif weight == 0 then
+				return price
 			else
+				return price / weight
+			end
+		end
+		function decideWhetherToPickUp(itemRes, itemInfo)
+			-- Critical Items
+			if bubbALOptCriticalItemsToggle == 1 then
+				if itemInfo.critical == 1 then
+					return true
+				end
+			end
+			-- Enchanted Weapons
+			if bubbALOptEnchantedWeaponsToggle == 1 then
+				if itemInfo.enchantment >= tonumber(bubbALOptEnchantedWeaponsField) then
+					return true
+				end
+			end
+			-- Price
+			if bubbALOptPriceToggle == 1 then
+				if itemInfo.price >= tonumber(bubbALOptPriceField) then
+					return true
+				end
+			end
+			-- Price per Weight
+			if bubbALOptPricePerWeightToggle == 1 then
+				if getPricePerWeight(itemInfo.price, itemInfo.weight) >= tonumber(bubbALOptPricePerWeightField) then
+					return true
+				end
+			end
+			return false
+		end
+		function pickupLoot()
+			if (xa_iterations < 10) then
+				xa_iterations = xa_iterations + 1
 				return
 			end
+			xa_iterations = 0
+			if bubbALOptOnToggle == 1 then
+				-- Stupid check because LUA starts tables at index 1
+				local spaceRemaining = 0
+				if loot.groundItems[0] == nil then
+					return
+				end
+				
+				local groundItemCount = #loot.groundItems
+				
+				if (groundItemCount == 0) then
+					return
+				end
+				
+				if (xa_itemCheckNeeded == true) then
+					spaceRemaining = xa_spaceRemaining()
+					-- Infinity_DisplayString("[Auto Loot] Space Remaining:"..spaceRemaining)
+				end
+				
+				for i = 0, groundItemCount, 1 do
+					local groundItemSlot = loot.groundItems[i]
+					local groundItem = groundItemSlot.item
+					local info = lootInfo[groundItem.res]
+					
+					-- Gold doesn't need an empty space check
+					if groundItem.res == "MISC07" then 
+						if (bubbALOptGoldToggle == 1) then
+							Infinity_DisplayString("[Auto Loot] Picking up gold.")
+							worldScreen:OnGroundButtonClick(groundItemSlot.slotId, groundItemSlot.containerId, groundItem.res)
+						end
+					elseif (xa_itemCheckNeeded == true) and (spaceRemaining > 0) then
+						if decideWhetherToPickUp(groundItem.res, info) then
+							Infinity_DisplayString("[Auto Loot] Picking up "..groundItem.name)
+							worldScreen:OnGroundButtonClick(groundItemSlot.slotId, groundItemSlot.containerId, groundItem.res)
+							spaceRemaining = (spaceRemaining - 1)
+						end
+					end
+				end
+			end
 		end
-	end
-end
-
-function initializeAutolootOptionsMenu(itemName)
-	local screenWidth, screenHeight = Infinity_GetScreenSize()
-	local backgroundX, backgroundY, backgroundWidth, backgroundHeight = Infinity_GetArea('bubbAutolootOptionsBackground')
-	local horizontalMargin = screenWidth - backgroundWidth
-	local newBackGroundX = horizontalMargin / 2
-	local verticalMargin = screenHeight - backgroundHeight
-	local newBackGroundY = verticalMargin / 2
-
-	-- Background
-	Infinity_SetArea('bubbAutolootOptionsBackground', newBackGroundX, newBackGroundY, nil, nil)
-
-	-- Exit Button
-	Infinity_SetArea('bubbAutolootOptionsExitButton', newBackGroundX + backgroundWidth - 54, newBackGroundY + 10, nil, nil)
-
-	-- Autoloot On
-	Infinity_SetArea('bubbAutolootOptionsOnToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 0, nil, nil)
-	Infinity_SetArea('bubbAutolootOptionsOn',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 0, nil, nil)
-
-	-- Critical Items
-	Infinity_SetArea('bubbAutolootOptionsCriticalItemsToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 1, nil, nil)
-	Infinity_SetArea('bubbAutolootOptionsCriticalItems',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 1, nil, nil)
-
-	-- Enchanted Weapons
-	Infinity_SetArea('bubbAutolootOptionsEnchantedWeaponsToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
-	Infinity_SetArea('bubbAutolootOptionsEnchantedWeapons',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
-	Infinity_SetArea('bubbAutolootOptionsEnchantedWeaponsField',  newBackGroundX + 52 + 356 + 5, newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
-
-	-- Gold
-	Infinity_SetArea('bubbAutolootOptionsGoldToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
-	Infinity_SetArea('bubbAutolootOptionsGold',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
-
-	-- Price
-	Infinity_SetArea('bubbAutolootOptionsPriceToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
-	Infinity_SetArea('bubbAutolootOptionsPrice',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
-	Infinity_SetArea('bubbAutolootOptionsPriceField',  newBackGroundX + 52 + 218 + 5, newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
-
-	-- Price per Weight
-	Infinity_SetArea('bubbAutolootOptionsPricePerWeightToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
-	Infinity_SetArea('bubbAutolootOptionsPricePerWeight',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
-	Infinity_SetArea('bubbAutolootOptionsPricePerWeightField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
-
-end
-
-bubbAutolootOptionsOnToggle =               Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsOnToggle',               0)
-bubbAutolootOptionsCriticalItemsToggle =    Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsCriticalItemsToggle',    0)
-bubbAutolootOptionsEnchantedWeaponsToggle = Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsEnchantedWeaponsToggle', 0)
-bubbAutolootOptionsEnchantedWeaponsField =  Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsEnchantedWeaponsField',  '1')
-bubbAutolootOptionsGoldToggle =             Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsGoldToggle',             0)
-bubbAutolootOptionsPriceToggle =            Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPriceToggle',            0)
-bubbAutolootOptionsPriceField =             Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPriceField',             '1')
-bubbAutolootOptionsPricePerWeightToggle =   Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPricePerWeightToggle',   0)
-bubbAutolootOptionsPricePerWeightField =    Infinity_GetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPricePerWeightField',    '1')
-
-bubbAutolootOptionsPausedOnOpen = false
-
-`
-
-menu
-{
-	name "BUBB_AUTOLOOT_TOGGLE"
-	align center bottom
-	onOpen 
-	"
-		groundItemsButtonToggleX, 
-		groundItemsButtonToggleY, 
-		groundItemsButtonToggleWidth, 
-		groundItemsButtonToggleHeight = Infinity_GetArea('groundItemsButtonToggle')
-		Infinity_SetArea('bubbAutolootOptionsToggle', groundItemsButtonToggleX - 44, groundItemsButtonToggleY - 24, nil, nil)
-	"
-	ignoreEsc
+		function xa_validateEntry(toggle, field)
+			if(toggle == 1) then
+				if(field == "") then
+					return 0
+				end
+			end
+			return toggle
+		end
+		function writeAutolootOptions()
+			-- Infinity_DisplayString("[Auto Loot] On Close Called.") 
+			
+			bubbALOptPriceToggle = xa_validateEntry(bubbALOptPriceToggle, bubbALOptPriceField)
+			bubbALOptEnchantedWeaponsToggle = xa_validateEntry(bubbALOptEnchantedWeaponsToggle, bubbALOptEnchantedWeaponsField)
+			bubbALOptPricePerWeightToggle = xa_validateEntry(bubbALOptPricePerWeightToggle, bubbALOptPricePerWeightField)
+		
+			if ((bubbALOptCriticalItemsToggle == 1) or
+				(bubbALOptEnchantedWeaponsToggle == 1) or
+				(bubbALOptPriceToggle == 1) or
+				(bubbALOptPricePerWeightToggle == 1))
+			then
+				-- Infinity_DisplayString("[Auto Loot] IC Needed = true.") 
+				xa_itemCheckNeeded = true
+			else
+				-- Infinity_DisplayString("[Auto Loot] IC Needed = false.") 
+				xa_itemCheckNeeded = false
+			end
+			
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptOnToggle',               tostring(bubbALOptOnToggle))
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptCriticalItemsToggle',    tostring(bubbALOptCriticalItemsToggle))
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsToggle', tostring(bubbALOptEnchantedWeaponsToggle))
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsField',  bubbALOptEnchantedWeaponsField)
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptGoldToggle',             tostring(bubbALOptGoldToggle))
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptPriceToggle',            tostring(bubbALOptPriceToggle))
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptPriceField',             bubbALOptPriceField)
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightToggle',   tostring(bubbALOptPricePerWeightToggle))
+			Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightField',    bubbALOptPricePerWeightField)
+		end
+		
+		function initializeAutolootOptionsMenu(itemName)
+			-- Infinity_DisplayString("[Auto Loot] On Open Called.") 
+			local screenWidth, screenHeight = Infinity_GetScreenSize()
+			local backgroundX, backgroundY, backgroundWidth, backgroundHeight = Infinity_GetArea('bubbALOptBackground')
+			local horizontalMargin = screenWidth - backgroundWidth
+			local newBackGroundX = horizontalMargin / 2
+			local verticalMargin = screenHeight - backgroundHeight
+			local newBackGroundY = verticalMargin / 2
+			-- Background
+			Infinity_SetArea('bubbALOptBackground', newBackGroundX, newBackGroundY, nil, nil)
+			-- Exit Button
+			Infinity_SetArea('bubbALOptExitButton', newBackGroundX + backgroundWidth - 54, newBackGroundY + 10, nil, nil)
+			-- Autoloot On
+			Infinity_SetArea('bubbALOptOnToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 0, nil, nil)
+			Infinity_SetArea('bubbALOptOn',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 0, nil, nil)
+			-- Critical Items
+			Infinity_SetArea('bubbALOptCriticalItemsToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 1, nil, nil)
+			Infinity_SetArea('bubbALOptCriticalItems',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 1, nil, nil)
+			-- Enchanted Weapons
+			Infinity_SetArea('bubbALOptEnchantedWeaponsToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
+			Infinity_SetArea('bubbALOptEnchantedWeapons',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
+			Infinity_SetArea('bubbALOptEnchantedWeaponsField',  newBackGroundX + 52 + 356 + 5, newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
+			-- Gold
+			Infinity_SetArea('bubbALOptGoldToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
+			Infinity_SetArea('bubbALOptGold',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
+			-- Price
+			Infinity_SetArea('bubbALOptPriceToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
+			Infinity_SetArea('bubbALOptPrice',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
+			Infinity_SetArea('bubbALOptPriceField',  newBackGroundX + 52 + 218 + 5, newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
+			-- Price per Weight
+			Infinity_SetArea('bubbALOptPricePerWeightToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
+			Infinity_SetArea('bubbALOptPricePerWeight',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
+			Infinity_SetArea('bubbALOptPricePerWeightField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
+		end
+		bubbALOptOnToggle =               Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptOnToggle',               0)
+		bubbALOptCriticalItemsToggle =    Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptCriticalItemsToggle',    0)
+		bubbALOptEnchantedWeaponsToggle = Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsToggle', 0)
+		bubbALOptEnchantedWeaponsField =  Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsField',  '1')
+		bubbALOptGoldToggle =             Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptGoldToggle',             0)
+		bubbALOptPriceToggle =            Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPriceToggle',            0)
+		bubbALOptPriceField =             Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPriceField',             '1')
+		bubbALOptPricePerWeightToggle =   Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightToggle',   0)
+		bubbALOptPricePerWeightField =    Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightField',    '1')
+		bubbALOptPausedOnOpen = false
+		-- BUBB EDIT LOOT END
+		xa_iterations = 0;
 	
-	button
-	{
-		name "bubbAutolootOptionsToggle"
-		area -804 0 32 44
-		bam ROUNDBUT
-		tooltip "Autoloot Options"
-		action
-		"
-			Infinity_PushMenu('BUBB_AUTOLOOT_OPTIONS')
-		"
-	}
-}
-
-menu
-{
-	name "BUBB_AUTOLOOT_OPTIONS"
-	modal
-	onOpen 
-	"
-		if not worldScreen:CheckIfPaused() then
-			bubbAutolootOptionsPausedOnOpen = false
-			worldScreen:TogglePauseGame(true)
-		else
-			bubbAutolootOptionsPausedOnOpen = true
-		end
-
-		initializeAutolootOptionsMenu()
-	"
-	onClose 
-	"
-		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsOnToggle',               tostring(bubbAutolootOptionsOnToggle))
-		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsCriticalItemsToggle',    tostring(bubbAutolootOptionsCriticalItemsToggle))
-		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsEnchantedWeaponsToggle', tostring(bubbAutolootOptionsEnchantedWeaponsToggle))
-		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsEnchantedWeaponsField',  bubbAutolootOptionsEnchantedWeaponsField)
-		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsGoldToggle',             tostring(bubbAutolootOptionsGoldToggle))
-		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPriceToggle',            tostring(bubbAutolootOptionsPriceToggle))
-		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPriceField',             bubbAutolootOptionsPriceField)
-		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPricePerWeightToggle',   tostring(bubbAutolootOptionsPricePerWeightToggle))
-		Infinity_SetINIValue('Bubb Autoloot', 'bubbAutolootOptionsPricePerWeightField',    bubbAutolootOptionsPricePerWeightField)
-
-		if not bubbAutolootOptionsPausedOnOpen then
-			worldScreen:TogglePauseGame(true)
-		end
-	"
-
-	-- Background
-	label
-	{
-		name "bubbAutolootOptionsBackground"
-		area -1 -1 500 265
-		rectangle 0
-	}
-
-	-- Exit Button
-	button
-	{
-		name "bubbAutolootOptionsExitButton"
-		bam GUIOSW
-		area -1 -1 44 44
-		sequence 2
-		action 
-		"
-			Infinity_PopMenu('BUBB_AUTOLOOT_OPTIONS')	
-		"
-	}
-
-	-- Autoloot On
-	button
-	{
-		name "bubbAutolootOptionsOnToggle"
-		area -1 -1 32 32
-		bam ROUNDBUT
-		toggle bubbAutolootOptionsOnToggle
-	}
-	label
-	{
-		name "bubbAutolootOptionsOn"
-		area -1 -1 102 32
-		text "Autoloot On"
-		text style 'normal'
-		text align left center
-	}
-
-	-- Critical Items
-	button
-	{
-		name "bubbAutolootOptionsCriticalItemsToggle"
-		area -1 -1 32 32
-		bam ROUNDBUT
-		toggle bubbAutolootOptionsCriticalItemsToggle
-	}
-	label
-	{
-		name "bubbAutolootOptionsCriticalItems"
-		area -1 -1 102 32
-		text "Critical Items"
-		text style 'normal'
-		text align left center
-	}
-
-	-- Enchanted Weapons
-	button
-	{
-		name "bubbAutolootOptionsEnchantedWeaponsToggle"
-		area -1 -1 32 32
-		bam ROUNDBUT
-		toggle bubbAutolootOptionsEnchantedWeaponsToggle
-	}
-	label
-	{
-		name "bubbAutolootOptionsEnchantedWeapons"
-		area -1 -1 356 32
-		text "Enchanted Weapons equal to or higher than enchantment level:"
-		text style 'normal'
-		text align left center
-	}
-	edit
-	{
-		name "bubbAutolootOptionsEnchantedWeaponsField"
-		area -1 -1 20 32
-		var bubbAutolootOptionsEnchantedWeaponsField
-		text style "edit"
-		align left center
-		maxlines 1
-		action
-		"
-			if((tonumber(letter_pressed) ~= nil
-				and #tostring(bubbAutolootOptionsEnchantedWeaponsField) < 1)
-				or not letter_pressed)
-			then
-				return 1
-			else
-				return 0
-			end
-		"
-	}
-
-	-- Gold
-	button
-	{
-		name "bubbAutolootOptionsGoldToggle"
-		area -1 -1 32 32
-		bam ROUNDBUT
-		toggle bubbAutolootOptionsGoldToggle
-	}
-	label
-	{
-		name "bubbAutolootOptionsGold"
-		area -1 -1 356 32
-		text "Gold"
-		text style 'normal'
-		text align left center
-	}
-
-	-- Price
-	button
-	{
-		name "bubbAutolootOptionsPriceToggle"
-		area -1 -1 32 32
-		bam ROUNDBUT
-		toggle bubbAutolootOptionsPriceToggle
-	}
-	label
-	{
-		name "bubbAutolootOptionsPrice"
-		area -1 -1 218 32
-		text "Price equal to or higher than:"
-		text style 'normal'
-		text align left center
-	}
-	edit
-	{
-		name "bubbAutolootOptionsPriceField"
-		area -1 -1 50 32
-		var bubbAutolootOptionsPriceField
-		text style "edit"
-		align left center
-		maxlines 1
-		action
-		"
-			if((tonumber(letter_pressed) ~= nil
-				and #tostring(bubbAutolootOptionsPriceField) < 5)
-				or not letter_pressed)
-			then
-				return 1
-			else
-				return 0
-			end
-		"
-	}
-
-	-- Price per Weight
-	button
-	{
-		name "bubbAutolootOptionsPricePerWeightToggle"
-		area -1 -1 32 32
-		bam ROUNDBUT
-		toggle bubbAutolootOptionsPricePerWeightToggle
-	}
-	label
-	{
-		name "bubbAutolootOptionsPricePerWeight"
-		area -1 -1 308 32
-		text "Price per Weight equal to or higher than:"
-		text style 'normal'
-		text align left center
-	}
-	edit
-	{
-		name "bubbAutolootOptionsPricePerWeightField"
-		area -1 -1 50 32
-		var bubbAutolootOptionsPricePerWeightField
-		text style "edit"
-		align left center
-		maxlines 1
-		action
-		"
-			if((tonumber(letter_pressed) ~= nil
-				and #tostring(bubbAutolootOptionsPricePerWeightField) < 5)
-				or not letter_pressed)
-			then
-				return 1
-			else
-				return 0
-			end
-		"
-	}
-}
-
-`
-
--- BUBB EDIT LOOT END
-
-function displayTHAC()
+	
+	function displayTHAC()
+	
 	thactxt = ''
 	thactxt =  characters[currentID].THAC0.current
-
 	if (characters[currentID].THAC0.offhand ) then
 		thactxt = thactxt .. '\n' .. characters[currentID].THAC0.offhand
 	end
-
 	return thactxt
 end
-
 function displayCompiledAC()
 	local compiledAC = characters[currentID].AC.current
-
 	if characters[currentID].AC.crushing ~= 0 or characters[currentID].AC.missile ~= 0 or characters[currentID].AC.piercing ~= 0 or characters[currentID].AC.slashing ~= 0 then
 		compiledAC = compiledAC .. " (" .. t("MODIFIERS_LABEL") .. ": "
-
 		local numMods = 0
 		if characters[currentID].AC.crushing > 0 then
 			numMods = numMods + 1
@@ -652,7 +395,6 @@ function displayCompiledAC()
 			compiledAC = compiledAC .. " " .. t("ACMOD_VS_CRUSHING")
 			removeStringTokenLua("<ACTOKEN>")
 		end
-
 		if characters[currentID].AC.missile > 0 then
 			if numMods > 0 then
 				compiledAC = compiledAC .. ", "
@@ -670,7 +412,6 @@ function displayCompiledAC()
 			compiledAC = compiledAC .. " " .. t("ACMOD_VS_MISSILE")
 			removeStringTokenLua("<ACTOKEN>")
 		end
-
 		if characters[currentID].AC.piercing > 0 then
 			if numMods > 0 then
 				compiledAC = compiledAC .. ", "
@@ -688,7 +429,6 @@ function displayCompiledAC()
 			compiledAC = compiledAC .. " " .. t("ACMOD_VS_PIERCING")
 			removeStringTokenLua("<ACTOKEN>")
 		end
-
 		if characters[currentID].AC.slashing > 0 then
 			if numMods > 0 then
 				compiledAC = compiledAC .. ", "
@@ -706,16 +446,12 @@ function displayCompiledAC()
 			compiledAC = compiledAC .. " " .. t("ACMOD_VS_SLASHING")
 			removeStringTokenLua("<ACTOKEN>")
 		end
-
 		compiledAC = compiledAC .. ")"
 	end
-
 	return compiledAC
 end
-
 function displaySTR()
 	strtxt = characters[currentID].attr.str.current
-
 	if characters[currentID].attr.str.current == 18 and characters[currentID].attr.str.extra > 0 then
 		if characters[currentID].attr.str.extra == 100 then
 			strtxt = strtxt .. '/00'
@@ -733,7 +469,6 @@ function displaySTR()
 	end
 	return strtxt
 end
-
 function updateAttrTable()
 	
 	statusEffects = { }
@@ -741,10 +476,8 @@ function updateAttrTable()
 		table.insert(statusEffects, v)
 		
 	end
-
 	listItems = { }
 	listTest = { }
-
 	lastID = currentID
 	helpTextString = ''
 	showClassInfo = 0
@@ -753,9 +486,7 @@ function updateAttrTable()
 	showBothLists = 0
 	showStats = 1
 	showAbilityBonuses = 0
-
 	otherlist = { }
-
 	attributeItems = {
 		{ characters[currentID].attr.str, 9582 },
 		{ characters[currentID].attr.dex, 9584 },
@@ -764,8 +495,6 @@ function updateAttrTable()
 		{ characters[currentID].attr.wis, 9586 },
 		{ characters[currentID].attr.cha, 9587 }
 		}
-
-
 	if currentTab == 1 then
 		showJustText = 1
 		showStats = 0
@@ -784,13 +513,11 @@ function updateAttrTable()
 		listItems =	{
 			{ characters[currentID].proficiencies.lore.strRef,  characters[currentID].proficiencies.lore.current },
 			{ characters[currentID].proficiencies.reputation.strRef, characters[currentID].proficiencies.reputation.current, characters[currentID].proficiencies.reputation.helpStrRef },
-
 		}
 		for k, v in ipairs(characters[currentID].proficiencies.class_skills) do
 			table.insert(listItems, {v.strRef, v.current})
 			--table.insert(listItems, {v.helpStrRef, ''})
 		end
-
 		showJustText = 1
 		showStats = 0
 		helpTextString = ''
@@ -829,7 +556,6 @@ function updateAttrTable()
 		for k, v in ipairs(listItems) do
 			helpTextString = helpTextString .. '^M' .. v[2] .. '\n \n'
 		end
-
 	elseif currentTab == 9 then
 		showJustText = 1
 		showStats = 0
@@ -844,13 +570,11 @@ function updateAttrTable()
 		if characters[currentID].proficiencies.fightingstyles.current ~= "" then
 			table.insert(listItems, { 'FIGHTING_STYLES_LABEL', '', characters[currentID].proficiencies.fightingstyles.current })
 		end
-
 		if ( characters[currentID].THAC0.detailsOffhand ~= nil and characters[currentID].THAC0.detailsOffhand ~= "" ) then
 			table.insert(listItems, { 'MAIN_HAND_THAC0', characters[currentID].THAC0.current .. '\n' .. characters[currentID].THAC0.details .. '\n\n' .. t('OFF_HAND_THAC0')..': '..characters[currentID].THAC0.offhand .. '\n' .. characters[currentID].THAC0.detailsOffhand,  '' })
 		else
 			table.insert(listItems, { 'THAC0_LABEL', characters[currentID].THAC0.current,  characters[currentID].THAC0.details })
 		end
-
 		if ( characters[currentID].damage.maxOffhand ) then
 			table.insert(listItems, { 'MAIN_HAND_DAMAGE', characters[currentID].damage.min .. '-' .. characters[currentID].damage.max .. '\n' .. characters[currentID].damage.details .. '\n\n' .. t('OFF_HAND_DAMAGE') .. ': ' .. characters[currentID].damage.minOffhand .. '-' .. characters[currentID].damage.maxOffhand .. '\n' .. characters[currentID].damage.detailsOffhand, ''})
 		else
@@ -859,7 +583,6 @@ function updateAttrTable()
 		table.insert(listItems, { 'SAVING_THROWS_LABEL', '',  characters[currentID].proficiencies.savingThrows })
 		table.insert(listItems, { 'RESISTANCES_LABEL', '',  characters[currentID].proficiencies.resistances })
 		table.insert(listItems, { 'CURRENT_SCRIPT_LABEL', '',  characters[currentID].proficiencies.currentScript })
-
 		for k, v in ipairs(listItems) do				
 			if (v[3] == '' or v[3] == nil) then
 				helpTextString = helpTextString ..  t(v[1])  .. ': '.. v[2] .. '^-' .. '\n\n'
@@ -894,7 +617,6 @@ function updateAttrTable()
 	else
 		listItems = { }
 	end
-
 	characterViewable = characterScreen:IsCharacterViewable()
 	showClassInfo = showClassInfo == 1 and characterViewable == true
 	showJustText = showJustText == 1 and characterViewable == true
@@ -903,15 +625,12 @@ function updateAttrTable()
 	showStats = showStats == 1 and characterViewable == true
 	showAbilityBonuses = showAbilityBonuses == 1 and characterViewable == true
 end
-
 characters = {}
 statusEffects = { }
-
 currentID = 16974083
 canLevelUp = 0
 openAdvance = 0
 notrealValue = 0
-
 function trunc(str, len)
 	if str:len() < len then
 		return str
@@ -919,11 +638,9 @@ function trunc(str, len)
 		return str:sub(1,len) .. "..."
 	end
 end
-
 function characterDescString(char)
 	return Infinity_FetchString(char.gender) .. "\n" .. Infinity_FetchString(char.race) .. "\n" .. char.class .. "\n" .. Infinity_FetchString(char.alignment) .. ""
 end
-
 function isStatModified(index)
 	if (index == 1 ) then
 		--strength
@@ -932,7 +649,6 @@ function isStatModified(index)
 		return attributeItems[index][1].current ~= attributeItems[index][1].base
 	end
 end
-
 function displayAttr(index)
 	str = 0
 	if (index == 1 ) then
@@ -942,12 +658,10 @@ function displayAttr(index)
 	end
 	return str
 end
-
 function getPercent(first, second)
 	tempNumber = ( first/second ) *100
 	return tempNumber
 end
-
 function displayBuff( current, base, highisbetter)
 	
 	tmpstr = ''	
@@ -970,7 +684,6 @@ function displayBuff( current, base, highisbetter)
 	end
 	return tmpstr
 end
-
 function getNextLevelString()
 	local nextLevelXp = characters[currentID].level.nextLvlXp - characters[currentID].level.xp
 	local str = ""
@@ -986,7 +699,6 @@ function getNextLevelString()
 	return str
 	
 end
-
 function CurrentlyInGame()
 	if characterScreen:IsInGame() == true then
 		return true
@@ -1002,14 +714,11 @@ function getClassString()
 	if ( characters[currentID].classlevel.third ) then
 		out = out .. '\n\n' .. characters[currentID].classlevel.third.details
 	end
-
 	out = out .. '\n\n' .. characters[currentID].kitDesc
-
 	return out
 end
 	listItems = { }
 	listTest = { }
-
 	helpTextString = ''
 	currentTabIndex = 0
 	currentTab = 0
@@ -1059,7 +768,6 @@ menu
 	"
 		popSidebars()
 	"
-
 	label
 	{
 		area	0 0 864 709
@@ -1076,7 +784,6 @@ menu
 		text align	center center
 		enabled "characterViewable"
 	}
-
 	label
 	{
 		area		622 450 166 18
@@ -1095,9 +802,6 @@ menu
 		text shadow 1
 		enabled "characterViewable"
 	}
-
-
-
 	button
 	{
 		area 78 56 140 42
@@ -1134,7 +838,6 @@ menu
 		pad 10 4 10 4
 		action "currentTab = 3; updateAttrTable()"
 	}
-
 	button
 	{
 		area 638 56 140 42
@@ -1144,7 +847,6 @@ menu
 		pad 10 4 10 4
 		action "currentTab = 8; updateAttrTable()"
 	}
-
 	button
 	{
 		area 66 130 140 42
@@ -1154,7 +856,6 @@ menu
 		pad 10 4 10 4
 		action "currentTab = 6; updateAttrTable()"
 	}
-
 	button
 	{
 		area 238 130 140 42
@@ -1164,7 +865,6 @@ menu
 		pad 10 4 10 4
 		action "currentTab = 7; updateAttrTable()"
 	}
-
 	list
 	{
 		column 
@@ -1191,7 +891,6 @@ menu
 				
 			}
 		}
-
 		area 426 144 152 216
 		
 		rowheight	36
@@ -1204,7 +903,6 @@ menu
 			helpTextString = Infinity_FetchString( attributeItems[currentItem][2])
 		"		
 	}
-
 	list
 	{
 		column 
@@ -1229,7 +927,6 @@ menu
 				text align	left center
 			}
 		}
-
 		area 420 486 164 94
 		rowheight	dynamic
 		table		"statusEffects"
@@ -1238,7 +935,6 @@ menu
 		enabled "characterViewable"
 		hidehighlight	
 	}
-
 	button
 	{
 		name		"BUTTON_2_2"
@@ -1273,7 +969,6 @@ menu
 		text style  'normal'
 		scrollbar	'GUISCRC'
 	}
-
 	-- ability bonus stuff
 	
 	list
@@ -1287,10 +982,8 @@ menu
 				text		lua "listItems[rowNumber][2]" 
 				text style  'normal'
 				text align	left center
-
 			}
 		}
-
 		area 50 182 342 418
 		
 		enabled		"showAbilityBonuses"
@@ -1304,7 +997,6 @@ menu
 			--helpTextString = Infinity_FetchString( listItems[currentItem][1].helpStrRef)
 		"		
 	}
-
 	-- Stats screen stuff
 	list
 	{		
@@ -1317,7 +1009,6 @@ menu
 				text		lua "Infinity_FetchString(otherlist[rowNumber][1])" 
 				text style  'normal'
 				text align	left center
-
 			}
 		}
 		column 
@@ -1331,7 +1022,6 @@ menu
 				text align	center center
 			}
 		}
-
 		area 50 182 346 186
 		
 		enabled		"showStats"
@@ -1345,7 +1035,6 @@ menu
 			--helpTextString = Infinity_FetchString( listItems[currentItem][1].helpStrRef)
 		"		
 	}
-
 	label
 	{
 		enabled		"showStats"
@@ -1362,7 +1051,6 @@ menu
 		text style  'label'
 		text align	center center
 	}
-
 	list
 	{		
 		column 
@@ -1374,7 +1062,6 @@ menu
 				text		lua "Infinity_FetchString(listItems[rowNumber][1])"  --lua " '^M' .. Infinity_FetchString(listItems[rowNumber][1]) .. '^-' .. '\n'  .. trunc(Infinity_FetchString( listItems[rowNumber][3]), 140)"
 				text style  'normal'
 				text align	left center
-
 			}
 		}
 		column 
@@ -1401,7 +1088,6 @@ menu
 				
 			}
 		}
-
 		area 54 406 350 188
 		
 		enabled		"showStats"
@@ -1415,10 +1101,7 @@ menu
 			--helpTextString = Infinity_FetchString( listItems[currentItem][1].helpStrRef)
 		"		
 	}
-
-
 	-- Biography section 	
-
 	text
 	{
 		enabled		"showJustText"
@@ -1428,7 +1111,6 @@ menu
 		text align	left top
 		scrollbar	'GUISCRC'
 	}
-
 	button
 	{
 		enabled 	"CurrentlyInGame()"
@@ -1512,7 +1194,6 @@ menu
 			e:SelectEngine(worldScreen)
 		"
 	}
-
 	button
 	{
 		enabled 	"not CurrentlyInGame()"
@@ -1539,7 +1220,6 @@ menu
 		area 0 0 864 710
 		mosaic	GUICUSTB
 	}
-
 	text
 	{
 		area 426 120 398 490
@@ -1692,7 +1372,6 @@ menu
 		scrollbar	'GUISCRC'
 		text style	"edit"
 	}
-
 	button
 	{
 		bam 'GUICHLNG'
@@ -1747,8 +1426,6 @@ menu
 		"
 	}
 }
-
-
 `
 scriptList_idx = 0
 showingSmartOptions = false
@@ -1763,7 +1440,6 @@ function formatScriptName(text)
 	end
 	return text
 end
-
 scriptOptions = 
 {
 	{'SCRIPT_ATTACK_ENEMIES_LABEL',			'SCRIPT_ATTACK_ENEMIES_DESCRIPTION',		 1, 0, 0},
@@ -1778,10 +1454,8 @@ scriptOptions =
 	{'SCRIPT_SING_BATTLESONG_LABEL',		'SCRIPT_SING_BATTLESONG_DESCRIPTION',		10, 0, 0},
 	{'SCRIPT_TURN_UNDEAD_LABEL',			'SCRIPT_TURN_UNDEAD_DESCRIPTION',			11, 0, 0}
 }
-
 function handleScriptOptionChange(option)
 	local wasOn = scriptOptions[option][4] == 2
-
 	if option == 2 then --Melee
 		if wasOn == true then
 			scriptOptions[option][4] = 0
@@ -1877,10 +1551,8 @@ menu
 	"
 		doneEnabled = characterScreen:IsDoneButtonClickable(currentID)
 		currentPanelID = const.SCRIPT_ID
-
 		showingSmartOptions = (scriptList_idx == 2)
 		scriptDescription = t(scriptOptions[scriptList_idx][2])
-
 		for index, var in pairs(scriptOptions) do
 			var[5] = characterScreen:GetTempSmartScriptLocal(var[3])
 			if var[5] == false then
@@ -1921,7 +1593,6 @@ menu
 		text style	normal
 		enabled "showingSmartOptions == true"
 	}
-
 	text
 	{
 		area 446 190 376 422
@@ -1930,7 +1601,6 @@ menu
 		text style	normal
 		enabled "showingSmartOptions == false"
 	}
-
 	list
 	{
 		column 
@@ -1969,7 +1639,6 @@ menu
 			end
 		"
 	}
-
 	list
 	{
 		
@@ -1995,7 +1664,6 @@ menu
 				frame		lua "scriptOptions[rowNumber][4]"
 			}
 		}
-
 		area 444 194 376 266
 		
 		rowheight	50
@@ -2003,20 +1671,17 @@ menu
 		var			selScriptOpt
 		scrollbar	'GUISCRC'
 		enabled 	"showingSmartOptions == true"
-
 		action		
 		"
 			scriptDescription = t(scriptOptions[selScriptOpt][2])
 			selectedSL = 0
 			selFeedOpt = 0
-
 			if(cellNumber == 2) then
 				Infinity_PlaySound('GAM_09')
 				handleScriptOptionChange(selScriptOpt)
 			end
 		"
 	}
-
 	button
 	{
 		on escape
@@ -2047,7 +1712,6 @@ menu
 					characterScreen:SetTempSmartScriptLocal(var[3], var[5])
 				end
 			end
-
 			characterScreen:OnDoneButtonClick()
 			Infinity_PopMenu()
 			currentPanelID = 17
@@ -2081,7 +1745,6 @@ menu
 		text	"EXPORT_TITLE"
 		text style	title
 	}
-
 	list
 	{
 		column 
@@ -2127,7 +1790,6 @@ menu
 				return 1
 			end
 		"
-
 	}
 	text
 	{
@@ -2168,7 +1830,6 @@ menu
 `
 list_GUIREC_20_5_idx = 0
 doneEnabled = 0
-
 function compareCustomSound(s1, s2)
 	-- DEFAULT, then normal alphabetically, then AoN alphabetically (result must be strictly less than)
 	if (s1.sound == "DEFAULT") then
@@ -2182,7 +1843,6 @@ function compareCustomSound(s1, s2)
 	end
 	return s1.sound < s2.sound;
 end
-
 function prepareSounds(soundTable)
 	-- preserve original indices to return as selection
 	local i;
@@ -2198,7 +1858,6 @@ function prepareSounds(soundTable)
 	
 	table.sort(soundTable, compareCustomSound)
 end
-
 function getSoundStringRef(rowNumber, tab)
 	if ( filenames_stringrefs[tab[rowNumber].sound] ~= nil ) then
 		return Infinity_FetchString(filenames_stringrefs[tab[rowNumber].sound][1])
@@ -2332,7 +1991,6 @@ function addStoryModeOption()
 	end
 	toggleTitles[1] = {'DIFFICULTY_LABEL_STORYMODE',	'DIFFICULTY_DESCRIPTION_STORYMODE_BG2EE',	65, 0, 0}
 end
-
 function removeOptionFromList(list, option)
 	local startingPoint = 1
 	local found = false
@@ -2350,7 +2008,6 @@ function removeOptionFromList(list, option)
 		list[#list] = nil
 	end
 end
-
 toggleTitles = {
 {"DIFFICULTY_LABEL_STORYMODE_MIXED",	"DIFFICULTY_DESCRIPTION_STORYMODE_BG2EE",	65, 0, 0},
 {"ENABLE_CLOUD_LABEL",					"ENABLE_CLOUD_DESCRIPTION", 		60, 0, 0},
@@ -2364,17 +2021,13 @@ toggleTitles = {
 {"NO_DAMAGE_INCREASE_LABEL",			"NO_DAMAGE_INCREASE_DESCRIPTION", 	64, 0, 0},
 {"AUTO_USE_MAGIC_AMMO_LABEL",			"AUTO_USE_MAGIC_AMMO_DESCRIPTION", 	68, 0, 0},
 }
-
 selectedOpt = 0
 helpString = 0
-
 ttDelaySLDR = 0
 keyboardSLDR = 0
 mouseSLDR = 0
 difficultySLDR = 0
-
 panelID = 8
-
 function getDifficulty(d)
 	local text = ""
 	if ( d ==0 ) then
@@ -2393,7 +2046,6 @@ function getDifficulty(d)
 	return text
 end
 `
-
 menu
 {
 	name	'OPTIONS_GAMEPLAY'
@@ -2405,13 +2057,11 @@ menu
 		helpString = 'GAMEPLAY_DESCRIPTION'
 		selectedOpt = 0
 		selectedSL = 0
-
 		if Infinity_GetOption(59, 8) ~= 0 and toggleTitles[1][3] == 65 then
 			removeStoryModeOption()
 		elseif Infinity_GetOption(59, 8) == 0 and toggleTitles[1][3] ~= 65 then
 			addStoryModeOption()
 		end
-
 		ttDelaySLDR = Infinity_GetOption(1, panelID)
 		keyboardSLDR = Infinity_GetOption(3, panelID)
 		mouseSLDR = Infinity_GetOption(2, panelID)
@@ -2430,7 +2080,6 @@ menu
 			removeOptionFromList(toggleTitles,60)
 		end
 	"
-
 	button
 	{
 		area	0 0 1024 768
@@ -2448,7 +2097,6 @@ menu
 		text		"GAMEPLAY_TITLE"
 		text style	title
 	}
-
 	list
 	{
 		
@@ -2474,25 +2122,20 @@ menu
 				frame		lua "toggleTitles[rowNumber][4]"
 			}
 		}
-
 		area 592 152 378 356
 		
 		rowheight	46
 		table		"toggleTitles"
 		var		selectedOpt
 		scrollbar	'GUISCRC'
-
 		action		
 		"
 			panelID = 8
 			selectedSL = 0
 			helpString = toggleTitles[selectedOpt][2]
-
 			if(cellNumber == 2) then
 				Infinity_PlaySound('GAM_09')
-
 				toggleTitles[selectedOpt][4] = toggleFrame(toggleTitles[selectedOpt][4])
-
 				if toggleTitles[selectedOpt][4] == 0 then
 					toggleTitles[selectedOpt][5] = 0
 				else 
@@ -2521,7 +2164,6 @@ menu
 		text point	12
 		scrollbar	'GUISCRC'
 	}
-
 	text
 	{
 		area		108 150 192 39
@@ -2554,7 +2196,6 @@ menu
 			selectedSL = 1
 		" 
 	}
-
 	text
 	{
 		area		108 216 192 39	
@@ -2589,7 +2230,6 @@ menu
 			selectedSL = 2
 		" 
 	}
-
 	text
 	{
 		area		108 284 192 39	
@@ -2624,7 +2264,6 @@ menu
 			selectedSL = 3
 		" 
 	}
-
 	text
 	{
 		area		108 384 192 39
@@ -2733,7 +2372,6 @@ menu
 		text style	"button"
 		action
 		"
-
 			Infinity_PushMenu( 'OPTIONS_FEEDBACK' );
 			selectedOpt = 0
 		"
@@ -2777,23 +2415,18 @@ menu
 			Infinity_ChangeOption( 3, keyboardSLDR, panelID )
 			Infinity_ChangeOption( 2, mouseSLDR, panelID )
 			Infinity_ChangeOption( 12, difficultySLDR + 1, panelID) -- cannot set story mode through slider
-
 			selectedOpt = 0
 			selectedSL = 0
-
 			for index, var in pairs(toggleTitles) do
 				
 				Infinity_ChangeOption( var[3], var[5], panelID)
 						
 			end
-
 			panelID = 8
 			Infinity_PopMenu()
 		"
 	}
-
 }
-
 `
 autoPauseToggles = { 
 {'WEAPON_UNUSABLE_LABEL',18036, 5 , 0, 0},
@@ -2802,7 +2435,6 @@ autoPauseToggles = {
 {'SPELL_CAST_LABEL',31872, 31, 0, 0},
 {'TRAP_FOUND_LABEL',58171, 34, 0, 0}
 }
-
 characterPauseToggles = { 
 {'CENTER_MEMBER_LABEL',10571, 37, 0, 0},
 {'CHARACTER_HIT_LABEL',18032, 1 , 0, 0},
@@ -2811,11 +2443,8 @@ characterPauseToggles = {
 {'CHARACTER_ATTACKED_LABEL',18035, 4 , 0, 0},
 {'CHARACTER_TARGET_DESTROYED',18037, 13, 0, 0},
 }
-
 selOptAP = 0
-
 `
-
 menu
 {
 	name	'OPTIONS_AUTOPAUSE'
@@ -2845,7 +2474,6 @@ menu
 			end
 		end
 	"
-
 	button
 	{
 		area 0 0 864 710
@@ -2887,24 +2515,19 @@ menu
 				frame		lua "autoPauseToggles[rowNumber][4]"
 			}
 		}
-
 		area 448 186 372 428
 		
 		rowheight	50
 		table		"autoPauseToggles"
 		var		selOptAP
 		scrollbar	'GUISCRC'
-
 		action		
 		"
 			selOptAPC = 0
 			autopauseString = autoPauseToggles[selOptAP][2]
-
 			if(cellNumber == 2) then
 				Infinity_PlaySound('GAM_09')
-
 				autoPauseToggles[selOptAP][4] = toggleFrame(autoPauseToggles[selOptAP][4])
-
 				if autoPauseToggles[selOptAP][4] == 0 then
 					autoPauseToggles[selOptAP][5] = 0
 				else 
@@ -2938,30 +2561,24 @@ menu
 				frame		lua "characterPauseToggles[rowNumber][4]"
 			}
 		}
-
 		area 34 186 372 428
 		
 		rowheight	50
 		table		"characterPauseToggles"
 		var		selOptAPC
 		scrollbar	'GUISCRC'
-
 		action		
 		"
 			selOptAP = 0
 			autopauseString = characterPauseToggles[selOptAPC][2]
-
 			if(cellNumber == 2) then
 				Infinity_PlaySound('GAM_09')
-
 				characterPauseToggles[selOptAPC][4] = toggleFrame(characterPauseToggles[selOptAPC][4])
-
 				if characterPauseToggles[selOptAPC][4] == 0 then
 					characterPauseToggles[selOptAPC][5] = 0
 				else 
 					characterPauseToggles[selOptAPC][5] = 1
 				end
-
 				--Infinity_ChangeOption(characterPauseToggles[selOptAPC][3], characterPauseToggles[selOptAPC][5], panelID )
 			end
 		"
@@ -2974,8 +2591,6 @@ menu
 		text style	normal
 		scrollbar	'GUISCRC'
 	}
-
-
 	button
 	{
 		area 212 652 236 44
@@ -3000,20 +2615,17 @@ menu
 		action
 		"
 			panelID = 10
-
 			for index, var in pairs(autoPauseToggles) do
 				Infinity_ChangeOption( var[3], var[5], panelID)		
 			end
 			for index, var in pairs(characterPauseToggles) do
 				Infinity_ChangeOption( var[3], var[5], panelID)		
 			end
-
 			panelID = 8
 			Infinity_PopMenu()
 		"
 	}	
 }
-
 `
 graphicsToggles = {
 {'FULL_SCREEN_LABEL',18000, 9 , 0, 0, 0},
@@ -3030,7 +2642,6 @@ graphicsToggles = {
 {'NEAREST_NEIGHBOUR_LABEL','NEAREST_NEIGHBOUR_DESCRIPTION', 70, 0, 0, 0},
 {'AREA_MAP_ZOOM_TRANSITION_LABEL','AREA_MAP_ZOOM_TRANSITION_DESCRIPTION', 71, 0, 0, 0}
 }
-
 addedDirectx = false
 function appendDirectXOption()
 	if addedDirectx == false then
@@ -3039,16 +2650,13 @@ function appendDirectXOption()
 		addedDirectx = true
 	end
 end
-
 selectedGraphicOpt = 0
-
 fontSizeSLDR = 0
 fontSizeCancel = 0
 function formatGraphicsInfoString()
 	return options['Graphics']['version'] .. "\nrunning on " .. options['Graphics']['renderer'] .. "\ndriver provided by " .. options['Graphics']['vendor']
 end
 `
-
 menu
 {
 	name	'OPTIONS_GRAPHICS'
@@ -3075,14 +2683,11 @@ menu
 				var[4] = 2
 			end
 		end
-
 		if e:IsTouchUI() then
 			removeOptionFromList(graphicsToggles, 9)
 			removeOptionFromList(graphicsToggles, 13)
 		end
 	"
-
-
 	button
 	{
 		area 0 0 864 710
@@ -3093,14 +2698,12 @@ menu
 			selectedSL = 0
 		"
 	}
-
 	label
 	{
 		area		92 10 680 44
 		text		"GRAPHICS_TITLE"
 		text style	title
 	}
-
 	label
 	{
 		area		446 186 376 264
@@ -3122,7 +2725,6 @@ menu
 			selectedSL = 1
 		"
 	}
-
 	list
 	{
 		
@@ -3148,14 +2750,12 @@ menu
 				frame		lua "graphicsToggles[rowNumber][4]"
 			}
 		}
-
 		area 36 316 362 296
 		
 		rowheight	36
 		table		"graphicsToggles"
 		var		selectedGraphicOpt
 		scrollbar	'GUISCRC'
-
 		action		
 		"
 			panelID = 6
@@ -3164,7 +2764,6 @@ menu
 			if(cellNumber == 2) then
 				Infinity_PlaySound('GAM_09')
 				graphicsToggles[selectedGraphicOpt][4] = toggleFrame(graphicsToggles[selectedGraphicOpt][4])
-
 				if graphicsToggles[selectedGraphicOpt][4] == 0 then
 					graphicsToggles[selectedGraphicOpt][5] = 0
 				else 
@@ -3175,13 +2774,11 @@ menu
 			end
 		"
 	}
-
 	label
 	{
 		area 446 468 380 144
 		mosaic GUINOTE
 	}
-
 	text
 	{
 		area		458 476 364 120
@@ -3189,7 +2786,6 @@ menu
 		text style	normal
 		scrollbar	'GUISCRC'
 	}
-
 	text
 	{
 		area		28 212 155 36
@@ -3206,7 +2802,6 @@ menu
 			selectedSL = 2
 		" 
 	}
-
 	slider
 	{
 		area 194 212 200 36
@@ -3225,7 +2820,6 @@ menu
 			selectedSL = 1
 		"
 	}
-
 	
 	button
 	{
@@ -3238,7 +2832,6 @@ menu
 		"
 			panelID = 6
 			Infinity_ChangeOption( 22, fontSizeCancel, panelID)
-
 			selectedSL = 0
 			Infinity_PopMenu()
 		"
@@ -3254,21 +2847,17 @@ menu
 		"
 			panelID = 6
 			Infinity_ChangeOption( 22, fontSizeSLDR, panelID)
-
 			for index, var in pairs(graphicsToggles) do
 				
 				if ( var[6] == 1 ) then
 					Infinity_ChangeOption( var[3], var[5], panelID)
 				end				
 			end
-
 			selectedSL = 0
 			Infinity_PopMenu()
 		"
 	}
 }
-
-
 `
 soundsToggles = {
 {'CHARACTER_SUBTITLES_LABEL',18015, 5, 0, 0},
@@ -3293,9 +2882,7 @@ sfxSLDR = 0
 voiceSLDR = 0
 musicSLDR = 0
 movieSLDR = 0
-
 `
-
 menu
 {
 	name	'OPTIONS_SOUND'
@@ -3307,13 +2894,11 @@ menu
 		helpString = 18042
 		selectedsoundOpt = 0
 		selectedSL = 0
-
 		ambientSLDR = Infinity_GetOption(1, panelID)
 		sfxSLDR = Infinity_GetOption(2, panelID)
 		voiceSLDR = Infinity_GetOption(3, panelID)
 		musicSLDR = Infinity_GetOption(4, panelID)
 		movieSLDR = Infinity_GetOption(22, panelID)
-
 		for index, var in pairs(command) do
 				var[5] = Infinity_GetOption(var[3], panelID)
 				if var[5] == 0 then
@@ -3366,7 +2951,6 @@ menu
 		text style	"button"
 		text align 	right center
 	}
-
 	list
 	{
 		
@@ -3392,14 +2976,12 @@ menu
 				frame		lua "soundsToggles[rowNumber][4]"
 			}
 		}
-
 		area 122 500 395 150
 		
 		rowheight	46
 		table		"soundsToggles"
 		var		selectedsoundOpt
 		scrollbar	'GUISCRC'
-
 		action		
 		"
 			panelID = 7
@@ -3408,7 +2990,6 @@ menu
 			if(cellNumber == 2) then
 				Infinity_PlaySound('GAM_09')
 				soundsToggles[selectedsoundOpt][4] = toggleFrame(soundsToggles[selectedsoundOpt][4])
-
 				if soundsToggles[selectedsoundOpt][4] == 0 then
 					soundsToggles[selectedsoundOpt][5] = 0
 				else 
@@ -3433,7 +3014,6 @@ menu
 			selectedSL = 1
 		"
 	}
-
 	
 	list
 	{
@@ -3460,7 +3040,6 @@ menu
 				frame		lua "command[rowNumber][4]"
 			}
 		}
-
 		area 608 180 372 145
 		
 		rowheight	46
@@ -3468,7 +3047,6 @@ menu
 		var		commandSel
 		scrollbar	'GUISCRC'
 		hidehighlight
-
 		action		
 		"
 			panelID = 7
@@ -3484,7 +3062,6 @@ menu
 			command[opt][4] = 2
 		"
 	}
-
 	text
 	{
 		area		608 317 372 44
@@ -3499,7 +3076,6 @@ menu
 			selectedSL = 2
 		"
 	}
-
 	list
 	{
 		
@@ -3525,7 +3101,6 @@ menu
 				frame		lua "selectOpt[rowNumber][4]"
 			}
 		}
-
 		area 608 360 372 145
 		
 		rowheight	46
@@ -3570,7 +3145,6 @@ menu
 		text style	"button"
 		text align 	right center
 	}
-
 	text
 	{
 		area		122 185 173 40
@@ -3603,7 +3177,6 @@ menu
 			selectedSL = 4
 		"
 	}
-
 	text
 	{
 		area		122 240 173 40	
@@ -3637,7 +3210,6 @@ menu
 			selectedSL = 5
 		"
 	}
-
 	text
 	{
 		area		122 295 173 40	
@@ -3670,7 +3242,6 @@ menu
 			selectedSL = 6
 		"
 	}
-
 	text
 	{
 		area		122 350 173 40	
@@ -3705,7 +3276,6 @@ menu
 			selectedSL = 7
 		"
 	}
-
 	text
 	{
 		area		122 405 173 40	
@@ -3738,7 +3308,6 @@ menu
 			selectedSL = 8
 		"
 	}
-
 	button
 	{
 		area		264 705 236 44
@@ -3781,23 +3350,17 @@ menu
 			Infinity_ChangeOption( 3, voiceSLDR, panelID )
 			Infinity_ChangeOption( 4, musicSLDR, panelID)
 			Infinity_ChangeOption( 22, movieSLDR, panelID)
-
 			selectedOpt = 0
 			selectedSL = 0
-
 			for index, var in pairs(soundsToggles) do				
 				Infinity_ChangeOption( var[3], var[5], panelID)						
 			end
-
 			panelID = 8
 			Infinity_PopMenu()
 		"
 	}
 }
-
-
 `
-
 feedbackToggles = {
 {'COLORED_MARKERS_LABEL',			'COLORED_MARKERS_HELP', 			 38, 0, 0},
 {'CLASSIC_MARKERS_LABEL',			'CLASSIC_MARKERS_HELP', 			 45, 0, 0},
@@ -3806,7 +3369,6 @@ feedbackToggles = {
 {'JOURNAL_POPUPS_LABEL',			'JOURNAL_POPUPS_HELP', 				 44, 0, 0},
 {'EQUIPMENT_COMPARISON_LABEL',      'EQUIPMENT_COMPARISON_DESCRIPTION',  46, 0, 0}
 }
-
 messagesToggles = { 
 {'TO_HIT_ROLLS_LABEL',		'TO_HIT_ROLLS_HELP', 	10, 0, 0},
 {'ACTIONS_LABEL', 			'ACTIONS_HELP', 		12, 0, 0},
@@ -3815,14 +3377,11 @@ messagesToggles = {
 {'SELECTION_TEXT_LABEL',	'SELECTION_TEXT_HELP',	14, 0, 0},
 {'MISC_LABEL',				'MISC_HELP', 			15, 0, 0}
 }
-
 selFeedOpt = 0
 selMessageOpt = 0
 helpString = 0
-
 markerFeedSLDR = 0
 locatorFeedSLDR = 0
-
 function getFrequency(d,includeHighter)
 	strref = ""
 	if ( d ==0 ) then
@@ -3842,9 +3401,7 @@ function getFrequency(d,includeHighter)
 	end
 	return t(strref)
 end
-
 `
-
 menu
 {
 	name	'OPTIONS_FEEDBACK'
@@ -3853,12 +3410,10 @@ menu
 	onOpen
 	"
 		panelID = 9
-
 		helpString = 'FEEDBACK_HELP'
 		selFeedOpt = 0
 		selMessageOpt = 0
 		selectedSL = 0
-
 		markerFeedSLDR = Infinity_GetOption(8, panelID)
 		locatorFeedSLDR = Infinity_GetOption(9, panelID)
 		
@@ -3870,7 +3425,6 @@ menu
 					var[4] = 2
 				end
 			end
-
 		for index, var in pairs(messagesToggles) do
 			var[5] = Infinity_GetOption(var[3], panelID)
 			if var[5] == 0 then
@@ -3879,9 +3433,7 @@ menu
 				var[4] = 2
 			end
 		end
-
 	"
-
 	button
 	{
 		area	0 0 1024 768
@@ -3900,9 +3452,6 @@ menu
 		text		"FEEDBACK_TITLE"
 		text style	title
 	}
-
-
-
 	label
 	{
 		area		100 386 407 44
@@ -3911,7 +3460,6 @@ menu
 		text upper
 		text align 	right center
 	}
-
 	list
 	{
 		
@@ -3937,24 +3485,20 @@ menu
 				frame		lua "feedbackToggles[rowNumber][4]"
 			}
 		}
-
 		area 100 430 407 220
 		
 		rowheight	50
 		table		"feedbackToggles"
 		var		selFeedOpt
 		scrollbar	'GUISCRC'
-
 		action		
 		"
 			selectedSL = 0
 			selMessageOpt = 0
 			helpString = feedbackToggles[selFeedOpt][2]
-
 			if(cellNumber == 2) then
 				Infinity_PlaySound('GAM_09')
 				feedbackToggles[selFeedOpt][4] = toggleFrame(feedbackToggles[selFeedOpt][4])
-
 				if feedbackToggles[selFeedOpt][4] == 0 then
 					feedbackToggles[selFeedOpt][5] = 0
 				else 
@@ -3963,7 +3507,6 @@ menu
 			end
 		"
 	}
-
 	label
 	{
 		area		586 140 380 32
@@ -3972,7 +3515,6 @@ menu
 		text upper
 		text align 	right center
 	}
-
 	list
 	{
 		
@@ -3998,25 +3540,20 @@ menu
 				frame		lua "messagesToggles[rowNumber][4]"
 			}
 		}
-
 		area 586 172 380 328
 		
 		rowheight	50
 		table		"messagesToggles"
 		var		selMessageOpt
 		scrollbar	'GUISCRC'
-
 		action		
 		"
-
 			helpString = messagesToggles[selMessageOpt][2]
 			selectedSL = 0
 			selFeedOpt = 0
-
 			if(cellNumber == 2) then
 				Infinity_PlaySound('GAM_09')
 				messagesToggles[selMessageOpt][4] = toggleFrame(messagesToggles[selMessageOpt][4])
-
 				if messagesToggles[selMessageOpt][4] == 0 then
 					messagesToggles[selMessageOpt][5] = 0
 				else 
@@ -4025,7 +3562,6 @@ menu
 			end
 		"
 	}
-
 	label
 	{
 		area 586 508 384 112
@@ -4039,7 +3575,6 @@ menu
 		text style	normal
 		scrollbar	'GUISCRC'
 	}
-
 	text 
 	{
 		area		106 165 190 36
@@ -4082,7 +3617,6 @@ menu
 		text style	"label"
 		text align	center center
 	}
-
 	text
 	{
 		area		106 280 190 36	
@@ -4152,16 +3686,13 @@ menu
 			panelID = 9
 			Infinity_ChangeOption( 8, markerFeedSLDR, panelID)
 			Infinity_ChangeOption( 9, locatorFeedSLDR, panelID )
-
 			selectedOpt = 0
 			selectedSL = 0
-
 			for index, var in pairs(messagesToggles) do
 				
 				Infinity_ChangeOption( var[3], var[5], panelID)
 						
 			end
-
 			for index, var in pairs(feedbackToggles) do
 				
 				Infinity_ChangeOption( var[3], var[5], panelID)
@@ -4171,7 +3702,6 @@ menu
 		"
 	}
 }
-
 `
 function getGooglePlaySignInText()
 	if(Infinity_GooglePlaySignedIn() == 1) then
@@ -4180,20 +3710,16 @@ function getGooglePlaySignInText()
 		return t("SIGN_IN_BUTTON")
 	end
 end
-
 keyCategory = 1
 key = 0
-
 function displayHelp()
 	if not (key == 0) then
 		return 102621
 	end
 	return 0
 end
-
 function formatKeyCode(number)
 	local ret = ""
-
 	if number < 127 and number > 32 then
 		return string.format('%c', keybindings[keyCategory][rowNumber][6])
 	end
@@ -4201,7 +3727,6 @@ function formatKeyCode(number)
  
 	return ret
 end
-
 function getHotkeyName(category,number)
 	local ret = ""
 	if category < 5 then
@@ -4246,7 +3771,6 @@ menu
 		text lua "Infinity_FetchString(displayHelp())"
 		text style	"label"
 	}
-
 	list -- Key categories
 	{
 		column 
@@ -4272,7 +3796,6 @@ menu
 			key = 0
 		"
 	}
-
 	
 	list -- Key bindings
 	{
@@ -4421,7 +3944,6 @@ menu
 		"	
 	}
 }
-
 `
 language = 0
 showsubtitles = 0
@@ -4617,11 +4139,9 @@ menu
 		"	
 	}
 }
-
 `
 selectedSlot = nil
 itemRequestAmt = 0
-
 function showItemAmountRequester(slotName)
 	local slot = characters[id].equipment[slotName]
 	if(slot.item.count == nil) then
@@ -4636,7 +4156,6 @@ end
 function inventorySplitStack(cnt)
 	Infinity_SplitItemStack(characters[id].equipment[selectedSlot].id, cnt,'slot_inv_' .. characters[id].equipment[selectedSlot].id)
 end
-
 function GetAbilityIdentifyString()
 	if(characters[id].equipment[selectedSlot].item.identified == 0) then
 		return t("IDENTIFY_BUTTON")
@@ -4817,7 +4336,6 @@ menu
 		icon lua "characters[id].equipment[selectedSlot].abilities[1].icon"
 		action "selectedAbility = 1"
 	}
-
 	
 	text
 	{
@@ -4836,7 +4354,6 @@ menu
 		icon lua "characters[id].equipment[selectedSlot].abilities[2].icon"
 		action "selectedAbility = 2"
 	}
-
 	text
 	{
 		area 180 330 496 52
@@ -4887,7 +4404,6 @@ menu
 			Infinity_PopMenu()
 		"
 	}
-
 }
 `
 TEXT_popup_info = 0
@@ -4929,7 +4445,6 @@ menu
 	{
 		area 0 0 406 415
 		mosaic 'GUIERR'
-
 	}
 	label
 	{
@@ -4969,7 +4484,6 @@ menu
 		"
 	}
 }
-
 menu
 {
 	name 'POPUP_THREEBUTTON'
@@ -4979,7 +4493,6 @@ menu
 	{
 		area 0 0 406 415
 		mosaic 'GUIERR'
-
 	}
 	label
 	{
@@ -5034,7 +4547,6 @@ menu
 		"
 	}
 }
-
 menu
 {
 	name 'POPUP_FOURBUTTON'
@@ -5109,7 +4621,6 @@ menu
 		"
 	}
 }
-
 menu
 {
 	name 'ITEM_IDENTIFY'
@@ -5186,14 +4697,12 @@ function showItemDescriptionInventory(slotName)
 	Infinity_CheckItemIdentify(characters[id].equipment[slotName].id)
 	showItemDescription(characters[id].equipment[slotName].item, 0)
 end
-
 itemDesc = {}
 function showItemDescription(item, mode)
 	itemDesc.item = item
 	itemDesc.mode = mode
 	Infinity_PushMenu('ITEM_DESCRIPTION',0,0)
 end
-
 function itemDescLeftButtonEnabled()
 	if(itemDesc.mode == 0) then
 		return GetAbilityIdentifyString() ~= ""
@@ -5222,7 +4731,6 @@ function itemDescLeftButtonAction()
 		Infinity_PopMenu()
 	end
 end
-
 function itemDescRightButtonEnabled()
 	if(itemDesc.mode == 0) then
 		return characters[id].equipment[selectedSlot].useMode ~= -1
@@ -5377,7 +4885,6 @@ menu
 	}
 	label
 	{
-
 		area 0 1536 80 1536
 		mosaic GUIWLSP
 	}
@@ -5517,7 +5024,6 @@ menu
 			e:GetActiveEngine():OnLeftPanelButtonClick(8)
 		"
 	}
-
 	button
 	{
 		area 6 0 67 16
@@ -5656,7 +5162,6 @@ menu
 		worldScreen:SwapPortraits(dest,draggedPortrait)
 		draggedPortrait = nil
 	end
-
 	function getPartyAITooltip()
 		if aiButtonToggle == 1 then
 			return Infinity_FetchString(15918)
@@ -5902,7 +5407,6 @@ menu
 }
 `
 	TEXT_inventoryError = ""
-
 function resetStatsDisplay()
 	tempStats = {}
 end
@@ -5924,7 +5428,6 @@ function getTempDamage()
 	else
 		str = str .. dmgMaxTemp
 	end
-
 	return str
 end
 function getStat(old, newName, coeff)
@@ -6041,12 +5544,10 @@ function scrollGroundItems()
 	end
 	currentFakePage = Infinity_GetCurrentGroundPage()
 end
-
 fakeItemList = {}
 currentFakePage = 1
 currentMaxFakePages = 1
 forceGroundItemsScrollbar = false
-
 function scrollGroundItemsFunction(top, height, contentHeight)
 	if forceGroundItemsScrollbar then
 		forceGroundItemsScrollbar = false
@@ -6062,18 +5563,15 @@ function scrollGroundItemsFunction(top, height, contentHeight)
 		return nil
 	end
 end
-
 function isGroundScrollbarEnabled()
 	local maxPages = Infinity_GetMaxGroundPage()
 	if currentMaxFakePages ~= maxPages then
 		currentMaxFakePages = maxPages
-
 		fakeItemList = {}
 		for i = 1, currentMaxFakePages+1 do
 			fakeItemList[i] = 1
 		end
 	end
-
 	return currentMaxFakePages > 0
 end
 `
@@ -6088,7 +5586,6 @@ menu
 		Infinity_ActivateInventory()
 		pushSidebars()
 		doubleClickEventScheduled = nil
-
 		for i = 1, Infinity_GetMaxGroundPage()+1 do
 			fakeItemList[i] = 1
 		end
@@ -6101,7 +5598,6 @@ menu
 		Infinity_PopMenu('ITEM_DESCRIPTION')
 		Infinity_PopMenu('ITEM_IDENTIFY')
 		popSidebars()
-
 		fakeItemList = {}
 	"
 	label
@@ -6387,8 +5883,6 @@ menu
 		scrollbar 'GUISCRC'
 		text style normal
 	}
-
-
 	slot {name "slot_inv_1"		area 26 243 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.weapon0"		}
 	slot {name "slot_inv_2"		area 78 243 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.weapon1"		}
 	slot {name "slot_inv_3"		area 130 243 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.weapon2"		}
@@ -6428,7 +5922,6 @@ menu
 	slot {name "slot_inv_43"		area 405 626 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.group13"		}
 	slot {name "slot_inv_44"		area 458 571 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.group14"		}
 	slot {name "slot_inv_45"		area 458 626 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.group15"		}
-
 	list
 	{
 		column 
@@ -6460,7 +5953,6 @@ menu
 	slot {name "slot_inv_73"		area 766 590 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground5"	actionScroll "scrollGroundItems()"	}
 	slot {name "slot_inv_74"		area 710 646 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground6"	actionScroll "scrollGroundItems()"	}
 	slot {name "slot_inv_75"		area 766 646 52 52	bam "STONSLOT"	slotinfo "characters[id].equipment.ground7"	actionScroll "scrollGroundItems()"	}
-
 	button
 	{
 		area 458 98 50 52
@@ -6484,7 +5976,6 @@ SLIDER_color_hair_start = 1
 SLIDER_color_skin_start = 1
 SLIDER_color_major_start = 1
 SLIDER_color_minor_start = 1
-
 SLIDER_color_hair = 1
 SLIDER_color_skin = 1
 SLIDER_color_major = 1
@@ -6603,7 +6094,6 @@ menu
 			Infinity_SetHairColor(SLIDER_color_hair)
 		"
 	}
-
 	label
 	{
 		enabled "characters[id].PC == 1"
@@ -6718,7 +6208,6 @@ menu
 		"
 	}
 }
-
 menu
 {
 	name 'WORLD_LEVEL_UP_BUTTONS'
@@ -6789,7 +6278,6 @@ menu
 	enabled 'getOpacityForInfoBlock(1000) ~= 0'
 	align center top
 	offset 0 10
-
 	label
 	{
 		area 0 0 500 140	
@@ -6816,7 +6304,6 @@ menu
 		scrollbar 'GUISCRC'
 		scrollbar hide lua "1"
 	}
-
 	text
 	{
 		area 20 64 472 62
@@ -6859,8 +6346,6 @@ menu
 		"
 	}
 }
-
-
 `
 luaEdit = ""
 luaEditDebugDump = 0
@@ -6904,10 +6389,8 @@ function luaEditHistoryDown()
 	luaEditHistoryIndex = luaEditHistoryIndex + 1
 	luaEdit = luaEditHistory[luaEditHistoryIndex]
 end
-
 cheatGoldAmt = 1000000
 cheatXpAmt = 500000
-
 `
 menu
 {
@@ -6922,7 +6405,6 @@ menu
 			cheatAreaDisplayList = cheatAreas
 		end
 	"
-
 	label
 	{
 		area 100 0 809 298
@@ -6950,7 +6432,6 @@ menu
 				text style "list"
 			}
 		}
-
 		area 122 6 492 240
 		
 		rowheight	18
@@ -6992,7 +6473,6 @@ menu
 		text style	"edit"
 		maxlines	1
 	}
-
 	button
 	{
 		area		620 246 140 42
@@ -7009,7 +6489,6 @@ menu
 		text style	"edit"
 		maxlines	1
 	}
-
 	button
 	{
 		area		766 162 140 42
@@ -7019,7 +6498,6 @@ menu
 		text style	"button"
 		action		"C:ExploreArea()"
 	}
-
 }
 menu
 {
@@ -7059,7 +6537,6 @@ menu
 	name 'cheatConsole'
 	align center bottom
 	ignoreEsc
-
 	onOpen 
 	"
 		toolbarTop = 50
@@ -7135,7 +6612,6 @@ menu
 			luaEditHistoryDown()
 		"
 	}
-
 }
 `
 cloudLoadState=0
@@ -7197,7 +6673,6 @@ function initMessageBox(message)
 	getNextMessage()
 	Infinity_PushMenu('LuaMessageBox',0,0)
 end
-
 function getNextMessage()
 	i = 1
 	while ( i <= messageBoxMessageCount ) do
@@ -7245,7 +6720,6 @@ menu
 		"	
 	}
 }
-
 `
 	partyImport = {}
 `
@@ -7272,7 +6746,6 @@ menu
 		text style	"normal"
 		text 			69563
 	}
-
 	--portraits
 	label
 	{
@@ -7370,7 +6843,6 @@ menu
 			createPartyScreen:OnPortraitButtonClick(5)
 		"
 	}
-
 	button
 	{
 		area 528 720 204 44
@@ -7397,7 +6869,6 @@ menu
 			createPartyScreen:OnBackButtonClick()
 		"
 	}
-
 	--delete/create buttons
 	button
 	{
@@ -7471,7 +6942,6 @@ menu
 			createPartyScreen:OnCreateDeleteButtonClick(5)
 		"
 	}
-
 	-- character labels
 	label
 	{
@@ -7510,7 +6980,6 @@ menu
 		text style "title"
 	}
 }
-
 menu
 {
 	name 'START_INSTALLATION_WARNING'
@@ -7536,7 +7005,6 @@ menu
 		text lua "eetStrings.EET_WARNING_TEXT"
 	}
 }
-
 menu
 {
 	name 'START_CAMPAIGN_SELECT'
@@ -7616,7 +7084,6 @@ menu
 		scrollbar	'GUISCRP'
 	}
 }
-
 `
 	function getTitle()
 		return startCampaignData[currentCampaign].title
@@ -7715,7 +7182,6 @@ menu
 		elseif state == 2 then
 			Infinity_PopMenu('START_MP')
 		end
-
 	"
 	
 	label
@@ -7842,13 +7308,11 @@ menu
 	name 'START_SP'
 	align center center
 	ignoreEsc
-
 	label
 	{
 		area 0 0 1024 768
 		mosaic 'START'
 	}
-
 	label
 	{
 		area 112 26 786 202	
@@ -7971,10 +7435,7 @@ menu
 		text lua "CBaldurChitin:GetVersionString()"
 	}
 }
-
-
 `
-
 function magePageInfo()
 	if bookMode == 0 then -- Regular
 		if characters[id].hasSorcererBook then
@@ -7984,13 +7445,10 @@ function magePageInfo()
 		end
 	elseif bookMode == 1 then -- Sequencer/Contingency
 		return t("SPELLS_LABEL") .. " :" .. #bottomSpells .. "/" .. #bottomSpellsPlaceHolder
-
 	end
 	return ""
 end
-
 contingencyDescription = 0
-
 function mageBookDescription()
 	if mageBookEnabled == true then
 		if bookMode == 0 then
@@ -8027,8 +7485,6 @@ function mageBookAction()
 		return t("MAGE_BOOK_LABEL")
 	end
 end
-
-
 function makeBlankTable(num)
 	local out = {}
 	for i = 1,num do
@@ -8036,7 +7492,6 @@ function makeBlankTable(num)
 	end
 	return out
 end
-
 function contingencyComplete()
 	if showContingency then
 		return #bottomSpells == #bottomSpellsPlaceHolder and (currentContingencyCondition or 0) > 0 and (currentContingencyTarget or 0) > 0
@@ -8044,7 +7499,6 @@ function contingencyComplete()
 		return #bottomSpells == #bottomSpellsPlaceHolder
 	end
 end
-
 function contingencyDoneButtonText()
 	if contingencyComplete() then
 		return t("DONE_BUTTON")
@@ -8052,7 +7506,6 @@ function contingencyDoneButtonText()
 		return t("CANCEL_BUTTON")
 	end
 end
-
 function filterMemorizedMageSpells()
 	local out = {}
 	currentSpellLevel = math.min(currentSpellLevel, 9)
@@ -8069,7 +7522,6 @@ function filterMemorizedMageSpells()
 	end
 	return out
 end
-
 function tableInsert(out, v)
 	if mageScreen:SpellSwappedInContingency(v.resref) then
 		for key,value in pairs(contingencySwapTable) do
@@ -8080,7 +7532,6 @@ function tableInsert(out, v)
 		table.insert(out, v)
 	end
 end
-
 function filterContingencyMageSpells()
 	local out = {}
 	if characters[id].mageSpells ~= nil and characters[id].mageSpells[currentSpellLevel] ~= nil then
@@ -8099,11 +7550,9 @@ function filterContingencyMageSpells()
 	end
 	return out
 end
-
 function findFirstDifferenceInSpellList(oldList, newList)
 	local ret = -1
 	local spellIndex = 1
-
 	if oldList ~= nil and newList ~= nil then
 		while oldList[spellIndex] ~= nil do
 			if newList[spellIndex] == nil then
@@ -8120,12 +7569,9 @@ function findFirstDifferenceInSpellList(oldList, newList)
 			ret = spellIndex
 		end
 	end
-
 	return ret
 end
-
 showMageMemorizationFlash = false
-
 function refreshMageBook()
 	if currentSpellLevel == nil then
 		currentSpellLevel = 1
@@ -8153,7 +7599,6 @@ function refreshMageBook()
 		contingencyDescription = mageBookStrings[contingencyResRef].tip
 	end
 end
-
 function setMageBookLevel(num)
 	lastCurrentBookSpell = 0
 	currentBookSpell = 0
@@ -8161,10 +7606,8 @@ function setMageBookLevel(num)
 	mageScreen:SetSpellLevel(num-1)
 	refreshMageBook()
 end
-
 currentAnimationID = 1
 updateCounterMemorizationSparkles = 1
-
 function updateMemorizationSparkles()
 	local sparkleNumber = 1
 	updateCounterMemorizationSparkles = updateCounterMemorizationSparkles + 1
@@ -8182,18 +7625,15 @@ function updateMemorizationSparkles()
 		end
 	end
 end
-
 function destroyMemorizationSparkle(instanceId)
 	local ret = memorizationFlashes[instanceId][3]
 	memorizationFlashes[instanceId][3] = false
 	return ret
 end
-
 function showMemorizationSparkle(instanceId)
 	updateMemorizationSparkles()
 	return memorizationFlashes[instanceId][1]
 end
-
 function createMageMemorizationSparkle(x,y,w,h, fromList, listIndex)
 	Infinity_InstanceAnimation("TEMPLATE_mageMemorizationSparkle","FLASHBR",x,y,w,h,fromList,listIndex)
 	memorizationFlashes[currentAnimationID][1] = true
@@ -8203,7 +7643,6 @@ function createMageMemorizationSparkle(x,y,w,h, fromList, listIndex)
 		currentAnimationID = 1
 	end
 end
-
 function findMemorizedUncastable(resref)
 	local index = 1
 	local sparkle = -1
@@ -8215,10 +7654,8 @@ function findMemorizedUncastable(resref)
 			end
 		end
 	end
-
 	return sparkle
 end
-
 function unmemorizingMageSpell(resref)
 	local index = 1
 	local sparkle = -1
@@ -8230,16 +7667,13 @@ function unmemorizingMageSpell(resref)
 			end
 		end
 	end
-
 	createMageMemorizationSparkle(0, 0, 36, 36, 'memorizedListMage', sparkle)
 end
-
 function unmemorizeMageSpell(slot)
 	showMageMemorizationFlash = false
 	mageScreen:UnmemorizeSpell( bottomSpells[slot].level, bottomSpells[slot].memorizedIndex )
 	Infinity_PlaySound('GAM_44')
 end
-
 memorizationFlashes = 
 {
 	{false, 0, false},
@@ -8253,16 +7687,12 @@ memorizationFlashes =
 	{false, 0, false},
 	{false, 0, false}
 }
-
 `
-
-
 menu
 {
 	name 'MAGE'
 	align center center
 	modal lua "bookMode == 1"
-
 	onopen "
 		showMageMemorizationFlash = false
 		mgpage = nil
@@ -8284,7 +7714,6 @@ menu
 		"
 	onclose "
 	"
-
 	button
 	{
 		enabled 	"CurrentlyInGame()"
@@ -8295,7 +7724,6 @@ menu
 			e:SelectEngine(worldScreen)
 		"
 	}
-
 	template
 	{
 		label
@@ -8310,9 +7738,6 @@ menu
 		}
 		name "TEMPLATE_mageMemorizationSparkle"
 	}
-
-
-
 	label
 	{
 		area 0 0 864 710
@@ -8411,7 +7836,6 @@ menu
 		enabled		"maxMagePage > 8"
 		action		"setMageBookLevel(9)"
 	}
-
 	list
 	{
 		column 
@@ -8435,7 +7859,6 @@ menu
 				text align left center
 			}
 		}
-
 		area 112 412 302 156
 		
 		name 		"bookListMage"
@@ -8472,7 +7895,6 @@ menu
 				popup2Button(63745, 'REMOVE_BUTTON', function() mageScreen:EraseKnownSpell(bookSpells[currentBookSpell].resref) end)
 			end
 		"
-
 	}
 	label
 	{
@@ -8481,7 +7903,6 @@ menu
 		rectangle opacity 200 
 		enabled "showContingency"
 	}
-
 	label
 	{
 		area 152 182 262 28
@@ -8502,7 +7923,6 @@ menu
 				text align left center
 			}
 		}
-
 		area 152 210 262 186
 		
 		enabled 	"showContingency"
@@ -8514,7 +7934,6 @@ menu
 		"
 			contingencyDescription = contingencyConditions[currentContingencyCondition].desc
 		"
-
 	}
 	label
 	{
@@ -8543,7 +7962,6 @@ menu
 				text align left center
 			}
 		}
-
 		area 458 210 240 186
 		
 		enabled 	"showContingency"
@@ -8556,7 +7974,6 @@ menu
 			contingencyDescription = contingencyTargets[currentContingencyTarget].desc
 		"
 	}
-
 	text
 	{
 		name		"bookDescription"
@@ -8565,7 +7982,6 @@ menu
 		text style	"normal_parchment"
 		scrollbar	'GUISCRC'
 	}
-
 	list
 	{
 		column 
@@ -8579,7 +7995,6 @@ menu
 				align	center center
 			}
 		}
-
 		area 70 654 718 36
 		
 		enabled "#bottomSpellsPlaceHolder ~= 0 or bookMode == 1"
@@ -8599,7 +8014,6 @@ menu
 				greyscale lua "bottomSpells[rowNumber].castable == 0"
 			}
 		}
-
 		area 70 654 718 36
 		
 		name 		"memorizedListMage"
@@ -8624,8 +8038,6 @@ menu
 			end
 		"
 	}
-
-
 	label
 	{
 		area 296 588 272 42
@@ -8633,7 +8045,6 @@ menu
 		text style "label"
 		rectangle 0
 	}
-
 	button
 	{
 		area 588 584 236 52
@@ -8662,18 +8073,15 @@ menu
 			elseif bookMode == 1 then
 				mageScreen:SequenceSpell( bookSpells[currentBookSpell].resref, bookSpells[currentBookSpell].masterResref )
 			end
-
 		"
 		
 	}
-
 	button
 	{
 		area 572 588 236 52
 		enabled "bookMode == 1"
 		bam GUIOSTLR
 		text lua "contingencyDoneButtonText()"
-
 		text style "button"
 		action 
 		"
@@ -8686,16 +8094,13 @@ menu
 		"
 		
 	}
-
 	label
 	{
 		area 0 0 865 710
 		fill        0 0 0 176
 		enabled "mageBookEnabled == false"
 	}
-
 }
-
 `
 function refreshMageContingency()
 	preparedSpells = {}
@@ -8705,17 +8110,13 @@ function refreshMageContingency()
 	for k, v in pairs(characters[id].sequencerSpells) do
 		table.insert(preparedSpells, v)
 	end
-
 end
 `
-
 menu
 {
 	name 'MAGE_CONTINGENCY'
-
 	align center center
 	modal
-
 	onopen "refreshMageContingency()"
 	
 	label
@@ -8750,7 +8151,6 @@ menu
 		text style "label"
 		text align left center
 	}
-
 	label
 	{
 		area 628 258 196 36
@@ -8758,7 +8158,6 @@ menu
 		text style "label"
 		text align left center
 	}
-
 	list
 	{
 		column
@@ -8771,7 +8170,6 @@ menu
 				text style "label"
 				align	left center
 			}
-
 		}
 		column
 		{
@@ -8783,7 +8181,6 @@ menu
 				text style "label"
 				align	left center
 			}
-
 		}
 		column
 		{
@@ -8795,9 +8192,7 @@ menu
 				text style "label"
 				align	left center
 			}
-
 		}
-
 		column 
 		{ 
 			width 5
@@ -8843,7 +8238,6 @@ menu
 				enabled "preparedSpells[rowNumber].dispellable"
 			}
 		}
-
 		area 44 294 780 300
 		
 		rowheight	56
@@ -8860,7 +8254,6 @@ menu
 		"
 	}
 	
-
 	button
 	{
 		area 294 656 302 44
@@ -8870,13 +8263,11 @@ menu
 		action "Infinity_PopMenu('MAGE_CONTINGENCY')"
 	}
 }
-
 menu
 {
 	name "POPUP_DETAILS"
 	align center center
 	modal
-
 	label
 	{
 		area 0 0 864 710
@@ -8921,10 +8312,7 @@ menu
 			Infinity_PopMenu('POPUP_DETAILS')
 		"
 	}
-
 }
-
-
 `
 function priestPageInfo()
 	if characters[id].hasShamanBook then
@@ -8933,7 +8321,6 @@ function priestPageInfo()
 		return t("MEMORIZED_LABEL") .. ": " .. #bottomSpells .. "/" .. characters[id].priestDetails[currentSpellLevel].maxMemorized
 	end
 end
-
 function priestBookDescription()
 	if priestBookEnabled == true then
 		if characters[id].priestSpells[currentSpellLevel][currentBookSpell] then
@@ -8944,7 +8331,6 @@ function priestBookDescription()
 	end
 	return ""
 end
-
 function filterMemorizedPriestSpells()
 	local out = {}
 	currentSpellLevel = math.min(currentSpellLevel, 7)
@@ -8961,16 +8347,13 @@ function filterMemorizedPriestSpells()
 	end
 	return out
 end
-
 showPriestMemorizationFlash = false
-
 function refreshPriestBook()
 	if currentSpellLevel == nil then
 		currentSpellLevel = 1
 	end
 	if characters[id].hasClericBook then
 		newBottomSpells = filterMemorizedPriestSpells()
-
 		if showPriestMemorizationFlash == true then
 			createPriestMemorizationSparkle(0,0,36,36,"memorizedListPriest", findFirstDifferenceInSpellList(bottomSpells, newBottomSpells))
 			showPriestMemorizationFlash = false
@@ -8982,14 +8365,12 @@ function refreshPriestBook()
 		bottomSpellsPlaceHolder = {}
 	end
 end
-
 function setPriestBookLevel(num)
 	lastCurrentBookSpell = 0
 	currentBookSpell = 0
 	currentSpellLevel = num
 	refreshPriestBook()
 end
-
 function createPriestMemorizationSparkle(x,y,w,h, fromList, listIndex)
 	Infinity_InstanceAnimation("TEMPLATE_priestMemorizationSparkle","FLASHBR",x,y,w,h,fromList,listIndex)
 	memorizationFlashes[currentAnimationID][1] = true
@@ -8999,7 +8380,6 @@ function createPriestMemorizationSparkle(x,y,w,h, fromList, listIndex)
 		currentAnimationID = 1
 	end
 end
-
 function unmemorizingPriestSpell(resref)
 	local index = 1
 	local sparkle = -1
@@ -9011,22 +8391,18 @@ function unmemorizingPriestSpell(resref)
 			end
 		end
 	end
-
 	createPriestMemorizationSparkle(0, 0, 36, 36, 'memorizedListPriest', sparkle)
 end
-
 function unmemorizePriestSpell(slot)
 	showPriestMemorizationFlash = false
 	priestScreen:UnmemorizeSpell( bottomSpells[slot].level, bottomSpells[slot].memorizedIndex )
 	Infinity_PlaySound('GAM_44')
 end
-
 `
 menu
 {
 	name 'PRIEST'
 	align center center
-
 	onopen 
 	"
 		showPriestMemorizationFlash = false
@@ -9040,7 +8416,6 @@ menu
 	"
 		popSidebars()
 	"
-
 	button
 	{
 		on escape
@@ -9050,7 +8425,6 @@ menu
 			e:SelectEngine(worldScreen)
 		"
 	}
-
 	template
 	{
 		label
@@ -9065,9 +8439,6 @@ menu
 		}
 		name "TEMPLATE_priestMemorizationSparkle"
 	}
-
-
-
 	label
 	{
 		area 0 0 864 710
@@ -9148,7 +8519,6 @@ menu
 		enabled		"maxPriestPage > 6"
 		action		"setPriestBookLevel(7)"
 	}
-
 	list
 	{
 		column 
@@ -9172,7 +8542,6 @@ menu
 				text align left center
 			}
 		}
-
 		area 82 182 326 370
 		
 		name "bookListPriest"
@@ -9196,9 +8565,7 @@ menu
 				lastCurrentBookSpell = currentBookSpell
 			end
 		"
-
 	}
-
 	text
 	{
 		area		438 182 340 370
@@ -9206,7 +8573,6 @@ menu
 		text style	"normal_parchment"
 		scrollbar	'GUISCRC'
 	}
-
 	list
 	{
 		column 
@@ -9220,7 +8586,6 @@ menu
 				align	center center
 			}
 		}
-
 		area 70 654 718 36
 		
 		rowwidth	36
@@ -9239,7 +8604,6 @@ menu
 				greyscale lua "bottomSpells[rowNumber].castable == 0"
 			}
 		}
-
 		area 70 654 718 36
 		
 		name "memorizedListPriest"
@@ -9259,8 +8623,6 @@ menu
 			end
 		"
 	}
-
-
 	label
 	{
 		area 272 598 276 40
@@ -9268,7 +8630,6 @@ menu
 		text style "label"
 		rectangle 0
 	}
-
 	button
 	{
 		area 60 594 204 44
@@ -9283,11 +8644,9 @@ menu
 			Infinity_PlaySound('GAM_24')
 			showPriestMemorizationFlash = true
 			priestScreen:MemorizeSpell( characters[id].priestSpells[currentSpellLevel][currentBookSpell].level, characters[id].priestSpells[currentSpellLevel][currentBookSpell].index )
-
 		"
 		
 	}
-
 	label
 	{
 		area 0 0 865 710
@@ -9376,7 +8735,6 @@ menu
 		action
 		"
 			Infinity_PushMenu( 'OPTIONS_GAMEPLAY' )
-
 		"
 	}
 	button
@@ -9392,7 +8750,6 @@ menu
 		action
 		"
 			Infinity_PushMenu( 'OPTIONS_GRAPHICS' )
-
 		"
 	}
 	button
@@ -9408,7 +8765,6 @@ menu
 		action
 		"
 			Infinity_PushMenu( 'OPTIONS_SOUND' )
-
 		"
 	}
 	button
@@ -9477,7 +8833,6 @@ menu
 		"
 	}
 }
-
 `
 OptionsButtons = 
 {
@@ -9493,7 +8848,6 @@ menu
 	name 'START_OPTIONS'
 	align center center
 	ignoreEsc
-
 	label
 	{
 		area 0 0 1024 768
@@ -9514,7 +8868,6 @@ menu
 		align center center
 		frame lua "getTitle()"
 	}
-
 	button
 	{
 		bam 'STARTMBT'
@@ -9637,7 +8990,6 @@ menu
 		text "WORLDMAP_HIGHLIGHT_LABEL"
 		text style "label"
 		text align left center
-
 	}
 	button
 	{
@@ -9646,7 +8998,6 @@ menu
 		sequence lua "mapScreen:DisplayExploredMap() and 0 or 1"
 		action "mapScreen:ToggleDisplayExploredMap()"
 	}
-
 	label
 	{
 		area 300 42 170 40
@@ -9654,7 +9005,6 @@ menu
 		text "WORLD_MAP_NOTES_LABEL"
 		text style "label"
 		text align left center
-
 	}
 	button
 	{
@@ -9663,7 +9013,6 @@ menu
 		sequence lua "showNotes == 1 and 0 or 1"
 		toggle showNotes
 	}
-
 	button
 	{
 		area 500 24 200 44
@@ -9677,7 +9026,6 @@ menu
 			e:SelectEngine(worldMapScreen)
 		"
 	}
-
 }
 `
 	areaMapHover = -1
@@ -9895,8 +9243,6 @@ menu
 		"
 	}
 }
-
-
 menu
 {
 	name "WORLD_MAP"
@@ -9952,9 +9298,7 @@ menu
 	}
 }
 `
-
 chapterBackground = ""
-
 text_CHAPTERSCROLL = ""
 text_CHAPTERSCROLL_timeStart = 0
 text_CHAPTERSCROLL_auto = 1
@@ -10087,7 +9431,6 @@ menu
 	name 'CHAPTER_WAITING_FOR_PROVIDER'
 	modal
 	align center center
-
 	label
 	{
 		area 0 0 406 418
@@ -10362,7 +9705,6 @@ menu
 		end
 		"
 	}
-
 	list
 	{
 		column 
@@ -10433,7 +9775,6 @@ menu
 			end
 		"
 	}
-
 	button
 	{
 		area 118 532 201 43
@@ -10488,7 +9829,6 @@ menu
 		area 14 496 68 90
 		encumbrance
 	}
-
 	label
 	{
 		area 26 146 406 344
@@ -10636,7 +9976,6 @@ function changeDonationAmount(amount)
 		amt = 0
 	end
 	amt = amt + amount
-
 	if (amt > 0) then
 		storeDonateAmountEdit = tostring(amt)
 	else
@@ -10655,7 +9994,6 @@ menu
 		storeScreen:UpdateDonatePanel()
 		store.donateText = ''
 	"
-
 	label
 	{
 		area 0 0 864 598
@@ -11054,7 +10392,6 @@ menu
 		scrollbar 'GUISCRC'
 	}
 }
-
 menu
 {
 	name 'STORE_DRINKS'
@@ -11193,7 +10530,6 @@ menu
 	name 'STORE_CHOOSER'
 	align center center
 	size 864 710
-
 	onOpen
 	"
 		local menuName = storeScreen:GetMenuName(storeCurMenuId)
@@ -11382,26 +10718,24 @@ menu
 		Infinity_PushMenu('WORLD_MESSAGES')
 		if(groundItemsButtonToggle == 1) then
 			worldScreen:StartGroundItems()
-		end
 		
-		-- BUBB EDIT LOOT START
-
-		worldScreen:StartGroundItems()
-		Infinity_PushMenu('BUBB_AUTOLOOT_TOGGLE')
-
-		-- BUBB EDIT LOOT END
-		worldScreen:SetHighlightEnabled(highlightButtonToggle == 1)
-	"
+			end
+			-- BUBB EDIT LOOT START
+			worldScreen:StartGroundItems()
+			Infinity_PushMenu('BUBB_AUTOLOOT_TOGGLE')
+			-- BUBB EDIT LOOT END
+			worldScreen:SetHighlightEnabled(highlightButtonToggle == 1)
+		"
 	onClose 
 	"
 		Infinity_PopMenu('WORLD_QUICKLOOT');
-		Infinity_PopMenu('WORLD_MESSAGES');
 		
+		
+		Infinity_PopMenu('WORLD_MESSAGES');
 		-- BUBB EDIT LOOT START
-
 		Infinity_PopMenu('BUBB_AUTOLOOT_TOGGLE')
-
 		-- BUBB EDIT LOOT END
+	
 	"
 	ignoreEsc
 	label
@@ -11864,195 +11198,6 @@ menu
 		end
 	end
 `
--- BUBB EDIT LOOT START
-
-menu
-{
-	name 'WORLD_QUICKLOOT'
-	ignoreEsc
-	onOpen
-	"
-		if worldQuicklootOverrideOpen then
-			Infinity_PushMenu('WORLD_QUICKLOOT_OVERRIDE')
-		end
-	"
-	onClose
-	"
-		Infinity_PopMenu('WORLD_QUICKLOOT_OVERRIDE')
-		worldScreen:StopGroundItems()
-	"
-	label
-	{
-		area 0 0 -1 -1
-		text lua "pickupLoot()"
-	}
-}
-
-menu
-{
-	name 'WORLD_QUICKLOOT_OVERRIDE'
-	align center bottom
-	ignoreEsc
-	onOpen
-	"
-		Infinity_SetOffset('WORLD_QUICKLOOT_OVERRIDE', 0, -toolbarTop)
-	"
-
-	button
-	{
-		area 2 4 40 57
-		bam GUIBTACT
-		frame 44
-		enabled "worldScreen:GroundScrollEnabled(-1) or worldScreen:GroundScrollEnabled(1)"
-		action
-		"
-			worldScreen:OnGroundScroll(-1)
-		"
-	}
-	button
-	{
-		area 610 4 40 57
-		bam GUIBTACT
-		frame 42
-		enabled "worldScreen:GroundScrollEnabled(-1) or worldScreen:GroundScrollEnabled(1)"
-		action
-		"
-			worldScreen:OnGroundScroll(1)
-		"
-	}
-	button
-	{
-		area 46 5 52 52
-		bam STONSLOT
-		tooltip lua	"getGroundItemProperty(0,'name')"
-		tint lua	"getGroundItemProperty(0,'tint')"
-		icon lua	"getGroundItemProperty(0,'icon')"
-		count lua	"getGroundItemProperty(0,'count')"
-		usages lua	"getGroundItemProperty(0,'usages')"
-		action "groundItemClick(0)"
-		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(0,'containerId')"
-		actionExit "mouseOverQuicklootContainer = nil"
-	}
-	button
-	{
-		area 102 5 52 52
-		bam STONSLOT
-		tooltip lua	"getGroundItemProperty(1,'name')"
-		tint lua	"getGroundItemProperty(1,'tint')"
-		icon lua	"getGroundItemProperty(1,'icon')"
-		count lua	"getGroundItemProperty(1,'count')"
-		usages lua	"getGroundItemProperty(1,'usages')"
-		action "groundItemClick(1)"
-		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(1,'containerId')"
-		actionExit "mouseOverQuicklootContainer = nil"
-	}
-	button
-	{
-		area 158 5 52 52
-		bam STONSLOT
-		tooltip lua	"getGroundItemProperty(2,'name')"
-		tint lua	"getGroundItemProperty(2,'tint')"
-		icon lua	"getGroundItemProperty(2,'icon')"
-		count lua	"getGroundItemProperty(2,'count')"
-		usages lua	"getGroundItemProperty(2,'usages')"
-		action "groundItemClick(2)"
-		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(2,'containerId')"
-		actionExit "mouseOverQuicklootContainer = nil"
-	}
-	button
-	{
-		area 214 5 52 52
-		bam STONSLOT
-		tooltip lua	"getGroundItemProperty(3,'name')"
-		tint lua	"getGroundItemProperty(3,'tint')"
-		icon lua	"getGroundItemProperty(3,'icon')"
-		count lua	"getGroundItemProperty(3,'count')"
-		usages lua	"getGroundItemProperty(3,'usages')"
-		action "groundItemClick(3)"
-		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(3,'containerId')"
-		actionExit "mouseOverQuicklootContainer = nil"
-	}
-	button
-	{
-		area 270 5 52 52
-		bam STONSLOT
-		tooltip lua	"getGroundItemProperty(4,'name')"
-		tint lua	"getGroundItemProperty(4,'tint')"
-		icon lua	"getGroundItemProperty(4,'icon')"
-		count lua	"getGroundItemProperty(4,'count')"
-		usages lua	"getGroundItemProperty(4,'usages')"
-		action "groundItemClick(4)"
-		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(4,'containerId')"
-		actionExit "mouseOverQuicklootContainer = nil"
-	}
-	button
-	{
-		area 326 5 52 52
-		bam STONSLOT
-		tooltip lua	"getGroundItemProperty(5,'name')"
-		tint lua	"getGroundItemProperty(5,'tint')"
-		icon lua	"getGroundItemProperty(5,'icon')"
-		count lua	"getGroundItemProperty(5,'count')"
-		usages lua	"getGroundItemProperty(5,'usages')"
-		action "groundItemClick(5)"
-		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(5,'containerId')"
-		actionExit "mouseOverQuicklootContainer = nil"
-	}
-	button
-	{
-		area 383 5 52 52
-		bam STONSLOT
-		tooltip lua	"getGroundItemProperty(6,'name')"
-		tint lua	"getGroundItemProperty(6,'tint')"
-		icon lua	"getGroundItemProperty(6,'icon')"
-		count lua	"getGroundItemProperty(6,'count')"
-		usages lua	"getGroundItemProperty(6,'usages')"
-		action "groundItemClick(6)"
-		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(6,'containerId')"
-		actionExit "mouseOverQuicklootContainer = nil"
-	}
-	button
-	{
-		area 439 5 52 52
-		bam STONSLOT
-		tooltip lua	"getGroundItemProperty(7,'name')"
-		tint lua	"getGroundItemProperty(7,'tint')"
-		icon lua	"getGroundItemProperty(7,'icon')"
-		count lua	"getGroundItemProperty(7,'count')"
-		usages lua	"getGroundItemProperty(7,'usages')"
-		action "groundItemClick(7)"
-		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(7,'containerId')"
-		actionExit "mouseOverQuicklootContainer = nil"
-	}
-	button
-	{
-		area 495 5 52 52
-		bam STONSLOT
-		tooltip lua	"getGroundItemProperty(8,'name')"
-		tint lua	"getGroundItemProperty(8,'tint')"
-		icon lua	"getGroundItemProperty(8,'icon')"
-		count lua	"getGroundItemProperty(8,'count')"
-		usages lua	"getGroundItemProperty(8,'usages')"
-		action "groundItemClick(8)"
-		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(8,'containerId')"
-		actionExit "mouseOverQuicklootContainer = nil"
-	}
-	button
-	{
-		area 551 5 52 52
-		bam STONSLOT
-		tooltip lua	"getGroundItemProperty(9,'name')"
-		tint lua	"getGroundItemProperty(9,'tint')"
-		icon lua	"getGroundItemProperty(9,'icon')"
-		count lua	"getGroundItemProperty(9,'count')"
-		usages lua	"getGroundItemProperty(9,'usages')"
-		action "groundItemClick(9)"
-		actionEnter "mouseOverQuicklootContainer = getSlotContainerId(9,'containerId')"
-		actionExit "mouseOverQuicklootContainer = nil"
-	}	
-}
-
--- BUBB EDIT LOOT END
 menu
 {
 	name 'WORLD_PICKPARTY'
@@ -12190,13 +11335,11 @@ function getLoadMenuTitle()
 	return t('IMPORT_TITLE')
 end
 `
-
 menu
 {
 	name 'LOAD'
 	align center center
 	ignoreEsc
-
 	button
 	{
 		area	0 0 1024 768
@@ -12233,7 +11376,6 @@ menu
 				bitmap area	11 15 160 120 
 				align		center center
 			}
-
 			label
 			{
 				area	216 21 300 30
@@ -12319,7 +11461,6 @@ menu
 				align	center center
 			}
 		}
-
 		actionDbl
 		"
 			Infinity_PlaySound('GAM_09')
@@ -12333,7 +11474,6 @@ menu
 		var		currentSave
 		scrollbar	'GUISCRC'
 	}
-
 	button
 	{
 		area		622 710 204 44
@@ -12403,7 +11543,6 @@ menu
 		text "SAVE_TITLE"
 		text style "title"
 	}
-
 	list
 	{
 		column 
@@ -12424,7 +11563,6 @@ menu
 				bitmap area	11 15 160 120 
 				align		center center
 			}
-
 			label
 			{
 				area	216 18 300 30
@@ -12518,7 +11656,6 @@ menu
 				text style	"button"
 		}
 		}
-
 		action 
 		"
 			if cellNumber == 1 then
@@ -12529,7 +11666,6 @@ menu
 				Infinity_PushMenu( 'SAVE_NEWSAVE' );
 			end
 		"
-
 		actionDbl
 		"
 			Infinity_PlaySound('GAM_09')
@@ -12568,7 +11704,6 @@ menu
 			Infinity_PushMenu( 'SAVE_NEWSAVE' );
 		"
 	}
-
 	button
 	{
 		area		276 714 234 44
@@ -12604,7 +11739,6 @@ menu
 		Infinity_PopMenu('SAVE_NEWSAVE')
 		saveScreen:SaveGame(gameSaves.files[currentSave].slotIndex,newSaveName)
 	end
-
 `
 menu
 {
@@ -12638,7 +11772,6 @@ menu
 			}
 		end
 		Infinity_FocusTextEdit('newSaveNameArea')
-
 	"
 	label
 	{
@@ -12878,21 +12011,17 @@ menu
 	worldPlayerDialogChoices = {}
 	glowTest = nil
 	startingDialogHeight = 0
-
 	function dialogEntryGreyed()
 		return not worldScreen:GetInControlOfDialog()
 	end
-
 	function getDesiredDialogHeight()
 		--get npc area
 		local npcX,npcY,npcW,npcH = Infinity_GetArea('worldNPCDialog')
 		
 		--get dialog choices height
 		local choicesHeight = Infinity_GetListHeight('worldPlayerDialogChoicesList')
-
 		return (20 + choicesHeight + npcH + 20)
 	end
-
 	function getCurrentDialogHeight()
 		local x,y,w,contentHeight = Infinity_GetArea('worldDialogBackground')
 		
@@ -12902,10 +12031,8 @@ menu
 			local xD,yD,wD,hD = Infinity_GetArea('worldDialogMessageDivider')
 			contentHeight = contentHeight - (yD - y)
 		end
-
 		return contentHeight
 	end
-
 	function resizeDialog()
 		buildResponsesList()
 		--fit the npc text area to the text height.
@@ -12922,14 +12049,12 @@ menu
 		
 		--Get available height to work in
 		local contentHeight = getCurrentDialogHeight()
-
 		local desiredHeight = getDesiredDialogHeight()
 		
 		--make enough room for the choices and dialog
 		if(contentHeight < desiredHeight and contentHeight ~= 500) then
 			resizeDialogContent(contentHeight - desiredHeight)
 		else
-
 			local xD,yD,wD,hD = Infinity_GetArea('worldDialogMessageDivider')
 			
 			--resize the choices list based on the dialog height
@@ -12944,7 +12069,6 @@ menu
 				cY = cY - heightDifference
 				cH = cH + heightDifference
 				Infinity_SetArea('worldPlayerDialogChoicesList',nil,cY,nil,cH)
-
 				npcH = npcH - heightDifference
 				Infinity_SetArea('worldNPCDialog',nil,nil,nil,npcH)
 			end
@@ -13189,7 +12313,6 @@ function getDialogButtonEnabled()
 		return (#worldPlayerDialogChoices == 0)
 	end
 end
-
 function getDialogButtonClickable()
 	if(gameOptions.m_bConfirmDialog == true) then
 		return (#worldPlayerDialogChoices == 0) or (worldPlayerDialogSelection and worldPlayerDialogSelection > 0) --no choices, or we've selected a choice.
@@ -13268,7 +12391,6 @@ menu
 				text align left top
 			}
 		}
-
 		area 24 244 964 360
 		rowheight dynamic
 		table "character_select"
@@ -13313,26 +12435,19 @@ menu
 			Infinity_PopMenu('CHARACTER_SELECT')
 		"
 	}
-
 }
-
 `
 chargen = {
-
 	races = {},
 	kits = {},
-
 }
 function chargenAcceptOrExport()
 	if createCharScreen:GetEngineState() == 4 then
 		return t("EXPORT_BUTTON")
 	else
 		return t("ACCEPT_BUTTON")
-
 	end
 end
-
-
 `
 menu
 {
@@ -13362,7 +12477,6 @@ menu
 		area 775 171 210 330
 		bitmap lua "chargen.portrait"
 	}
-
 	button
 	{
 		area 22 226 340 30
@@ -13407,7 +12521,6 @@ menu
 		text style "button"
 		action "createCharScreen:OnMenuButtonClick()"
 	}
-
 	button
 	{
 		area 22 346 340 30
@@ -13452,7 +12565,6 @@ menu
 		text style "button"
 		action "createCharScreen:OnMenuButtonClick()"
 	}
-
 	button
 	{
 		area 770 552 204 44
@@ -13510,7 +12622,6 @@ menu
 		action "createCharScreen:OnAdvancedButtonClick()"
 	}
 }
-
 `
 createCharGenderHelp = 17236
 `
@@ -13582,7 +12693,6 @@ menu
 		clickable lua "false"
 	}		
 }
-
 menu
 {
 	name 'CHARGEN_PORTRAIT'
@@ -13619,13 +12729,11 @@ menu
 		sequence 1
 		action "createCharScreen:IncCurrentPortrait()"
 	}
-
 	label
 	{
 		area 406 206 212 330
 		bitmap lua "createCharScreen:GetCurrentPortrait()"
 	}
-
 	button
 	{
 		area 358 648 300 44
@@ -13638,7 +12746,6 @@ menu
 			Infinity_PushMenu('POPUP_BIG')
 			"
 	}
-
 	button
 	{
 		on escape
@@ -13658,9 +12765,7 @@ menu
 		clickable lua "createCharScreen:IsDoneButtonClickable()"
 		action "Infinity_PopMenu(); createCharScreen:OnDoneButtonClick()"
 	}
-
 }
-
 `
 function raceOrGeneralHelp()
 	race = chargen.races[currentChargenRace]
@@ -13740,7 +12845,6 @@ menu
 		clickable lua "createCharScreen:IsDoneButtonClickable()"
 		action "Infinity_PopMenu(); createCharScreen:OnDoneButtonClick()"
 	}
-
 }
 `
 function classOrGeneralHelp()
@@ -13829,7 +12933,6 @@ menu
 		clickable lua "createCharScreen:IsDoneButtonClickable()"
 		action "createCharScreen:OnDoneButtonClick(); Infinity_PopMenu('CHARGEN_CLASS'); "
 	}
-
 }
 `
 function kitOrGeneralHelp()
@@ -13910,7 +13013,6 @@ menu
 		clickable lua "createCharScreen:IsDoneButtonClickable()"
 		action "Infinity_PopMenu(); createCharScreen:OnDoneButtonClick()"
 	}
-
 }
 `
 function alignmentOrGeneralHelp()
@@ -13991,7 +13093,6 @@ menu
 		clickable lua "createCharScreen:IsDoneButtonClickable()"
 		action "Infinity_PopMenu(); createCharScreen:OnDoneButtonClick()"
 	}
-
 }
 `
 chargen.ability = {
@@ -14002,7 +13103,6 @@ chargen.ability = {
 	{name = 'WISDOM_LABEL', desc = 9586},
 	{name = 'CHARISMA_LABEL', desc = 9587},
 }
-
 function abilityOrGeneralHelp()
 	ability = chargen.ability[currentChargenAbility]
 	if ability and ability.desc ~= -1 then
@@ -14012,9 +13112,7 @@ function abilityOrGeneralHelp()
 		return Infinity_FetchString(17247)
 	end
 end
-
 `
-
 menu
 {
 	name 'CHARGEN_ABILITIES'
@@ -14083,7 +13181,6 @@ menu
 				bam GUIOSW
 				frame lua "currentCellCheck(4)"
 				sequence 1
-
 			}
 		}
 		action 
@@ -14113,7 +13210,6 @@ menu
 				end
 			end
 		"
-
 		rowheight 52
 		hidehighlight
 		area 32 254 496 320
@@ -14141,8 +13237,6 @@ menu
 		text style "normal"
 		text align center center
 	}
-
-
 	text
 	{
 		area 582 196 404 400
@@ -14150,7 +13244,6 @@ menu
 		text style "normal"
 		scrollbar	'GUISCRC'
 	}
-
 	button
 	{
 		area 378 642 142 40
@@ -14179,7 +13272,6 @@ menu
 		clickable lua "createCharScreen:IsAbilityRecallButtonClickable()"
 		action "createCharScreen:OnAbilityRecallButtonClick()"
 	}
-
 	button
 	{
 		on '8'
@@ -14187,7 +13279,6 @@ menu
 		
 		
 	}
-
 	button
 	{
 		on escape
@@ -14207,9 +13298,7 @@ menu
 		clickable lua "createCharScreen:IsDoneButtonClickable()"
 		action "Infinity_PopMenu(); createCharScreen:OnDoneButtonClick()"
 	}
-
 }
-
 `
 function proficiencyOrGeneralHelp()
 	local prof = chargen.proficiency[currentChargenProficiency]
@@ -14230,7 +13319,6 @@ function proficiencyOrGeneralHelp()
 	end
 	end
 end
-
 function getProficienciesTitle()
 	if(chargen.levelingUp) then
 		return t("LEVEL_UP_TITLE")
@@ -14238,12 +13326,10 @@ function getProficienciesTitle()
 		return t("CHARGEN_TITLE")
 	end
 end
-
 function isChargenProficienciesBackButtonClickable()
 	return ((not chargen.levelingUp) and createCharScreen:GetCurrentStep() ~= const.STEP_DUALCLASS_PROFICIENCIES)
 end
 `
-
 menu
 {
 	name 'CHARGEN_PROFICIENCIES'
@@ -14290,7 +13376,6 @@ menu
 		text style "label"
 		text align center bottom
 	}
-
 	list
 	{
 		column
@@ -14360,7 +13445,6 @@ menu
 				enabled "chargen.proficiency[rowNumber].value > 0"
 			}
 		}
-
 		column
 		{
 			width 9
@@ -14382,11 +13466,9 @@ menu
 				bam GUIOSW
 				sequence 1
 				frame lua "getMinusFrame(8)"
-
 				align center center
 			}
 		}
-
 		action "
 			currentChargenThiefSkill = nil
 			if ticksStarting < 10 then
@@ -14415,13 +13497,11 @@ menu
 				end
 			end
 		"
-
 		rowheight 54
 		area 37 248 523 432
 		table "chargen.proficiency"
 		var currentChargenProficiency
 		scrollbar	'GUISCRC'
-
 	}
 	list
 	{
@@ -14446,7 +13526,6 @@ menu
 				text lua "chargen.thief_skill[rowNumber].value"
 				text style "normal"
 				text align left center
-
 			}
 		}
 		column
@@ -14471,10 +13550,8 @@ menu
 				enabled "createCharScreen:IsThiefSkillPlusMinusButtonClickable()"
 				frame lua "currentCellCheck(4)"
 				sequence 1
-
 			}
 		}
-
 		action 
 		"
 			currentChargenProficiency = nil
@@ -14509,14 +13586,12 @@ menu
 				end
 			end
 		"
-
 		rowheight 54
 		area 574 262 418 210
 		table "chargen.thief_skill"
 		var currentChargenThiefSkill
 		scrollbar	'GUISCRC'
 	}
-
 	text
 	{
 		area 570 490 416 194
@@ -14581,7 +13656,6 @@ menu
 		text "CREATE_PARTY_BUTTON"
 		text style "button"
 	}
-
 }
 `
 function specialistFrame(num)
@@ -14605,15 +13679,12 @@ function spellLearnOrUnlearnClickable()
 		return true 
 	end
 end
-
-
 function chooseSpellOrGeneralHelp()
 	local helpText = chargen.helpText
 	spl = chargen.choose_spell[currentChargenChooseMageSpell]
 	if spl == nil then
 		return helpText
 	end
-
 	local desc = spellBook[chargen.currentSpellLevelChoice][spl.key].desc
 	if currentChargenChooseMageSpell and desc ~= -1 then
 		return Infinity_FetchString(desc)
@@ -14621,7 +13692,6 @@ function chooseSpellOrGeneralHelp()
 		return helpText
 	end
 end
-
 function nextOrDone()
 	if(createCharScreen:HasMoreMageLevels()) then
 		return t('NEXT_BUTTON')
@@ -14631,11 +13701,9 @@ function nextOrDone()
 end
 function shouldShowSpecialistMessage()
 	local ret = false
-
 	if chargen.extraSpells == 0 and not createCharScreen:IsDoneButtonClickable() then
 		ret = true
 	end
-
 	return ret
 end
 `
@@ -14648,13 +13716,10 @@ menu
 	"
 		table.sort(chargen.choose_spell, sortBySpellName)
 		currentChargenChooseMageSpell = nil
-
 		if currentChargenKit == nil then
 			currentChargenKit = 0
 		end
-
 		local currentKitName = ''
-
 		--gnome illusionists
 		if currentChargenRace ~= 6 and chargen.kit then
 			currentKitName = Infinity_FetchString(chargen.kit[currentChargenKit].name)
@@ -14704,7 +13769,6 @@ menu
 		column
 		{
 			width 16
-
 			label
 			{
 				bam GUIPFC
@@ -14735,13 +13799,11 @@ menu
 				area 4 0 -1 -1
 				text lua "Infinity_FetchString(spellBook[chargen.currentSpellLevelChoice][chargen.choose_spell[rowNumber].key].name)"
 				text style "normal"
-
 				glow lua "chargen.choose_spell[rowNumber].enabled"
 				align left center
 				
 			}
 		}
-
 		scrollbar	'GUISCRC'
 		rowheight 52
 		area 32 244 492 376
@@ -14760,7 +13822,6 @@ menu
 		text style "normal"
 		scrollbar	'GUISCRC'
 	}
-
 	label
 	{
 		area 316 174 168 48
@@ -14784,7 +13845,6 @@ menu
 		text align center center
 		rectangle 0
 	}
-
 	button
 	{
 		area 566 636 206 44
@@ -14794,7 +13854,6 @@ menu
 		clickable lua "spellLearnOrUnlearnClickable()"
 		action "createCharScreen:OnLearnMageSpellButtonClick(currentChargenChooseMageSpell)"
 	}
-
 	button
 	{
 		on escape
@@ -14815,16 +13874,13 @@ menu
 		clickable lua "createCharScreen:IsDoneButtonClickable()"
 		action "createCharScreen:OnDoneButtonClick()"
 	}
-
 }
 `
-
 function mageMemorizeSpellOrGeneralHelp()
 	spl = chargen.choose_spell[currentChargenMemorizeMageSpell]
 	if spl == nil then
 		return Infinity_FetchString(17253)
 	end
-
 	local desc = mageSpells[chargen.currentSpellLevelChoice][spl.key].desc
 	if currentChargenMemorizeMageSpell and desc ~= -1 then
 		return Infinity_FetchString(desc)
@@ -14832,7 +13888,6 @@ function mageMemorizeSpellOrGeneralHelp()
 		return Infinity_FetchString(17253)
 	end
 end
-
 `
 menu
 {
@@ -14865,7 +13920,6 @@ menu
 		column
 		{
 			width 12
-
 			label
 			{
 				bam GUIBTBUT
@@ -14884,7 +13938,6 @@ menu
 				area 4 0 -1 -1
 				text lua "Infinity_FetchString(mageSpells[chargen.currentSpellLevelChoice][chargen.choose_spell[rowNumber].key].name)"
 				text style "normal"
-
 				glow lua "chargen.choose_spell[rowNumber].enabled"
 				align left center
 				
@@ -14910,11 +13963,8 @@ menu
 				bam GUIOSW
 				frame lua "currentCellCheck(4)"
 				sequence 1
-
 			}
 		}
-
-
 		scrollbar	'GUISCRC'
 		rowheight 52
 		area 34 248 492 370
@@ -14936,7 +13986,6 @@ menu
 		text style "normal"
 		scrollbar	'GUISCRC'
 	}
-
 	label
 	{
 		area 316 174 168 48
@@ -14951,7 +14000,6 @@ menu
 		text style "normal"
 		text align center center
 	}
-
 	button
 	{
 		on escape
@@ -14971,16 +14019,13 @@ menu
 		clickable lua "createCharScreen:IsDoneButtonClickable()"
 		action "createCharScreen:OnDoneButtonClick()"
 	}
-
 }
 `
-
 function priestMemorizeSpellOrGeneralHelp()
 	spl = chargen.choose_spell[currentChargenMemorizePriestSpell]
 	if spl == nil then
 		return Infinity_FetchString(17253)
 	end
-
 	local desc = priestSpells[chargen.currentSpellLevelChoice][spl.key].desc
 	if currentChargenMemorizePriestSpell and desc ~= -1 then
 		return Infinity_FetchString(desc)
@@ -14988,7 +14033,6 @@ function priestMemorizeSpellOrGeneralHelp()
 		return Infinity_FetchString(17253)
 	end
 end
-
 `
 menu
 {
@@ -15021,7 +14065,6 @@ menu
 		column
 		{
 			width 12
-
 			label
 			{
 				bam GUIBTBUT
@@ -15040,7 +14083,6 @@ menu
 				area 4 0 -1 -1
 				text lua "Infinity_FetchString(priestSpells[chargen.currentSpellLevelChoice][chargen.choose_spell[rowNumber].key].name)"
 				text style "normal"
-
 				glow lua "chargen.choose_spell[rowNumber].enabled"
 				align left center
 				
@@ -15064,11 +14106,8 @@ menu
 				area 0 4 45 42
 				bam GUIOSW
 				sequence 1
-
 			}
 		}
-
-
 		scrollbar	'GUISCRC'
 		rowheight 52
 		area 34 246 492 374
@@ -15089,7 +14128,6 @@ menu
 		text style "normal"
 		scrollbar	'GUISCRC'
 	}
-
 	label
 	{
 		area 316 174 168 48
@@ -15104,7 +14142,6 @@ menu
 		text style "normal"
 		text align center center
 	}
-
 	button
 	{
 		on escape
@@ -15124,11 +14161,9 @@ menu
 		clickable lua "createCharScreen:IsDoneButtonClickable()"
 		action "createCharScreen:OnDoneButtonClick()"
 	}
-
 }
 `
 currentChargenCustomSound = 0
-
 `
 menu
 {
@@ -15213,7 +14248,6 @@ menu
 		action "Infinity_PopMenu(); createCharScreen:OnDoneButtonClick()"
 	}
 }
-
 `
 function hatedRaceOrGeneralHelp()
 	race = chargen.hatedRace[currentChargenHatedRace]
@@ -15297,7 +14331,6 @@ menu
 		clickable lua "createCharScreen:IsDoneButtonClickable()"
 		action "Infinity_PopMenu(); createCharScreen:OnDoneButtonClick()"
 	}
-
 }
 `
 charNameEdit = ""
@@ -15321,7 +14354,6 @@ menu
 	{
 		area 0 0 406 415
 		mosaic 'GUIERR'
-
 	}
 	label
 	{
@@ -15363,7 +14395,6 @@ menu
 		clickable lua "createCharScreen:IsDoneButtonClickable()"
 		action "Infinity_PopMenu(); createCharScreen:OnDoneButtonClick()"
 	}
-
 }
 `
 createBioEdit = ""
@@ -15427,7 +14458,6 @@ menu
 		bam GUIOSTUR
 		action "createCharScreen:OnDoneButtonClick()"
 	}
-
 }
 `
 list_GUICG_20_2_idx = 0
@@ -15508,9 +14538,7 @@ menu
 		clickable lua "list_GUICG_20_2_idx ~= 0"
 		action "Infinity_PopMenu('CHARGEN_IMPORT'); createCharScreen:OnDoneButtonClick()"
 	}
-
 }
-
 `
 chargenExportCharacterEdit = ""
 list_GUICG_21_2_idx = 0
@@ -15555,7 +14583,6 @@ menu
 		area 484 192 506 412
 		text 10962
 		text style "normal"
-
 	}
 	label
 	{
@@ -15809,12 +14836,10 @@ menu
 			Infinity_PopMenu()
 			Infinity_PopMenu()
 			Infinity_PopMenu()
-
 			if connectionLocalNetworkGame == 1 then
 				connectionIsHosting = true
 				chooseNetworkProtocol(2)
 			end
-
 			fromMultiPlayer = false
 			mulitplayerPreexistingDifficulty = currentDifficulty
 			connectionScreen:OnNewGameButtonClick()
@@ -15886,7 +14911,6 @@ menu
 		column
 		{
 			width 15
-
 			label
 			{
 				bam GUIBTBUT
@@ -15929,11 +14953,8 @@ menu
 				bam GUIOSW
 				frame lua "chargenHLAPlusMinusFrame(4, rowNumber)"
 				sequence 1
-
 			}
 		}
-
-
 		scrollbar	'GUISCRC'
 		rowheight 52
 		area 58 194 404 404
@@ -15962,7 +14983,6 @@ menu
 		"
 	}
 }
-
 `
 TEXT_popup_big = 0
 `
@@ -15996,8 +15016,6 @@ menu
 		"
 	}
 }
-
-
 `
 list_GUIMOVIE_0_0_idx = 0
 `
@@ -16005,7 +15023,6 @@ menu
 {
 	name 'MOVIES'
 	align center center
-
 	button
 	{
 		on escape
@@ -16077,8 +15094,6 @@ menu
 			moviesScreen:OnDoneButtonClick()
 		"
 	}
-
-
 }
 `
 --Multiplayer start.
@@ -16092,13 +15107,11 @@ connectionFilterNoPasswords = 0
 connectionFilterNoFullGames = 0
 selectedIndex = 0
 connectionIsHosting = false
-
 function connectionBuildGameList()
 	local index = 1
 	local count = 0
 	local entryOK = true
 	local foundSelected = false
-
 	for index = 1, #(mp_sessions), 1 do
 		entryOK = true
 		Infinity_GetPasswordRequired(index)
@@ -16111,26 +15124,22 @@ function connectionBuildGameList()
 		elseif connectionFilterNoFullGames == 1 and mp_sessions[index]["players"] == 6 then 
 			entryOK = false
 		end
-
 		if entryOK == true then
 			count = count + 1
 			mp_shownSessions[count] = {}
 			mp_shownSessions[count]["actualIndex"] = index
 			mp_shownSessions[count]["updated_at"] = mp_sessions[index]["updated_at"]
-
 			if mp_sessions[index]['sessionIDString'] == selectedIndex then
 				selectedMp = count
 				foundSelected = true
 			end
 		end
 	end
-
 	local tableCount = #(mp_shownSessions) 
 	while tableCount > count do
 		mp_shownSessions[tableCount] = nil
 		tableCount = tableCount - 1
 	end
-
 	if foundSelected == false then
 		selectedMp = 0
 	end
@@ -16160,21 +15169,16 @@ function gameHasPassword(slot)
 end
 function connectionGetGameName(slot)
 	ret = ""
-
 	ret = mp_sessions[mp_shownSessions[slot]["actualIndex"]]['name']
-
 	return ret
 end
 function connectionGetNumPlayers(slot)
 	ret = 0
-
 	ret = mp_sessions[mp_shownSessions[slot]["actualIndex"]]['players']
-
 	return ret
 end
 function connectionGetGameType(slot)
 	ret = ""
-
 	if mp_sessions[mp_shownSessions[slot]["actualIndex"]] ~= nil then
 		if mp_sessions[mp_shownSessions[slot]["actualIndex"]]["version"] == "bg2ee-main" then
 			ret = t("MAIN_GAME_BG2_LABEL")
@@ -16184,7 +15188,6 @@ function connectionGetGameType(slot)
 			ret = t("EXPANSION_BG2_LABEL")
 		end
 	end
-
 	return ret
 end
 function matchMultiplayerGameType(gameVersion)
@@ -16219,7 +15222,6 @@ menu
 		connectionFilterNoFullGames = 0
 		connectionIsHosting = false
 		connectionBuildGameList()
-
 		if connectionPlayerNameEdit == '' then
 			connectionSetDefaultGameSettings()
 		end
@@ -16275,7 +15277,6 @@ menu
 				text style	"list_parchment"
 				align left center 
 			}
-
 		}
 		column 
 		{ 
@@ -16287,7 +15288,6 @@ menu
 				text style	"list_parchment"
 				align left center 
 			}
-
 		}
 		column 
 		{ 
@@ -16299,7 +15299,6 @@ menu
 				text style	"list_parchment"
 				align left center 
 			}
-
 		}
 		column 
 		{ 
@@ -16311,9 +15310,7 @@ menu
 				text style	"list_parchment"
 				align left center 
 			}
-
 		}
-
 		area 72 220 882 364
 		
 		rowheight	44
@@ -16325,7 +15322,6 @@ menu
 			selectedIndex = mp_sessions[mp_shownSessions[selectedMp]['actualIndex']]['sessionIDString']
 		"
 	}
-
 	label -- player name
 	{
 		area 300 80 210 40
@@ -16347,7 +15343,6 @@ menu
 		maxlines	1
 		maxchars 	32
 	}
-
 	label -- filter options
 	{
 		area		559 80 165 45
@@ -16390,7 +15385,6 @@ menu
 			connectionBuildGameList()
 		"
 	}
-
 	button -- Create game
 	{
 		area		62 114 206 44
@@ -16432,7 +15426,6 @@ menu
 			connectionScreen:ClearSessions()
 		"
 	}
-
 	button -- Join game
 	{
 		area		532 714 238 44
@@ -16479,7 +15472,6 @@ menu
 	name 'CONNECTION_IP'
 	modal
 	align center center
-
 	onopen "Infinity_FocusTextEdit('ConnectionTCPIPEditArea')"
 	label
 	{
@@ -16543,42 +15535,34 @@ connectionSessionNameEdit = ""
 connectionSessionPasswordEdit = ""
 connectionPasswordProtected = 0
 connectionLocalNetworkGame = 0
-
 function connectionCreateGameClickable()
 	local ret = string.find(connectionPlayerNameEdit, '%S') ~= nil and string.find(connectionSessionNameEdit, '%S') ~= nil
-
 	if connectionPasswordProtected == 1 then
 		ret = ret and string.find(connectionSessionPasswordEdit, '%S') ~= nil
 	end
-
 	return ret
 end
 function connectionSetDefaultGameSettings() 
 	local player = t("MULTIPLAYER_DEFAULT_PLAYER")
 	local game = t("MULTIPLAYER_ENTER_GAME_NAME")
 	local pass = t("MULTIPLAYER_ENTER_GAME_PASSWORD")
-
 	if connectionPlayerNameEdit == "" then
 		connectionPlayerNameEdit = Infinity_GetINIString('Multiplayer', 'Player Name', player)
 		Infinity_SetINIValue('Multiplayer', 'Player Name', connectionPlayerNameEdit)
 	end
-
 	if connectionSessionPasswordEdit == "" then
 		connectionSessionPasswordEdit = Infinity_GetINIString('Multiplayer', 'Session Password', pass)
 		Infinity_SetINIValue('Multiplayer', 'Session Password', connectionSessionPasswordEdit)
 	end
-
 	if connectionSessionNameEdit == "" then
 		connectionSessionNameEdit = Infinity_GetINIString('Multiplayer', 'Session Name', game)
 		Infinity_SetINIValue('Multiplayer', 'Session Name', connectionSessionNameEdit)
 	end
-
 	if connectionSessionPasswordEdit ~= "" then
 		connectionPasswordProtected = 1
 	else
 		connectionPasswordProtected = 0
 	end
-
 	if connectionScreen:HasServiceProvider() then
 		connectionLocalNetworkGame = 0
 	else
@@ -16592,12 +15576,10 @@ menu
 	align center center
 	ignoreEsc
 	modal
-
 	onOpen
 	"
 		connectionSetDefaultGameSettings()
 	"
-
 	label
 	{
 		area 0 0 512 651
@@ -16631,7 +15613,6 @@ menu
 		maxchars 	32
 		
 	}
-
 	label -- session
 	{
 		area		80 159 340 45
@@ -16651,8 +15632,6 @@ menu
 		text 		style	"edit"
 		maxlines	1
 	}
-
-
 	text -- password option
 	{
 		area		179 259 241 45
@@ -16676,7 +15655,6 @@ menu
 			end
 		"
 	}
-
 	text -- local option
 	{
 		area		179 304 241 45
@@ -16699,7 +15677,6 @@ menu
 			end
 		"
 	}
-
 	label -- password
 	{
 		area		80 363 340 45
@@ -16731,7 +15708,6 @@ menu
 			connectionPlayerNameEdit = string.sub(connectionPlayerNameEdit, stringStart, string.len(connectionPlayerNameEdit))
 			stringStart = string.find(connectionSessionNameEdit, '%S');
 			connectionSessionNameEdit = string.sub(connectionSessionNameEdit, stringStart, string.len(connectionSessionNameEdit))
-
 			if connectionPasswordProtected == 1 then
 				stringStart = string.find(connectionSessionPasswordEdit, '%S');
 				connectionSessionPasswordEdit = string.sub(connectionSessionPasswordEdit, stringStart, string.len(connectionSessionPasswordEdit))
@@ -16740,7 +15716,6 @@ menu
 			if connectionPasswordProtected == 0 then
 				connectionSessionPasswordEdit = ''
 			end
-
 			Infinity_PushMenu('CONNECTION_NEWORSAVED')
 		"
 	}
@@ -16761,7 +15736,6 @@ menu
 	name 'CONNECTION_NEWORSAVED'
 	align center center
 	modal
-
 	label
 	{
 		area 0 0 900 234
@@ -16773,7 +15747,6 @@ menu
 		text		style 'label'
 		text		"CONNECTION_SELECT_GAME_TYPE_LABEL"
 	}
-
 	button
 	{
 		area		346 164 204 44
@@ -16799,16 +15772,13 @@ menu
 			Infinity_PopMenu()
 			Infinity_PopMenu()
 			Infinity_PopMenu()
-
 			if connectionLocalNetworkGame == 1 then
 				connectionIsHosting = true
 				chooseNetworkProtocol(2)
 			end
-
 			connectionScreen:OnLoadGameButtonClick()
 		"
 	}
-
 	button
 	{
 		area		54 164 204 44
@@ -16838,7 +15808,6 @@ menu
 		end
 		Infinity_FocusTextEdit('connectionPasswordPasswordEditArea')
 	"
-
 	label
 	{
 		area 0 0 660 240
@@ -16856,7 +15825,6 @@ menu
 		text		style 'label'
 		text		"ENTER_PASSWORD_LABEL"
 	}
-
 	button
 	{
 		bam 		GUIOSW
@@ -16868,7 +15836,6 @@ menu
 			Infinity_PopMenu()
 		"
 	}
-
 	edit
 	{
 		name		"connectionPasswordPasswordEditArea"
@@ -16894,7 +15861,6 @@ menu
 			return 1
 		"
 	}
-
 	button
 	{
 		area 		416 166 204 44
@@ -16910,7 +15876,6 @@ menu
 			Infinity_JoinMultiplayerGame(mp_shownSessions[selectedMp]['actualIndex'])
 		"
 	}
-
 	button
 	{
 		area 		34 166 204 44
@@ -16936,7 +15901,6 @@ menu
 		connectionNameNameEdit = ''
 		Infinity_FocusTextEdit('connectionNameNameEditArea')
 	"
-
 	label
 	{
 		area 0 0 660 240
@@ -16948,7 +15912,6 @@ menu
 		text		style 'title'
 		text  		"PLAYER_NAME_LABEL"
 	}
-
 	button
 	{
 		bam 		GUIOSW
@@ -16960,7 +15923,6 @@ menu
 			Infinity_PopMenu()
 		"
 	}
-
 	edit
 	{
 		name		"connectionNameNameEditArea"
@@ -16978,7 +15940,6 @@ menu
 				if stringStart ~= nil then
 					connectionPlayerNameEdit = string.sub(connectionNameNameEdit, stringStart, string.len(connectionNameNameEdit) )
 					Infinity_PopMenu()
-
 					Infinity_GetPasswordRequired(mp_shownSessions[selectedMp]['actualIndex'])
 					if passwordReq == 0 then
 						Infinity_PopMenu(); 
@@ -16994,7 +15955,6 @@ menu
 			return 1
 		"
 	}
-
 	button
 	{
 		area 		416 166 204 44
@@ -17007,7 +15967,6 @@ menu
 			Infinity_PopMenu(); 
 			local stringStart = string.find(connectionNameNameEdit, '%S')
 			connectionPlayerNameEdit = string.sub(connectionNameNameEdit, stringStart, string.len(connectionNameNameEdit) )
-
 			Infinity_GetPasswordRequired(mp_shownSessions[selectedMp]['actualIndex'])
 			if passwordReq == 0 then
 				Infinity_PopMenu(); 
@@ -17019,7 +15978,6 @@ menu
 			end
 		"
 	}
-
 	button
 	{
 		area 		34 166 204 44
@@ -17038,7 +15996,6 @@ menu
 	align center center
 	ignoreEsc
 	modal
-
 	onOpen
 	"
 		connectionPlayerNameEdit = Infinity_GetINIString('Multiplayer', 'Player Name', 'Player Name')
@@ -17061,7 +16018,6 @@ menu
 		text style "label"
 		text "PLAYER_NAME_LABEL"
 	}
-
 	list
 	{
 		column
@@ -17075,17 +16031,14 @@ menu
 				align center center
 			}
 		}
-
 		action 
 		"
 		"
-
 		rowheight 50
 		area 83 99 338 338
 		table "connection.currentPlayers"
 		var connectionSelectedPlayer
 	}
-
 	edit
 	{
 		name		"connectionPlayerNameEditArea"
@@ -17113,13 +16066,11 @@ menu
 		"	
 	}
 }
-
 menu
 {
 	name 'CONNECTION_JOINING'
 	modal
 	align center center
-
 	label
 	{
 		area 0 0 657 234
@@ -17150,7 +16101,6 @@ menu
 	name 'CONNECTION_ERROR'
 	modal
 	align center center
-
 	label
 	{
 		area 0 0 410 420
@@ -17176,13 +16126,11 @@ menu
 		"	
 	}
 }
-
 menu
 {
 	name 'CONNECTION_WAITING_FOR_PROVIDER'
 	modal
 	align center center
-
 	label
 	{
 		area 0 0 682 234
@@ -17224,13 +16172,11 @@ menu
 		"	
 	}
 }
-
 menu
 {
 	name 'CONNECTION_WAITING_FOR_SERVER'
 	modal
 	align center center
-
 	label
 	{
 		area 0 0 408 418
@@ -17257,7 +16203,6 @@ menu
 		"	
 	}
 }
-
 menu
 {
 	name 'BACKGROUND'
@@ -17268,7 +16213,6 @@ menu
 		mosaic 'GUIBG'
 	}
 }
-
 `
 multiplayer = {}
 mpChatEdit = ""
@@ -17280,7 +16224,6 @@ text_GUIMP_0_25 = ""
 text_GUIMP_0_25_lines = 0
 multiplayerInPermission = false
 multiplayerInPermissionForPlayer = 0
-
 multiplayerSessionName = ""
 multiplayerSaveName = ""
 multiplayerChapter = ""
@@ -17288,11 +16231,8 @@ multiplayerTimePlayed = ""
 multiplayerDifficultyLabel = ""
 multiplayerDifficultyImage = 0
 mulitplayerPreexistingDifficulty = 0;
-
 multiplayerLocalPlayerID = 1
-
 multiplayerFromInGame = false
-
 mpaCharacters = 
 {
 	{ready = false, name = "", class = "", player = 1, portrait = "NOPORTLS", inprogress = false, color = "0xffffff"},
@@ -17302,7 +16242,6 @@ mpaCharacters =
 	{ready = false, name = "", class = "", player = 1, portrait = "NOPORTLS", inprogress = false, color = "0xffffff"},
 	{ready = false, name = "", class = "", player = 1, portrait = "NOPORTLS", inprogress = false, color = "0xffffff"}
 }
-
 mpaPlayers =
 {
 	{name = "", id = 0, color = "0x7a7aFF"},
@@ -17312,7 +16251,6 @@ mpaPlayers =
 	{name = "", id = 0, color = "0xF2F188"},
 	{name = "", id = 0, color = "0xFE97FF"}
 }
-
 function updateMultiplayerPlayerSlot(slot,setting,value)
 	if multiplayerLocalPlayerID == 1 and setting == "name" and mpaPlayers[slot][setting] == "" and value ~= "" then
 		mpaPlayers[slot][setting] = value
@@ -17338,7 +16276,6 @@ function updateMultiplayerCharacterSlot(slot,setting,value)
 		mpaCharacters[slot][setting] = value
 	end
 end
-
 function clearCharacterSlot(slot, announce)
 	if announce == true and mpaCharacters[slot]['name'] ~= "" then
 		broadcastCharacterRemoved(slot)
@@ -17350,7 +16287,6 @@ function clearCharacterSlot(slot, announce)
 	mpaCharacters[slot]['inprogress'] = false
 	mpaCharacters[slot]['color'] = "0xffffff"
 end
-
 function clearPlayerSlot(slot, announce)
 	if announce == true and mpaPlayers[slot]["name"] ~= "" then
 		broadcastPlayerRemoved(slot)
@@ -17358,15 +16294,12 @@ function clearPlayerSlot(slot, announce)
 	mpaPlayers[slot]["name"] = ""
 	mpaPlayers[slot]["id"] = 0
 end
-
 function getMultiplayerCharacterName(slot, newLine, getClass)
 	local ret = ""
 	local separator = ", "
-
 	if newLine == true then
 		separator = "\n"
 	end
-
 	if mpaCharacters[slot]["name"] == "" and multiplayerLocalPlayerID == mpaCharacters[slot]["player"] then
 		ret = t("MULTIPLAYER_CREATE_CHARACTER_MESSAGE")
 	elseif mpaCharacters[slot]["name"] == "" and multiplayerLocalPlayerID ~= mpaCharacters[slot]["player"] and mpaCharacters[slot]["inprogress"] == false then
@@ -17383,12 +16316,10 @@ function getMultiplayerCharacterName(slot, newLine, getClass)
 			ret = ret..separator..mpaCharacters[slot]["class"]
 		end
 	end
-
 	return ret
 end
 function getMultiplayerCharacterButtonText(slot)
 	local ret = ""
-
 	if mpaCharacters[slot]["name"] == "" and multiplayerLocalPlayerID == mpaCharacters[slot]["player"] then
 		ret = t("CREATE_CHAR_BUTTON")
 	elseif mpaCharacters[slot]["name"] == "" and multiplayerLocalPlayerID ~= mpaCharacters[slot]["player"] then
@@ -17402,38 +16333,30 @@ function getMultiplayerCharacterButtonText(slot)
 	elseif mpaCharacters[slot]["name"] ~= "" and mpaCharacters[slot]["class"] ~= "" and mpaCharacters[slot]["player"] == multiplayerLocalPlayerID then
 		ret = t("MULTIPLAYER_EDIT_CHAR_BUTTON")
 	end
-
 	return ret
 end
 function shouldGreyscaleEditButton(slot)
 	local ret = false
 	local storedString = t("MULTIPLAYER_VIEW_DETAILS_BUTTON")
-
 	if multiplayerFromInGame == true then
 		ret = true
 	end
-
 	if ret == true and getMultiplayerCharacterButtonText(slot) == storedString  then
 		ret = false
 	end
-
 	if ret == true and (multiplayerLocalPlayerID == 1 or multiplayer.player[multiplayerLocalPlayerID].permissions[7] == true) then
 		ret = false
 	end
-
 	if ret == true and mpaCharacters[slot]["name"] == "" then
 		ret = false
 	end
-
 	if ret == false and mpaCharacters[slot]['ready'] == true and getMultiplayerCharacterButtonText(slot) ~= storedString and multiplayerFromInGame == false then
 		ret = true
 	end
-
 	return ret
 end
 function getMultiplayerCharacterReadyText(slot)
 	local ret = ""
-
 	if mpaCharacters[slot]["name"] == "" and mpaCharacters[slot]["inprogress"] == false then
 		ret = ""
 	elseif mpaCharacters[slot]["ready"] == false then
@@ -17441,7 +16364,6 @@ function getMultiplayerCharacterReadyText(slot)
 	elseif mpaCharacters[slot]["ready"] == true then
 		ret = t("MULTIPLAYER_READY_MESSAGE")
 	end
-
 	return ret
 end
 function getMultiplayerPlayerName(slot,newLine,hostyou)
@@ -17449,12 +16371,10 @@ function getMultiplayerPlayerName(slot,newLine,hostyou)
 	if ret ~= "" then
 		ret = "^0x"..mpaPlayers[slot]["color"]..mpaPlayers[slot]["name"].."^-"
 	end
-
 	local separator = " "
 	if newLine == true then
 		separator = "\n"
 	end
-
 	if hostyou == true then
 		if slot == multiplayerLocalPlayerID then
 			ret = ret..separator.."^0xFFFFFFFF"..t("MULTIPLAYER_PLAYER_YOU").."^-"
@@ -17464,50 +16384,41 @@ function getMultiplayerPlayerName(slot,newLine,hostyou)
 			ret = "^0xFF9B9B9B"..t("MULTIPLAYER_EMPTY_PLAYER").."^-"
 		end
 	end
-
 	return ret
 end
 function getMultiplayerPlayerControlledCharacter(player,slot)
 	local count = 0
 	local ret = "NOCTRL" -- need blank square or something
-
 	local index = 1
 	for index = 1, 6, 1 do
 		if mpaCharacters[index]["player"] == player then
 			count = count + 1
 		end
-
 		if currentMultiplayerSelectPlayer == player and mpDraggedCharacter == index then
 			slot = slot + 1
 		end
-
 		if count == slot then
 			ret = mpaCharacters[index]["portrait"]
 			break
 		end
 	end
-
 	return ret
 end
 function getMultiplayerPlayerControlledCharacterSlot(player,slot)
 	local count = 0
 	local ret = -1
-
 	local index = 1
 	for index = 1, 6, 1 do
 		if mpaCharacters[index]["player"] == player then
 			count = count + 1
 		end
-
 		if count == slot then
 			ret = index
 			break
 		end
 	end
-
 	return ret
 end
-
 function getPlayerKickWidth(slot)
 	if multiplayerLocalPlayerID ~= 1 or slot == 1 then
 		return 0
@@ -17515,7 +16426,6 @@ function getPlayerKickWidth(slot)
 		return 10
 	end
 end
-
 function getPlayerNameWidth(slot)
 	if multiplayerLocalPlayerID ~= 1 or slot == 1 then
 		return 45
@@ -17523,7 +16433,6 @@ function getPlayerNameWidth(slot)
 		return 35
 	end
 end
-
 function getStartGameButtonTooltip()
 	if multiplayer.donebuttonclickable then
 		return ""
@@ -17531,11 +16440,9 @@ function getStartGameButtonTooltip()
 		return t("MULTIPLAYER_CANNOT_START")
 	end
 end
-
 function updateMultiplayerSessionData(sessionName, saveName, chapter, timePlayed, difficulty)
 	local gold = "^0xffc7f8fb"
 	multiplayerSessionName = gold..sessionName.."^-"
-
 	if areaName ~= "" then
 		multiplayerSaveName = gold..t("MULTIPLAYER_SAVED_GAME_LABEL").."^- ^0xffffffff"..saveName.."^-"
 		multiplayerChapter = gold..t("MULTIPLAYER_CHAPTER_LABEL").."^- ^0xffffffff"..chapter.."^-"
@@ -17555,7 +16462,6 @@ function updateMultiplayerSessionData(sessionName, saveName, chapter, timePlayed
 		end
 	end
 end
-
 function broadcastCharacterControlChange(slot, newPlayer)
 	if mpaCharacters[slot]["player"] ~= newPlayer then
 		local host = getMultiplayerPlayerName(1,false,false)
@@ -17568,7 +16474,6 @@ function broadcastCharacterControlChange(slot, newPlayer)
 		Infinity_SendChatMessage(message, true) 
 	end
 end
-
 function broadcastCharacterAdded(slot)
 	local player = getMultiplayerPlayerName(mpaCharacters[slot]["player"],false,false)
 	local character = getMultiplayerCharacterName(slot, false, true)
@@ -17579,7 +16484,6 @@ function broadcastCharacterAdded(slot)
 	removeStringTokenLua("<CHARACTER_NAME_1>")
 	Infinity_SendChatMessage(message, true) 
 end
-
 function broadcastCharacterRemoved(slot)
 	local player = getMultiplayerPlayerName(mpaCharacters[slot]["player"],false,false)
 	local character = getMultiplayerCharacterName(slot, false, true)
@@ -17590,7 +16494,6 @@ function broadcastCharacterRemoved(slot)
 	removeStringTokenLua("<CHARACTER_NAME_1>")
 	Infinity_SendChatMessage(message, true) 
 end
-
 function broadcastCharacterReady(slot)
 	local character = getMultiplayerCharacterName(slot, false, false)
 	setStringTokenLua("<CHARACTER_NAME_1>",character)
@@ -17598,7 +16501,6 @@ function broadcastCharacterReady(slot)
 	removeStringTokenLua("<CHARACTER_NAME_1>")
 	Infinity_SendChatMessage(message, true) 
 end
-
 function broadcastCharacterNotReady(slot)
 	local character = getMultiplayerCharacterName(slot, false, false)
 	setStringTokenLua("<CHARACTER_NAME_1>",character)
@@ -17606,7 +16508,6 @@ function broadcastCharacterNotReady(slot)
 	removeStringTokenLua("<CHARACTER_NAME_1>")
 	Infinity_SendChatMessage(message, true) 
 end
-
 function broadcastPlayerAdded(slot)
 	local player = getMultiplayerPlayerName(slot,false,false)
 	setStringTokenLua("<PLAYER_NAME_1>",player)
@@ -17614,7 +16515,6 @@ function broadcastPlayerAdded(slot)
 	removeStringTokenLua("<PLAYER_NAME_1>")
 	Infinity_SendChatMessage(message, true) 
 end
-
 function broadcastPlayerRemoved(slot)
 	local player = getMultiplayerPlayerName(slot,false,false)
 	setStringTokenLua("<PLAYER_NAME_1>",player)
@@ -17622,10 +16522,8 @@ function broadcastPlayerRemoved(slot)
 	removeStringTokenLua("<PLAYER_NAME_1>")
 	Infinity_SendChatMessage(message, true) 
 end
-
 mpDraggedCharacter = nil
 mpDraggedPortrait = 'NOCTRL'
-
 function multiplayerStartSwapPortraits(player, character)
 	if multiplayerLocalPlayerID == 1 and player > 0 and player < 7 and mpaPlayers[player]["name"] ~= "" then
 		mpDraggedCharacter = character
@@ -17634,7 +16532,6 @@ function multiplayerStartSwapPortraits(player, character)
 		mpDraggedPortrait = mpaCharacters[character]["portrait"]
 	end
 end
-
 function multiplayerStopSwapPortraits(player)
 	if multiplayerLocalPlayerID == 1 then
 		if player > 0 and player < 7 and mpaPlayers[player]["name"] ~= "" and currentMultiplayerSelectPlayer ~= nil then
@@ -17649,19 +16546,15 @@ function multiplayerStopSwapPortraits(player)
 		mpDraggedPortrait = 'NOCTRL'
 	end
 end
-
 function getMultiplayerReadyTooltip(character)
 	local ret = ""
-
 	if mpaCharacters[character]["ready"] == true then
 		ret = t("MULTIPLAYER_READY_BUTTON_ON_TOOLTIP")
 	else
 		ret = t("MULTIPLAYER_READY_BUTTON_OFF_TOOLTIP")
 	end
-
 	return ret
 end
-
 function multiplayerUpdateDraggedPortrait()
 	if mpDraggedPortrait ~= 'NOCTRL' and multiplayerLocalPlayerID == 1 then
 		local x,y,w,h = Infinity_GetArea('multiplayerDraggingPortraitImage')
@@ -17676,19 +16569,15 @@ function multiplayerUpdateDraggedPortrait()
 		return false
 	end
 end
-
 function get4CheckFrame(slot)
 	local ret = 1
-
 	if mpaCharacters[slot]['ready'] == true and mpaCharacters[slot]['player'] == multiplayerLocalPlayerID then
 		ret = 0
 	elseif mpaCharacters[slot]['ready'] == true then
 		ret = 2
 	end
-
 	return ret
 end
-
 `
 menu
 {
@@ -17711,7 +16600,6 @@ menu
 		text "ARBITRATION_TITLE"
 		text style "title"
 	}
-
 	label
 	{
 		area 514 70 492 618
@@ -17722,7 +16610,6 @@ menu
 		area 504 60 512 638
 		rectangle 3
 	}
-
 	label
 	{
 		area 524 112 471 93
@@ -17753,7 +16640,6 @@ menu
 		area 524 587 471 93
 		fill 50 50 50 180
 	}
-
 	label
 	{
 		area 524 84 136 22
@@ -17805,7 +16691,6 @@ menu
 				text lua	"t('MULTIPLAYER_CHANGE_PLAYER_BUTTON')"
 				text style 	"button"
 			}
-
 		}
 		column --portrait
 		{
@@ -17863,7 +16748,6 @@ menu
 				fill 		0 0 0 170
 				enabled 	"shouldGreyscaleEditButton(rowNumber)"
 			}
-
 		}
 		column --ready
 		{ 
@@ -17874,9 +16758,7 @@ menu
 				text lua	"getMultiplayerCharacterReadyText(rowNumber)"
 				text style 	"label"
 			}
-
 		}
-
 		area 				520 112 475 570
 		
 		rowheight			95
@@ -17929,7 +16811,6 @@ menu
 			cellNumber = nil
 		"
 	}
-
 	--ready buttons
 	button
 	{
@@ -18022,7 +16903,6 @@ menu
 			end
 		"
 	}
-
 	label
 	{
 		area 40 308 454 25
@@ -18108,7 +16988,6 @@ menu
 				align 		left center
 				enabled 	"getPlayerKickWidth(rowNumber) ~= 0"
 			}
-
 		}
 		column --portraits
 		{ 
@@ -18126,7 +17005,6 @@ menu
 				area		6 5 45 45
 			}
 		}
-
 		area 				52 339 442 306
 		
 		rowheight			51
@@ -18147,7 +17025,6 @@ menu
 			end
 		"
 	}
-
 	--kick
 	button
 	{
@@ -18229,7 +17106,6 @@ menu
 			end
 		"
 	}
-
 	--permissions
 	button
 	{
@@ -18316,7 +17192,6 @@ menu
 			end
 		"
 	}
-
 	--character drag/drop
 	--player 1
 	button
@@ -18960,7 +17835,6 @@ menu
 			multiplayerStopSwapPortraits(6)
 		"
 	}
-
 	label -- game name
 	{
 		area 		40 84 454 56
@@ -19003,7 +17877,6 @@ menu
 		sequence 	0
 		align 		center center
 	}
-
 	button
 	{
 		area 524 714 236 44
@@ -19061,7 +17934,6 @@ menu
 			Infinity_PushMenu('MP_OPTIONS')
 		"
 	}
-
 	--dragged portrait
 	label
 	{
@@ -19083,7 +17955,6 @@ multiplayerPermissions =
 	{'MULTIPLAYER_PERMISSIONS_DIALOGUE','MULTIPLAYER_PERMISSIONS_DIALOGUE_TOOLTIP',	false, false, 2},
 	{'MULTIPLAYER_PERMISSIONS_PAUSE',	'MULTIPLAYER_PERMISSIONS_PAUSE_TOOLTIP',	false, false, 4}
 }
-
 function broadcastPermissionChange(player,permission,setting)
 	local player = getMultiplayerPlayerName(player,false,true)
 	local todo = t(multiplayerPermissions[permission][1])
@@ -19098,13 +17969,11 @@ function broadcastPermissionChange(player,permission,setting)
 	removeStringTokenLua("<PERMISSION>")
 	Infinity_SendChatMessage(message, true) 
 end
-
 function getMultiplayerPlayerPermissionDescription()
 	local player = getMultiplayerPlayerName(multiplayerInPermissionForPlayer,false,false)
 	setStringTokenLua("<PLAYER_NAME_1>",player)
  	local canPerform = t("MULTIPLAYER_CAN_PERFORM")
 	removeStringTokenLua("<PLAYER_NAME_1>")
-
 	return canPerform
 end
 `
@@ -19119,14 +17988,12 @@ menu
 		for index = 0, #(multiplayer.player[multiplayerInPermissionForPlayer].permissions), 1 do
 			local luaIndex = -1
 			local loopLuaIndex = -1
-
 			for loopLuaIndex = 1, #multiplayerPermissions, 1 do
 				if multiplayerPermissions[loopLuaIndex][5] == index then
 					luaIndex = loopLuaIndex
 					break
 				end
 			end
-
 			if luaIndex ~= -1 then
 				if multiplayer.player[multiplayerInPermissionForPlayer].permissions[index] == true then
 					multiplayerPermissions[luaIndex][3] = true
@@ -19141,7 +18008,6 @@ menu
 			end
 		end
 	"
-
 	label 
 	{
 		area 0 4 512 656
@@ -19153,14 +18019,12 @@ menu
 		text "PERMISSIONS_TITLE"
 		text style "title"
 	}
-
 	label
 	{
 		area 86 114 330 48
 		text lua "getMultiplayerPlayerPermissionDescription()"
 		text style "title"
 	}
-
 	button
 	{
 		bam GUIOSW
@@ -19173,7 +18037,6 @@ menu
 			Infinity_PopMenu()
 		"
 	}
-
 	--bottom buttons
 	button
 	{
@@ -19206,13 +18069,11 @@ menu
 					multiplayerScreen:OnPermissionButtonClick(multiplayerInPermissionForPlayer - 1, multiplayerPermissions[index][5])
 				end
 			end
-
 			multiplayerInPermission = false
 			multiplayerScreen:OnDoneButtonClick()
 			Infinity_PopMenu()
 		"
 	}
-
 	--permissions
 	button
 	{
@@ -19366,7 +18227,6 @@ multiplayerImportOptions =
 	{"MULTIPLAYER_IMPORT_CHARACTER_RULES_S"}
 }
 multiplayerImportOption = 0
-
 function broadcastOptionChange(slot, onOff)
 	if multiplayerLocalPlayerID == 1 then
 		local message = ""
@@ -19402,7 +18262,6 @@ menu
 		multiplayerGameOptions[2][4] = multiplayerGameOptions[2][3]
 		multiplayerImportOption = multiplayer.importsetting + 1
 	"
-
 	label 
 	{
 		area 0 4 488 656
@@ -19421,7 +18280,6 @@ menu
 		text style "title"
 		align center center
 	}
-
 	button
 	{
 		area 107 136 45 42
@@ -19464,7 +18322,6 @@ menu
 		tooltip lua "t(multiplayerGameOptions[2][2])"
 		align left center
 	}
-
 	button
 	{
 		area 107 342 45 42
@@ -19531,7 +18388,6 @@ menu
 		text style "normal"
 		align left center
 	}
-
 	button
 	{
 		bam GUIOSW
@@ -19544,7 +18400,6 @@ menu
 			Infinity_PopMenu()
 		"
 	}
-
 	--bottom buttons
 	button
 	{
@@ -19560,17 +18415,14 @@ menu
 				multiplayerScreen:SetImportSetting(multiplayerImportOption - 1)
 				broadcastOptionChange(multiplayerImportOption+2)
 			end
-
 			if multiplayerGameOptions[1][3] ~= multiplayerGameOptions[1][4] then
 				broadcastOptionChange(1, multiplayerGameOptions[1][3])
 				multiplayerScreen:ToggleListenToJoin()
 			end
-
 			if multiplayerGameOptions[2][3] ~= multiplayerGameOptions[2][4] then
 				broadcastOptionChange(2, multiplayerGameOptions[2][3])
 				multiplayerScreen:ToggleAllowReformParty()
 			end
-
 			Infinity_PopMenu()
 		"
 	}
@@ -19594,7 +18446,6 @@ menu
 		local ret = -1
 		local count = 0
 		local slot = 0
-
 		for slot = 1, 6, 1 do
 			if mpaPlayers[slot]["name"] ~= '' then
 				count = count + 1
@@ -19604,7 +18455,6 @@ menu
 				break
 			end
 		end
-
 		return ret
 	end
 `
@@ -19624,7 +18474,6 @@ menu
 		text "SELECT_PLAYER_TITLE"
 		text style "title"
 	}
-
 	-- list
 	list
 	{
@@ -19639,11 +18488,9 @@ menu
 				align left center
 			}
 		}
-
 		action 
 		"
 		"
-
 		rowheight 32
 		area 124 116 258 194
 		table "multiplayer.player"
@@ -19661,7 +18508,6 @@ menu
 			Infinity_PopMenu()
 		"
 	}
-
 	button
 	{
 		on escape
@@ -19758,7 +18604,6 @@ menu
 		"
 	}
 }
-
 menu
 {
 	name 'MP_ERRORONE'
@@ -19790,7 +18635,6 @@ menu
 		"
 	}
 }
-
 menu
 {
 	name 'MP_ERRORTWO'
@@ -19942,7 +18786,6 @@ menu
 		Infinity_SetArea('mpChatEditBackground',nil,nil,nil,h + offset)
 		Infinity_SetArea('mpChatHandle',nil,y+h+(offset/2),nil,nil)
 	end
-
 	function mpChatboxScroll(top, height, contentHeight)
 		if(mpChatboxJumpToBottom and contentHeight > height) then
 			mpChatboxJumpToBottom = nil
@@ -19974,7 +18817,6 @@ menu
 		end
 		return newTop
 	end
-
 	mpChatboxScrollLastHeight = 0
 	mpChatboxScrollToBottom = nil
 	mpChatboxScrollTimeLast = 0
@@ -20003,7 +18845,6 @@ menu
 	{
 		area 0 0 300 42
 		rectangle 0
-
 	}
 	label
 	{
@@ -20137,7 +18978,6 @@ function reinitQuests()
 		end
 	end
 end
-
 function initQuests()
 	--instead of always searching the quests, just map entry ids to their quests
 	entryToQuest = {}
@@ -20153,14 +18993,12 @@ function initQuests()
 		end
 	end
 end
-
 function compareByRecvTime(o1,o2)
 	if(not o1.recvTime and not o2.recvTime) then return false end
 	if(not o1.recvTime) then return false end
 	if(not o2.recvTime) then return true end
 	return o1.recvTime > o2.recvTime
 end
-
 function buildEntry(text, recvTime, stateType, chapter, timeStamp)
 	local entry = 
 		{
@@ -20173,7 +19011,6 @@ function buildEntry(text, recvTime, stateType, chapter, timeStamp)
 	entry.chapters[chapter] = 1
 	return entry	
 end
-
 --Update a journal entry by the strref/journalId
 function updateJournalEntry(journalId, recvTime, stateType, chapter, timeStamp)
 	if(stateType == const.ENTRY_TYPE_USER) then
@@ -20202,13 +19039,11 @@ function updateJournalEntry(journalId, recvTime, stateType, chapter, timeStamp)
 		buildQuestDisplay()
 		return
 	end
-
 	local quest = quests[questId]
 	if quest == nil then
 		print("JOURNAL ERROR - no quest entry associated with questId "..questId)
 		return
 	end
-
 	local previous = nil
 	--traverse quest to find objective and entry
 	for objIdx,objective in pairs(quest.objectives) do
@@ -20371,17 +19206,14 @@ end
 function entryEnabled(row)
 	local rowTab =  questDisplay[row]
 	if(rowTab == nil or rowTab.entry == nil or not containsChapter(rowTab.chapters,chapter)) then return nil end
-
 	if(objectiveEnabled(rowTab.parent) and questDisplay[rowTab.parent].expanded) then return 1 else return nil end
 end
 function getEntryText(row)
 	return questDisplay[row].text
 end
-
 function objectiveEnabled(row)
 	local rowTab =  questDisplay[row]
 	if(rowTab == nil or rowTab.objective == nil or not containsChapter(rowTab.chapters,chapter)) then return nil end
-
 	if(questEnabled(rowTab.parent) and questDisplay[rowTab.parent].expanded) then return 1 else return nil end
 end
 function getObjectiveText(row)
@@ -20395,10 +19227,8 @@ function getObjectiveText(row)
 	--if(getFinished(row)) then
 	--	text = "^0xFF666666" .. text .. " (Finished)^-"
 	--end
-
 	return text
 end
-
 function questEnabled(row)
 	return (questDisplay[row] and questDisplay[row].quest and containsChapter(questDisplay[row].chapters,chapter) and (#questDisplay[row].children > 0))
 end
@@ -20410,12 +19240,10 @@ function getQuestText(row)
 	if(getFinished(row)) then
 		text = "^0xFFaaaaaa" .. text .. " (" .. t("OBJECTIVE_FINISHED_NORMAL") .. ")^-"
 	end
-
 	return text
 end
 function getArrowFrame(row)
 	if(questDisplay[row] == nil or (questDisplay[row].objective == nil and questDisplay[row].quest == nil)) then return "" end
-
 	
 	if(questDisplay[row].expanded) then
 		return 0
@@ -20429,7 +19257,6 @@ function getArrowEnabled(row)
 	if(questDisplay[row].quest and not questEnabled(row)) then return nil end
 	return 1
 end
-
 function getFinished(row)
 	if(questDisplay[row].stateType == const.ENTRY_TYPE_COMPLETE) then return 1 else return nil end
 end
@@ -20451,8 +19278,6 @@ function showObjectiveSeperator(row)
 		end
 	end
 end
-
-
 function getJournalTitleEnabled(row)
 	return journalDisplay[row].title and containsChapter(journalDisplay[row].chapters,chapter) and journalContainsSearchString(row)
 end
@@ -20998,7 +19823,6 @@ function isDLCBuyButtonClickable()
 	local isBought = dlcScreen:GetDLCBought()
 	return isBought == false
 end
-
 function setDLCPurchased(index, purchaseLevel)
 	purchasedDLC[index] = purchaseLevel;
 end
@@ -21007,13 +19831,11 @@ menu
 {
 	name 'START_DLC'
 	align center center
-
 	label
 	{
 		area 0 0 1024 768
 		mosaic 'GUIDLC'
 	}
-
 	label
 	{
 		area		60 14 906 42
@@ -21021,7 +19843,6 @@ menu
 		text style  'title'
 		text align	center center
 	}
-
 	label
 	{
 		area		574 582 346 28
@@ -21029,7 +19850,6 @@ menu
 		text style  'title'
 		text align	center center
 	}
-
 	label
 	{
 		area		578 162 336 52
@@ -21051,7 +19871,6 @@ menu
 		area 154 98 366 566
 		bitmap lua "dlcScreen:GetDLCImage()"
 	}
-
 	button 
 	{
 		bam 'GUIPRC'
@@ -21063,7 +19882,6 @@ menu
 			dlcScreen:DecrementDLCIndex()
 		"
 	}
-
 	button 
 	{
 		bam 'GUIPRC'
@@ -21075,7 +19893,6 @@ menu
 			dlcScreen:IncrementDLCIndex()
 		"
 	}
-
 	button 
 	{
 		bam 'GUIOSTUL'
@@ -21089,7 +19906,6 @@ menu
 			dlcScreen:OnDoneButtonClick()
 		"
 	}
-
 	button 
 	{
 		bam 'GUIOSTCL'
@@ -21104,7 +19920,6 @@ menu
 			dlcScreen:RestorePurchases()
 		"
 	}
-
 	button 
 	{
 		bam 'BUYBUTT'
@@ -21120,12 +19935,10 @@ menu
 		"
 	}
 }
-
 `
 dlcStatusDescriptionText = ""
 dlcStatusButtonText = ""
 dlcStatusState = 0
-
 DLC_STATE_WAITING = 0
 DLC_STATE_IN_PROGRESS = 1
 DLC_STATE_SUCCESS = 2
@@ -21134,7 +19947,6 @@ DLC_STATE_CANCELLED = 4
 DLC_STATE_RESTORING_PURCHASES = 5
 DLC_STATE_RESTORING_PURCHASES_COMPLETE = 6
 DLC_STATE_DOWNLOADING = 7
-
 function checkDLCState()
 	dlcStatusState = dlcScreen:GetDLCState()
 	if dlcStatusState == DLC_STATE_WAITING then
@@ -21166,7 +19978,6 @@ function checkDLCState()
 		dlcStatusButtonText = "WAFFLES_WAFFLES_WAFFLES"
 	end
 end
-
 function getDLCStatusText()
 	checkDLCState()
 	return dlcStatusDescriptionText
@@ -21176,20 +19987,17 @@ menu
 {
 	name 'START_DLC_STATUS'
 	align center center
-
 	label
 	{
 		area 0 0 408 420
 		mosaic 'GUIERR'
 	}
-
 	label
 	{
 		area 86 76 236 84
 		text style "label"
 		text lua "getDLCStatusText()"
 	}
-
 	button 
 	{
 		bam 'GUIOSTUM'
@@ -21248,7 +20056,6 @@ menu
 	end
 	
 	function buildResponsesList()
-
 		hasDialogResponse = nil
 		dialogResponses = {}
 		for k,v in pairs(worldPlayerDialogChoices) do
@@ -21400,7 +20207,6 @@ menu
 			displayOverflowResponses()
 			return
 		end
-
 		if(gameOptions.m_bConfirmDialog == true and hasDialogResponse) then
 			-- if confirm dialog and choices available.
 			worldScreen:OnDialogReplyClick(dialogTable[worldPlayerDialogSelection].marker)
@@ -21472,7 +20278,6 @@ menu
 			onDialogButtonClick()
 		"
 	}
-
 	button
 	{
 		area 15 25 54 54
@@ -21578,7 +20383,6 @@ menu
 			worldScreen:OnDialogReplyClick(dialogResponses[7].marker)
 		"
 	}
-
 	button
 	{
 		area 15 550 54 54
@@ -21594,7 +20398,6 @@ menu
 			worldScreen:OnDialogReplyClick(dialogResponses[8].marker)
 		"
 	}
-
 	button
 	{
 		area 15 625 54 54
@@ -21764,7 +20567,6 @@ menu
 			worldScreen:OnDialogReplyClick(dialogResponses[17].marker)
 		"
 	}
-
 	button
 	{
 		area 15 550 54 54
@@ -21780,7 +20582,6 @@ menu
 			worldScreen:OnDialogReplyClick(dialogResponses[18].marker)
 		"
 	}
-
 	button
 	{
 		area 15 625 54 54
@@ -21963,7 +20764,6 @@ menu
 		enabled "buttonHelp[currentButtonHelp][3] ~= -1"
 		portrait lua "buttonHelp[currentButtonHelp][3]"
 	}
-
 	label
 	{
 		enabled "buttonHelp[currentButtonHelp][4] ~= 0"
@@ -21985,7 +20785,6 @@ menu
 		bam "CPEN"
 		frame lua "timer:GetCurrentTime() % 24"
 	}
-
 	label
 	{
 		enabled "buttonHelp[currentButtonHelp][7] ~= ''"
@@ -21994,7 +20793,6 @@ menu
 		bam lua "buttonHelp[currentButtonHelp][7]"
 		frame lua "buttonHelp[currentButtonHelp][7]"
 	}
-
 	label
 	{
 		area 124 16 752 112
@@ -22014,7 +20812,6 @@ menu
 		"
 	}
 }
-
 menu
 {
 	name 'LEFT_SIDEBAR_HELP'
@@ -22036,7 +20833,6 @@ menu
 	}
 	label
 	{
-
 		area 0 1536 80 1536
 		mosaic GUIWLSP
 	}
@@ -22244,7 +21040,6 @@ menu
 		frameTimes
 	}
 }
-
 menu
 {
 	name 'RIGHT_SIDEBAR_HELP'
@@ -22581,3 +21376,429 @@ menu
 	}
 }
 
+		-- BUBB EDIT LOOT START
+		menu
+		{
+			name "BUBB_AUTOLOOT_TOGGLE"
+			align center bottom
+			onOpen 
+			"
+				groundItemsButtonToggleX, 
+				groundItemsButtonToggleY, 
+				groundItemsButtonToggleWidth, 
+				groundItemsButtonToggleHeight = Infinity_GetArea('groundItemsButtonToggle')
+				Infinity_SetArea('bubbALOptToggle', groundItemsButtonToggleX - 44, groundItemsButtonToggleY - 24, nil, nil)
+			"
+			ignoreEsc
+			
+			button
+			{
+				name "bubbALOptToggle"
+				area -804 0 32 44
+				bam ROUNDBUT
+				tooltip "Autoloot Options"
+				action
+				"
+					Infinity_PushMenu('BUBB_AUTOLOOT_OPTIONS')
+				"
+			}
+		}
+
+		menu
+		{
+			name "BUBB_AUTOLOOT_OPTIONS"
+			modal
+			onOpen 
+			"
+				if not worldScreen:CheckIfPaused() then
+					bubbALOptPausedOnOpen = false
+					worldScreen:TogglePauseGame(true)
+				else
+					bubbALOptPausedOnOpen = true
+				end
+
+				initializeAutolootOptionsMenu()
+			"
+			onClose 
+			"
+				writeAutolootOptions()
+				
+				
+				if not bubbALOptPausedOnOpen then
+					worldScreen:TogglePauseGame(true)
+				end
+			"
+
+			-- Background
+			label
+			{
+				name "bubbALOptBackground"
+				area -1 -1 500 265
+				rectangle 0
+			}
+
+			-- Exit Button
+			button
+			{
+				name "bubbALOptExitButton"
+				bam GUIOSW
+				area -1 -1 44 44
+				sequence 2
+				action 
+				"
+					Infinity_PopMenu('BUBB_AUTOLOOT_OPTIONS')	
+				"
+			}
+
+			-- Autoloot On
+			button
+			{
+				name "bubbALOptOnToggle"
+				area -1 -1 32 32
+				bam ROUNDBUT
+				toggle bubbALOptOnToggle
+			}
+			label
+			{
+				name "bubbALOptOn"
+				area -1 -1 102 32
+				text "Autoloot On"
+				text style 'normal'
+				text align left center
+			}
+
+			-- Critical Items
+			button
+			{
+				name "bubbALOptCriticalItemsToggle"
+				area -1 -1 32 32
+				bam ROUNDBUT
+				toggle bubbALOptCriticalItemsToggle
+			}
+			label
+			{
+				name "bubbALOptCriticalItems"
+				area -1 -1 102 32
+				text "Critical Items"
+				text style 'normal'
+				text align left center
+			}
+
+			-- Enchanted Weapons
+			button
+			{
+				name "bubbALOptEnchantedWeaponsToggle"
+				area -1 -1 32 32
+				bam ROUNDBUT
+				toggle bubbALOptEnchantedWeaponsToggle
+			}
+			label
+			{
+				name "bubbALOptEnchantedWeapons"
+				area -1 -1 356 32
+				text "Enchanted Weapons equal to or higher than enchantment level:"
+				text style 'normal'
+				text align left center
+			}
+			edit
+			{
+				name "bubbALOptEnchantedWeaponsField"
+				area -1 -1 20 32
+				var bubbALOptEnchantedWeaponsField
+				text style "edit"
+				align left center
+				maxlines 1
+				action
+				"
+					if((tonumber(letter_pressed) ~= nil
+						and #tostring(bubbALOptEnchantedWeaponsField) < 1)
+						or not letter_pressed)
+					then
+						return 1
+					else
+						return 0
+					end
+				"
+			}
+
+			-- Gold
+			button
+			{
+				name "bubbALOptGoldToggle"
+				area -1 -1 32 32
+				bam ROUNDBUT
+				toggle bubbALOptGoldToggle
+			}
+			label
+			{
+				name "bubbALOptGold"
+				area -1 -1 356 32
+				text "Gold"
+				text style 'normal'
+				text align left center
+			}
+
+			-- Price
+			button
+			{
+				name "bubbALOptPriceToggle"
+				area -1 -1 32 32
+				bam ROUNDBUT
+				toggle bubbALOptPriceToggle
+			}
+			label
+			{
+				name "bubbALOptPrice"
+				area -1 -1 218 32
+				text "Price equal to or higher than:"
+				text style 'normal'
+				text align left center
+			}
+			edit
+			{
+				name "bubbALOptPriceField"
+				area -1 -1 50 32
+				var bubbALOptPriceField
+				text style "edit"
+				align left center
+				maxlines 1
+				action
+				"
+					if((tonumber(letter_pressed) ~= nil
+						and #tostring(bubbALOptPriceField) < 5)
+						or not letter_pressed)
+					then
+						return 1
+					else
+						return 0
+					end
+				"
+			}
+
+			-- Price per Weight
+			button
+			{
+				name "bubbALOptPricePerWeightToggle"
+				area -1 -1 32 32
+				bam ROUNDBUT
+				toggle bubbALOptPricePerWeightToggle
+			}
+			label
+			{
+				name "bubbALOptPricePerWeight"
+				area -1 -1 308 32
+				text "Price per Weight equal to or higher than:"
+				text style 'normal'
+				text align left center
+			}
+			edit
+			{
+				name "bubbALOptPricePerWeightField"
+				area -1 -1 50 32
+				var bubbALOptPricePerWeightField
+				text style "edit"
+				align left center
+				maxlines 1
+				action
+				"
+					if((tonumber(letter_pressed) ~= nil
+						and #tostring(bubbALOptPricePerWeightField) < 5)
+						or not letter_pressed)
+					then
+						return 1
+					else
+						return 0
+					end
+				"
+			}
+		}
+
+			
+
+		menu
+		{
+			name 'WORLD_QUICKLOOT'
+			ignoreEsc
+			onOpen
+			"
+				if worldQuicklootOverrideOpen then
+					Infinity_PushMenu('WORLD_QUICKLOOT_OVERRIDE')
+				end
+			"
+			onClose
+			"
+				Infinity_PopMenu('WORLD_QUICKLOOT_OVERRIDE')
+				worldScreen:StopGroundItems()
+			"
+			label
+			{
+				area 0 0 -1 -1
+				text lua "pickupLoot()"
+			}
+		}
+
+		menu
+		{
+			name 'WORLD_QUICKLOOT_OVERRIDE'
+			align center bottom
+			ignoreEsc
+			onOpen
+			"
+				Infinity_SetOffset('WORLD_QUICKLOOT_OVERRIDE', 0, -toolbarTop)
+			"
+
+			button
+			{
+				area 2 4 40 57
+				bam GUIBTACT
+				frame 44
+				enabled "worldScreen:GroundScrollEnabled(-1) or worldScreen:GroundScrollEnabled(1)"
+				action
+				"
+					worldScreen:OnGroundScroll(-1)
+				"
+			}
+			button
+			{
+				area 610 4 40 57
+				bam GUIBTACT
+				frame 42
+				enabled "worldScreen:GroundScrollEnabled(-1) or worldScreen:GroundScrollEnabled(1)"
+				action
+				"
+					worldScreen:OnGroundScroll(1)
+				"
+			}
+			button
+			{
+				area 46 5 52 52
+				bam STONSLOT
+				tooltip lua	"getGroundItemProperty(0,'name')"
+				tint lua	"getGroundItemProperty(0,'tint')"
+				icon lua	"getGroundItemProperty(0,'icon')"
+				count lua	"getGroundItemProperty(0,'count')"
+				usages lua	"getGroundItemProperty(0,'usages')"
+				action "groundItemClick(0)"
+				actionEnter "mouseOverQuicklootContainer = getSlotContainerId(0,'containerId')"
+				actionExit "mouseOverQuicklootContainer = nil"
+			}
+			button
+			{
+				area 102 5 52 52
+				bam STONSLOT
+				tooltip lua	"getGroundItemProperty(1,'name')"
+				tint lua	"getGroundItemProperty(1,'tint')"
+				icon lua	"getGroundItemProperty(1,'icon')"
+				count lua	"getGroundItemProperty(1,'count')"
+				usages lua	"getGroundItemProperty(1,'usages')"
+				action "groundItemClick(1)"
+				actionEnter "mouseOverQuicklootContainer = getSlotContainerId(1,'containerId')"
+				actionExit "mouseOverQuicklootContainer = nil"
+			}
+			button
+			{
+				area 158 5 52 52
+				bam STONSLOT
+				tooltip lua	"getGroundItemProperty(2,'name')"
+				tint lua	"getGroundItemProperty(2,'tint')"
+				icon lua	"getGroundItemProperty(2,'icon')"
+				count lua	"getGroundItemProperty(2,'count')"
+				usages lua	"getGroundItemProperty(2,'usages')"
+				action "groundItemClick(2)"
+				actionEnter "mouseOverQuicklootContainer = getSlotContainerId(2,'containerId')"
+				actionExit "mouseOverQuicklootContainer = nil"
+			}
+			button
+			{
+				area 214 5 52 52
+				bam STONSLOT
+				tooltip lua	"getGroundItemProperty(3,'name')"
+				tint lua	"getGroundItemProperty(3,'tint')"
+				icon lua	"getGroundItemProperty(3,'icon')"
+				count lua	"getGroundItemProperty(3,'count')"
+				usages lua	"getGroundItemProperty(3,'usages')"
+				action "groundItemClick(3)"
+				actionEnter "mouseOverQuicklootContainer = getSlotContainerId(3,'containerId')"
+				actionExit "mouseOverQuicklootContainer = nil"
+			}
+			button
+			{
+				area 270 5 52 52
+				bam STONSLOT
+				tooltip lua	"getGroundItemProperty(4,'name')"
+				tint lua	"getGroundItemProperty(4,'tint')"
+				icon lua	"getGroundItemProperty(4,'icon')"
+				count lua	"getGroundItemProperty(4,'count')"
+				usages lua	"getGroundItemProperty(4,'usages')"
+				action "groundItemClick(4)"
+				actionEnter "mouseOverQuicklootContainer = getSlotContainerId(4,'containerId')"
+				actionExit "mouseOverQuicklootContainer = nil"
+			}
+			button
+			{
+				area 326 5 52 52
+				bam STONSLOT
+				tooltip lua	"getGroundItemProperty(5,'name')"
+				tint lua	"getGroundItemProperty(5,'tint')"
+				icon lua	"getGroundItemProperty(5,'icon')"
+				count lua	"getGroundItemProperty(5,'count')"
+				usages lua	"getGroundItemProperty(5,'usages')"
+				action "groundItemClick(5)"
+				actionEnter "mouseOverQuicklootContainer = getSlotContainerId(5,'containerId')"
+				actionExit "mouseOverQuicklootContainer = nil"
+			}
+			button
+			{
+				area 383 5 52 52
+				bam STONSLOT
+				tooltip lua	"getGroundItemProperty(6,'name')"
+				tint lua	"getGroundItemProperty(6,'tint')"
+				icon lua	"getGroundItemProperty(6,'icon')"
+				count lua	"getGroundItemProperty(6,'count')"
+				usages lua	"getGroundItemProperty(6,'usages')"
+				action "groundItemClick(6)"
+				actionEnter "mouseOverQuicklootContainer = getSlotContainerId(6,'containerId')"
+				actionExit "mouseOverQuicklootContainer = nil"
+			}
+			button
+			{
+				area 439 5 52 52
+				bam STONSLOT
+				tooltip lua	"getGroundItemProperty(7,'name')"
+				tint lua	"getGroundItemProperty(7,'tint')"
+				icon lua	"getGroundItemProperty(7,'icon')"
+				count lua	"getGroundItemProperty(7,'count')"
+				usages lua	"getGroundItemProperty(7,'usages')"
+				action "groundItemClick(7)"
+				actionEnter "mouseOverQuicklootContainer = getSlotContainerId(7,'containerId')"
+				actionExit "mouseOverQuicklootContainer = nil"
+			}
+			button
+			{
+				area 495 5 52 52
+				bam STONSLOT
+				tooltip lua	"getGroundItemProperty(8,'name')"
+				tint lua	"getGroundItemProperty(8,'tint')"
+				icon lua	"getGroundItemProperty(8,'icon')"
+				count lua	"getGroundItemProperty(8,'count')"
+				usages lua	"getGroundItemProperty(8,'usages')"
+				action "groundItemClick(8)"
+				actionEnter "mouseOverQuicklootContainer = getSlotContainerId(8,'containerId')"
+				actionExit "mouseOverQuicklootContainer = nil"
+			}
+			button
+			{
+				area 551 5 52 52
+				bam STONSLOT
+				tooltip lua	"getGroundItemProperty(9,'name')"
+				tint lua	"getGroundItemProperty(9,'tint')"
+				icon lua	"getGroundItemProperty(9,'icon')"
+				count lua	"getGroundItemProperty(9,'count')"
+				usages lua	"getGroundItemProperty(9,'usages')"
+				action "groundItemClick(9)"
+				actionEnter "mouseOverQuicklootContainer = getSlotContainerId(9,'containerId')"
+				actionExit "mouseOverQuicklootContainer = nil"
+			}	
+		}
+		-- BUBB EDIT LOOT END
+	
