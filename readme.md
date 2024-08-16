@@ -5,3 +5,6 @@ Compatible with:
 - SoD
 - BG2EE
 - EET
+
+Original Author: Bubb
+Subsequent Versions: Daniel Valle (lcamod@danielvalle.net)
