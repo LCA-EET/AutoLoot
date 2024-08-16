@@ -6,6 +6,6 @@ Compatible with:
 - BG2EE
 - EET
 
-<b><u>Author</u></b>
+<b><u>Author</u></b><br>
 Original Version: Bubb<br>
 Subsequent Versions: Daniel Valle (lcamod@danielvalle.net)
