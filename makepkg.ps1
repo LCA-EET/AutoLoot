@@ -5,6 +5,7 @@ $archive = $basePath + ".zip"
 $exePath = "setup-" + $tp2Name + ".exe"
 $testDir = "F:\Baldur's Gate EE\00783\"
 $folders = @(
+'bam',
 'copy',
 'tra',
 'work',
