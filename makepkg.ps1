@@ -25,6 +25,7 @@ Copy-Item -Path ("bubb_lib.tph") -Destination $modPath
 Copy-Item -Path ($tp2Name + ".tp2") -Destination $modPath 
 Copy-Item -Path "weidu.exe" -Destination ($basePath + "/" + $exePath)
 Copy-Item -Path "readme.md" -Destination ($basePath + "/ReadMe.md")
+Copy-Item -Path "Discord Server.url" -Destination ($basePath + "/Discord Server.url")
 Copy-Item -Path "Release Notes.txt" -Destination ($basePath + "/Release Notes - AutoLoot.txt")
 
 $7zipPath = "$env:ProgramFiles/7-Zip/7z.exe"
