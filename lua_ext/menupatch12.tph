@@ -328,19 +328,35 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		return false
 	end
 	function xaLoadALConfig()
+		
 		xa_configLoaded = true
-		bubbALOptOnToggle =               Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptOnToggle',               0)
-		bubbALOptCriticalItemsToggle =    Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptCriticalItemsToggle',    0)
-		bubbALOptEnchantedWeaponsToggle = Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsToggle', 0)
-		bubbALOptEnchantedWeaponsField =  Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsField',  '1')
-		bubbALOptGoldToggle =             Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptGoldToggle',             0)
-		bubbALOptPriceToggle =            Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPriceToggle',            0)
-		bubbALOptPriceField =             Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPriceField',             '1')
-		bubbALOptPricePerWeightToggle =   Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightToggle',   0)
-		bubbALOptPricePerWeightField =    Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightField',    '1')
+		bubbALOptOnToggle = 				Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptOnToggle', 					0)
+		bubbALOptCriticalItemsToggle =    	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptCriticalItemsToggle', 		0)
+		bubbALOptEnchantedWeaponsToggle = 	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsToggle', 	0)
+		bubbALOptEnchantedWeaponsField =  	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsField',		'1')
+		bubbALOptGoldToggle =             	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptGoldToggle',             	0)
+		bubbALOptPriceToggle =            	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPriceToggle',            	0)
+		bubbALOptPriceField =             	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPriceField',             	'1')
+		bubbALOptPricePerWeightToggle =   	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightToggle',   	0)
+		bubbALOptPricePerWeightField =    	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightField',    	'1')
+		
+		if ((bubbALOptCriticalItemsToggle == 1) or
+			(bubbALOptEnchantedWeaponsToggle == 1) or
+			(bubbALOptPriceToggle == 1) or
+			(bubbALOptPricePerWeightToggle == 1))
+		then
+			-- Infinity_DisplayString("[Auto Loot] IC Needed = true.") 
+			xa_itemCheckNeeded = true
+		else
+			-- Infinity_DisplayString("[Auto Loot] IC Needed = false.") 
+			xa_itemCheckNeeded = false
+		end
+		
+		--xaWriteAutolootOptions()
+		--Infinity_DisplayString("[Auto Loot] Configuration loaded from INI.")
 	end
 	function xaPickupLoot()
-		if (xa_configLoaded == false)
+		if (xa_configLoaded == false) then
 			xaLoadALConfig()
 		end
 		if (xa_iterations < 10) then
@@ -489,7 +505,7 @@ APPEND ~UI.MENU~
 		label
 		{
 			area 0 0 -1 -1
-			text lua "pickupLoot()"
+			text lua "xaPickupLoot()"
 		}
 		
 	}
