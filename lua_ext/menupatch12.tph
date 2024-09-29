@@ -34,7 +34,7 @@ REPLACE_TEXTUALLY ~xa_alreplace0~
 ~
 	-- BUBB EDIT DEBUG DUMP START
 
-	function alphanumericSortEntries(o)
+	function xaAlphanumericSortEntries(o)
 	   local function conv(s)
 		  local res, dot = "", ""
 		  for n, m, c in tostring(s):gmatch"(0*(%d*))(.?)" do
@@ -60,7 +60,7 @@ REPLACE_TEXTUALLY ~xa_alreplace0~
 ~	
 REPLACE_TEXTUALLY ~xa_alreplace1~ 
 %
-	function fillDumpLevel(tableName, levelTable, levelToFill, levelTableKey)
+	function xaFillDumpLevel(tableName, levelTable, levelToFill, levelTableKey)
 
 		local tableKey, tableValue = next(levelTable, levelTableKey)
 		while tableValue ~= nil do
@@ -90,7 +90,7 @@ REPLACE_TEXTUALLY ~xa_alreplace1~
 
 					table.insert(levelToFill, entry)
 
-					return fillDumpLevel(tableKey, tableValue, entry.value)
+					return xaFillDumpLevel(tableKey, tableValue, entry.value)
 				end
 			elseif tableValueType == 'userdata' then
 
@@ -110,7 +110,7 @@ REPLACE_TEXTUALLY ~xa_alreplace1~
 
 					table.insert(levelToFill, entry)
 
-					return fillDumpLevel(tableKey, metatable, entry.value)
+					return xaFillDumpLevel(tableKey, metatable, entry.value)
 				else
 
 					entry.string = tableValueType..' '..tableKey..' = '
@@ -131,7 +131,7 @@ REPLACE_TEXTUALLY ~xa_alreplace1~
 		end
 
 		--Sort the now finished level
-		alphanumericSortEntries(levelToFill)
+		xaAlphanumericSortEntries(levelToFill)
 		--Sort the now finished level
 
 		local previous = levelToFill.previous
@@ -146,13 +146,13 @@ REPLACE_TEXTUALLY ~xa_alreplace1~
 			levelToFill.previous = nil
 			--Clear out "previous" metadata, as it is no longer needed.
 
-			return fillDumpLevel(previousTableName, previousLevelTable,
+			return xaFillDumpLevel(previousTableName, previousLevelTable,
 								 previousLevelToFill, previousLevelTableKey)
 		else
 			return levelToFill
 		end
 	end
-	function printEntries(entriesTable, indentLevel, indentStrings, previousState, levelTableKey)
+	function xaPrintEntries(entriesTable, indentLevel, indentStrings, previousState, levelTableKey)
 
 		tableEntryKey, tableEntry = next(entriesTable, levelTableKey)
 		while(tableEntry ~= nil) do
@@ -185,7 +185,7 @@ REPLACE_TEXTUALLY ~xa_alreplace1~
 						indentStrings[indentStringsSize + 1] = indentStrings[indentStringsSize]..'\t'
 					end
 
-					return printEntries(tableEntryValue, indentLevel, indentStrings, previous)
+					return xaPrintEntries(tableEntryValue, indentLevel, indentStrings, previous)
 				end
 			else
 				print(indentString..tableEntryString)
@@ -201,12 +201,12 @@ REPLACE_TEXTUALLY ~xa_alreplace1~
 		--Finish previous levels
 		if previousState ~= nil then
 
-			return printEntries(previousState.entriesTable, previousState.indentLevel, indentStrings,
+			return xaPrintEntries(previousState.entriesTable, previousState.indentLevel, indentStrings,
 								previousState.previousState, previousState.levelTableKey)
 		end
 	end
 
-	function dump(key, valueToDump)
+	function xaDump(key, valueToDump)
 
 		valueToDumpType = type(valueToDump)
 
@@ -218,8 +218,8 @@ REPLACE_TEXTUALLY ~xa_alreplace1~
 
 			print(valueToDumpType..' '..key..':')
 			print('{')
-			entries = fillDumpLevel(key, valueToDump, {})
-			printEntries(entries, 1, {[0] = '', [1] = '\t'})
+			entries = xaFillDumpLevel(key, valueToDump, {})
+			xaPrintEntries(entries, 1, {[0] = '', [1] = '\t'})
 
 		elseif valueToDumpType == 'userdata' then
 
@@ -229,8 +229,8 @@ REPLACE_TEXTUALLY ~xa_alreplace1~
 
 				print(valueToDumpType..' '..key..':')
 				print('{')
-				entries = fillDumpLevel(key, metatable, {})
-				printEntries(entries, 1, {[0] = '', [1] = '\t'})
+				entries = xaFillDumpLevel(key, metatable, {})
+				xaPrintEntries(entries, 1, {[0] = '', [1] = '\t'})
 			else
 
 				print(valueToDumpType..' '..key..' = nil')
@@ -247,10 +247,8 @@ REPLACE_TEXTUALLY ~xa_alreplace1~
 %	
 
 REPLACE_TEXTUALLY ~xa_alreplace2~ 
-%
-	-- XA functions
-	
-	function xa_spaceRemaining()
+%	
+	function xaSpaceRemaining()
 		characters = {}
 		Infinity_UpdateLuaStats()
 		local emptySpaces = 0
@@ -268,7 +266,7 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 	end
 
 	-- BUBB EDIT LOOT START
-	function doesCharacterHaveSpace()
+	function xaDoesCharacterHaveSpace()
 		characters = {}
 		Infinity_UpdateLuaStats()
 		for key, character in pairs(characters) do
@@ -283,7 +281,7 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		end
 		return false
 	end
-	function getPricePerWeight(price, weight)
+	function xaGetPricePerWeight(price, weight)
 		if price == 0 then
 			return 0
 		elseif weight == 0 then
@@ -293,7 +291,7 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		end
 	end
 
-	function decideWhetherToPickUp(itemRes, itemInfo)
+	function xaDecideWhetherToPickUp(itemRes, itemInfo)
 
 		-- Critical Items
 		if bubbALOptCriticalItemsToggle == 1 then
@@ -318,15 +316,29 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 
 		-- Price per Weight
 		if bubbALOptPricePerWeightToggle == 1 then
-			if getPricePerWeight(itemInfo.price, itemInfo.weight) >= tonumber(bubbALOptPricePerWeightField) then
+			if xaGetPricePerWeight(itemInfo.price, itemInfo.weight) >= tonumber(bubbALOptPricePerWeightField) then
 				return true
 			end
 		end
 
 		return false
 	end
-
-	function pickupLoot()
+	function xaLoadALConfig()
+		xa_configLoaded = true
+		bubbALOptOnToggle =               Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptOnToggle',               0)
+		bubbALOptCriticalItemsToggle =    Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptCriticalItemsToggle',    0)
+		bubbALOptEnchantedWeaponsToggle = Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsToggle', 0)
+		bubbALOptEnchantedWeaponsField =  Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsField',  '1')
+		bubbALOptGoldToggle =             Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptGoldToggle',             0)
+		bubbALOptPriceToggle =            Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPriceToggle',            0)
+		bubbALOptPriceField =             Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPriceField',             '1')
+		bubbALOptPricePerWeightToggle =   Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightToggle',   0)
+		bubbALOptPricePerWeightField =    Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightField',    '1')
+	end
+	function xaPickupLoot()
+		if (xa_configLoaded == false)
+			xaLoadALConfig()
+		end
 		if (xa_iterations < 10) then
 			xa_iterations = xa_iterations + 1
 			return
@@ -346,7 +358,7 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 			end
 			
 			if (xa_itemCheckNeeded == true) then
-				spaceRemaining = xa_spaceRemaining()
+				spaceRemaining = xaSpaceRemaining()
 				-- Infinity_DisplayString("[Auto Loot] Space Remaining:"..spaceRemaining)
 			end
 			
@@ -362,7 +374,7 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 						worldScreen:OnGroundButtonClick(groundItemSlot.slotId, groundItemSlot.containerId, groundItem.res)
 					end
 				elseif (xa_itemCheckNeeded == true) and (spaceRemaining > 0) then
-					if decideWhetherToPickUp(groundItem.res, info) then
+					if xaDecideWhetherToPickUp(groundItem.res, info) then
 						Infinity_DisplayString("[Auto Loot] Picking up "..groundItem.name)
 						worldScreen:OnGroundButtonClick(groundItemSlot.slotId, groundItemSlot.containerId, groundItem.res)
 						spaceRemaining = (spaceRemaining - 1)
@@ -371,7 +383,7 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 			end
 		end
 	end
-	function xa_validateEntry(toggle, field)
+	function xaValidateEntry(toggle, field)
 		if(toggle == 1) then
 			if(field == "") then
 				return 0
@@ -379,12 +391,12 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		end
 		return toggle
 	end
-	function writeAutolootOptions()
+	function xaWriteAutolootOptions()
 		-- Infinity_DisplayString("[Auto Loot] On Close Called.") 
 		
-		bubbALOptPriceToggle = xa_validateEntry(bubbALOptPriceToggle, bubbALOptPriceField)
-		bubbALOptEnchantedWeaponsToggle = xa_validateEntry(bubbALOptEnchantedWeaponsToggle, bubbALOptEnchantedWeaponsField)
-		bubbALOptPricePerWeightToggle = xa_validateEntry(bubbALOptPricePerWeightToggle, bubbALOptPricePerWeightField)
+		bubbALOptPriceToggle = xaValidateEntry(bubbALOptPriceToggle, bubbALOptPriceField)
+		bubbALOptEnchantedWeaponsToggle = xaValidateEntry(bubbALOptEnchantedWeaponsToggle, bubbALOptEnchantedWeaponsField)
+		bubbALOptPricePerWeightToggle = xaValidateEntry(bubbALOptPricePerWeightToggle, bubbALOptPricePerWeightField)
 	
 		if ((bubbALOptCriticalItemsToggle == 1) or
 			(bubbALOptEnchantedWeaponsToggle == 1) or
@@ -409,7 +421,8 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightField',    bubbALOptPricePerWeightField)
 	end
 	
-	function initializeAutolootOptionsMenu(itemName)
+	function xaInitializeAutolootOptionsMenu(itemName)
+		xaLoadALConfig()
 		-- Infinity_DisplayString("[Auto Loot] On Open Called.") 
 		local screenWidth, screenHeight = Infinity_GetScreenSize()
 		local backgroundX, backgroundY, backgroundWidth, backgroundHeight = Infinity_GetArea('bubbALOptBackground')
@@ -452,36 +465,27 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		Infinity_SetArea('bubbALOptPricePerWeightField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
 
 	end
-
-	bubbALOptOnToggle =               Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptOnToggle',               0)
-	bubbALOptCriticalItemsToggle =    Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptCriticalItemsToggle',    0)
-	bubbALOptEnchantedWeaponsToggle = Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsToggle', 0)
-	bubbALOptEnchantedWeaponsField =  Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsField',  '1')
-	bubbALOptGoldToggle =             Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptGoldToggle',             0)
-	bubbALOptPriceToggle =            Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPriceToggle',            0)
-	bubbALOptPriceField =             Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPriceField',             '1')
-	bubbALOptPricePerWeightToggle =   Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightToggle',   0)
-	bubbALOptPricePerWeightField =    Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightField',    '1')
-
 	bubbALOptPausedOnOpen = false
 	-- BUBB EDIT LOOT END
 	xa_iterations = 0;
+	xa_configLoaded = false;
 %
 
 APPEND ~UI.MENU~ 
 %
 	-- BUBB EDIT LOOT START
+	
 	menu
 	{
 		name "BUBB_AUTOLOOT_OPTIONS"
 		modal
 		onOpen 
 		"
-			initializeAutolootOptionsMenu()
+			xaInitializeAutolootOptionsMenu()
 		"
 		onClose 
 		"
-			writeAutolootOptions()
+			xaWriteAutolootOptions()
 		"
 
 		-- Background
