@@ -7,6 +7,10 @@ COPY_EXISTING ~UI.MENU~ ~override/UI.MENU~
 
 REPLACE_TEXTUALLY ~actionAlt "showGroundItemDescription\([0-9]\)"~ ~~
 
+REPLACE_TEXTUALLY ~Infinity_PushMenu('WORLD_MESSAGES')~ ~
+	Infinity_PushMenu('WORLD_MESSAGES')
+	Infinity_PushMenu('XA_AUTOLOOT')~
+
 REPLACE_TEXTUALLY ~Infinity_PushMenu( 'OPTIONS_AUTOPAUSE' );~
 %
 		Infinity_PushMenu( 'OPTIONS_AUTOPAUSE' );
@@ -474,6 +478,21 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 APPEND ~UI.MENU~ 
 %
 	-- BUBB EDIT LOOT START
+	menu
+	{
+		name "XA_AUTOLOOT"
+		ignoreEsc
+		onOpen 
+		"
+			worldScreen:StartGroundItems()
+		"
+		label
+		{
+			area 0 0 -1 -1
+			text lua "pickupLoot()"
+		}
+		
+	}
 	
 	menu
 	{
