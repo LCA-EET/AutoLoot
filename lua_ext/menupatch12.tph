@@ -8,6 +8,12 @@ REPLACE_TEXTUALLY ~Infinity_PushMenu(.*'WORLD_MESSAGES'.*)~
 	Infinity_PushMenu('XA_AUTOLOOT')
 %
 
+REPLACE_TEXTUALLY ~Infinity_PopMenu(.*'WORLD_MESSAGES'.*)~ 
+%
+	Infinity_PopMenu('WORLD_MESSAGES')
+	Infinity_PopMenu('XA_AUTOLOOT')
+%
+
 /*
 REPLACE_TEXTUALLY ~Infinity_PushMenu( 'OPTIONS_AUTOPAUSE' )~
 %
@@ -16,7 +22,7 @@ REPLACE_TEXTUALLY ~Infinity_PushMenu( 'OPTIONS_AUTOPAUSE' )~
 	}
 	button
 	{
-		area		104 596 48 48
+		area		-1 -1 48 48
 		bam			XAALBTN
 		sequence	2
 		text 		""
@@ -338,6 +344,8 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		bubbALOptPriceField =             	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPriceField',             	'1')
 		bubbALOptPricePerWeightToggle =   	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightToggle',   	0)
 		bubbALOptPricePerWeightField =    	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightField',    	'1')
+		xaALOptMenuXField =    	Infinity_GetINIValue('Bubb Autoloot', 'xaALOptMenuXField',    	'100')
+		xaALOptMenuYField =    	Infinity_GetINIValue('Bubb Autoloot', 'xaALOptMenuYField',    	0)
 		
 		if ((bubbALOptCriticalItemsToggle == 1) or
 			(bubbALOptEnchantedWeaponsToggle == 1) or
@@ -355,9 +363,7 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		--Infinity_DisplayString("[Auto Loot] Configuration loaded from INI.")
 	end
 	function xaPickupLoot()
-		if (xa_configLoaded == false) then
-			xaLoadALConfig()
-		end
+		
 		if (xa_iterations < 10) then
 			xa_iterations = xa_iterations + 1
 			return
@@ -438,6 +444,8 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptPriceField',             bubbALOptPriceField)
 		Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightToggle',   tostring(bubbALOptPricePerWeightToggle))
 		Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightField',    bubbALOptPricePerWeightField)
+		Infinity_SetINIValue('Bubb Autoloot', 'xaALOptMenuXField', xaALOptMenuXField) 
+		Infinity_SetINIValue('Bubb Autoloot', 'xaALOptMenuYField', xaALOptMenuYField) 
 	end
 	
 	function xaInitializeAutolootOptionsMenu(itemName)
@@ -483,7 +491,19 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		Infinity_SetArea('bubbALOptPricePerWeight',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
 		Infinity_SetArea('bubbALOptPricePerWeightField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
 
+		-- Menu X
+		Infinity_SetArea('xaALOptMenuXLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 6, nil, nil)
+		Infinity_SetArea('xaALOptMenuXField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 6, nil, nil)
+		
+		-- Menu Y
+		Infinity_SetArea('xaALOptMenuYLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 7, nil, nil)
+		Infinity_SetArea('xaALOptMenuYField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 7, nil, nil)
 	end
+	
+	function xaPlaceAutolootButton()
+		Infinity_SetArea('XA_AUTOLOOT_BUTTON', xaALOptMenuXField, xaALOptMenuYField, nil, nil)
+	end
+	
 	bubbALOptPausedOnOpen = false
 	-- BUBB EDIT LOOT END
 	xa_iterations = 0;
@@ -499,35 +519,31 @@ APPEND ~UI.MENU~
 		ignoreEsc
 		onOpen 
 		"
-			Infinity_PushMenu('XA_AUTOLOOT_BUTTON')
+			xaLoadALConfig()
+			xaPlaceAutolootButton()
 			worldScreen:StartGroundItems()
 		"
 		label
 		{
 			area 0 0 -1 -1
-			text lua "xaPickupLoot()"
+			text lua 
+			"
+				if (!worldScreen:CheckIfPaused()) then
+					xaPickupLoot()
+				end
+			"
 		}
-	}
-	menu
-	{
-		name "XA_AUTOLOOT_BUTTON"
-		align left top
-		ignoreEsc
-		onOpen
-		"
-		"
 		button
 		{
-			area 88 6 48 48
+			name "XA_AUTOLOOT_BUTTON"
+			area -1 -1 48 48
 			bam XAALBTN
 			action 
 			"
 				Infinity_PushMenu('BUBB_AUTOLOOT_OPTIONS')	
 			"
 		}
-		
 	}
-	
 	menu
 	{
 		name "BUBB_AUTOLOOT_OPTIONS"
@@ -545,7 +561,7 @@ APPEND ~UI.MENU~
 		label
 		{
 			name "bubbALOptBackground"
-			area -1 -1 500 265
+			area -1 -1 500 345
 			rectangle 0
 		}
 
@@ -715,6 +731,66 @@ APPEND ~UI.MENU~
 			"
 				if((tonumber(letter_pressed) ~= nil
 					and #tostring(bubbALOptPricePerWeightField) < 5)
+					or not letter_pressed)
+				then
+					return 1
+				else
+					return 0
+				end
+			"
+		}
+		
+		-- Menu X
+		label
+		{
+			name "xaALOptMenuXLabel"
+			area -1 -1 308 32
+			text "Autoloot Menu Launcher X Offset:"
+			text style 'normal'
+			text align left center
+		}
+		edit
+		{
+			name "xaALOptMenuXField"
+			area -1 -1 50 32
+			var xaALOptMenuXField
+			text style "edit"
+			align left center
+			maxlines 1
+			action
+			"
+				if((tonumber(letter_pressed) ~= nil
+					and #tostring(xaALOptMenuXField) < 10000)
+					or not letter_pressed)
+				then
+					return 1
+				else
+					return 0
+				end
+			"
+		}
+		
+		-- Menu Y
+		label
+		{
+			name "xaALOptMenuYLabel"
+			area -1 -1 308 32
+			text "Autoloot Menu Launcher Y Offset:"
+			text style 'normal'
+			text align left center
+		}
+		edit
+		{
+			name "xaALOptMenuYField"
+			area -1 -1 50 32
+			var xaALOptMenuYField
+			text style "edit"
+			align left center
+			maxlines 1
+			action
+			"
+				if((tonumber(letter_pressed) ~= nil
+					and #tostring(xaALOptMenuYField) < 10000)
 					or not letter_pressed)
 				then
 					return 1
