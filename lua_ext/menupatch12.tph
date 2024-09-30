@@ -498,6 +498,9 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		-- Menu Y
 		Infinity_SetArea('xaALOptMenuYLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 7, nil, nil)
 		Infinity_SetArea('xaALOptMenuYField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 7, nil, nil)
+		
+		-- Menu Y
+		Infinity_SetArea('xaALOptMenuNoteLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 8, nil, nil)
 	end
 	
 	function xaPlaceAutolootButton()
@@ -561,7 +564,7 @@ APPEND ~UI.MENU~
 		label
 		{
 			name "bubbALOptBackground"
-			area -1 -1 500 345
+			area -1 -1 500 375
 			rectangle 0
 		}
 
@@ -799,6 +802,17 @@ APPEND ~UI.MENU~
 				end
 			"
 		}
+		-- Menu Note
+		
+		label
+		{
+			name "xaALOptMenuNoteLabel"
+			area -1 -1 308 32
+			text "Note: Reload Save to Reflect Launcher Offset Changes"
+			text style 'normal'
+			text align left center
+		}
+	
 	}
 
 	-- BUBB EDIT LOOT END

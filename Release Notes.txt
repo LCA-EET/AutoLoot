@@ -2,8 +2,8 @@
 
 # Report any bugs to LCAMod@danielvalle.net
 
-# v1.2 2024-09-27
-* For compatibility with other mods that edit the UI, the AutoLoot menu launcher has been moved to the Gameplay menu. Click on the treasure icon to access it.
+# v1.2 2024-09-30
+* Modifications to improve compatibility with other mods that modify the game interface.
 
 # v1.1a 2024-08-11
 * The pre-built UI files now include the refactored functionality introduced in v1.1.

@@ -19,9 +19,9 @@ foreach($folder in $folders){
 	Copy-Item -Path $folder -Destination ($modPath + "/" + $folder) -Recurse	
 }
 
-& $PSScriptRoot/d_compactor.ps1 -dPath $modPath
+#& $PSScriptRoot/d_compactor.ps1 -dPath $modPath
 
-Copy-Item -Path ("bubb_lib.tph") -Destination $modPath 
+#Copy-Item -Path ("bubb_lib.tph") -Destination $modPath 
 Copy-Item -Path ($tp2Name + ".tp2") -Destination $modPath 
 Copy-Item -Path "weidu.exe" -Destination ($basePath + "/" + $exePath)
 Copy-Item -Path "readme.md" -Destination ($basePath + "/ReadMe.md")
