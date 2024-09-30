@@ -1,19 +1,17 @@
-OUTER_SET xa_matchCountA = 0
-OUTER_SET xa_matchCountB = 0
-
 PRINT ~Patching UI.MENU.~
 	
 COPY_EXISTING ~UI.MENU~ ~override/UI.MENU~
 
-REPLACE_TEXTUALLY ~actionAlt "showGroundItemDescription\([0-9]\)"~ ~~
-
-REPLACE_TEXTUALLY ~Infinity_PushMenu('WORLD_MESSAGES')~ ~
-	Infinity_PushMenu('WORLD_MESSAGES')
-	Infinity_PushMenu('XA_AUTOLOOT')~
-
-REPLACE_TEXTUALLY ~Infinity_PushMenu( 'OPTIONS_AUTOPAUSE' );~
+REPLACE_TEXTUALLY ~Infinity_PushMenu(.*'WORLD_MESSAGES'.*)~ 
 %
-		Infinity_PushMenu( 'OPTIONS_AUTOPAUSE' );
+	Infinity_PushMenu('WORLD_MESSAGES')
+	Infinity_PushMenu('XA_AUTOLOOT')
+%
+
+/*
+REPLACE_TEXTUALLY ~Infinity_PushMenu( 'OPTIONS_AUTOPAUSE' )~
+%
+		Infinity_PushMenu( 'OPTIONS_AUTOPAUSE' )
 		"
 	}
 	button
@@ -26,9 +24,9 @@ REPLACE_TEXTUALLY ~Infinity_PushMenu( 'OPTIONS_AUTOPAUSE' );~
 		action
 		"
 			selectedOpt = 0
-			Infinity_PushMenu( 'BUBB_AUTOLOOT_OPTIONS' );
+			Infinity_PushMenu( 'BUBB_AUTOLOOT_OPTIONS' )
 %
-	
+*/
 REPLACE_TEXTUALLY ~function displayTHAC()~ 
 %
 	xa_alreplace0function displayTHAC()
@@ -330,6 +328,7 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 	function xaLoadALConfig()
 		
 		xa_configLoaded = true
+		--xa_screenWidth, xa_screenHeight = Infinity_GetScreenSize()
 		bubbALOptOnToggle = 				Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptOnToggle', 					0)
 		bubbALOptCriticalItemsToggle =    	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptCriticalItemsToggle', 		0)
 		bubbALOptEnchantedWeaponsToggle = 	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsToggle', 	0)
@@ -500,12 +499,31 @@ APPEND ~UI.MENU~
 		ignoreEsc
 		onOpen 
 		"
+			Infinity_PushMenu('XA_AUTOLOOT_BUTTON')
 			worldScreen:StartGroundItems()
 		"
 		label
 		{
 			area 0 0 -1 -1
 			text lua "xaPickupLoot()"
+		}
+	}
+	menu
+	{
+		name "XA_AUTOLOOT_BUTTON"
+		align left top
+		ignoreEsc
+		onOpen
+		"
+		"
+		button
+		{
+			area 88 6 48 48
+			bam XAALBTN
+			action 
+			"
+				Infinity_PushMenu('BUBB_AUTOLOOT_OPTIONS')	
+			"
 		}
 		
 	}
