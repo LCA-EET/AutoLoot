@@ -7,7 +7,7 @@ BEGIN @2 /*~Bubb's Auto Loot BG2EE / EET~*/
 REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~UI.MENU~ @1 /*~UI.MENU not found in game.~*/
 REQUIRE_PREDICATE (GAME_IS ~bgee bg2ee eet~) @3 /*~Game not supported.~*/
 
-	INCLUDE ~%MOD_FOLDER%/lua_ext/menupatch12.tph~
+	INCLUDE ~%MOD_FOLDER%/lua_ext/menupatch.tph~
 	
 	COPY ~%MOD_FOLDER%/bam/xaalbtn.bam~ ~override~
 	
