@@ -350,7 +350,7 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 			return
 		end
 		xa_iterations = 0
-		if bubbALOptOnToggle == 1 then
+		if (bubbALOptOnToggle == 1) and (xa_ALMenuOpen == false) then
 			local spaceRemaining = 0
 			worldScreen:StartGroundItems()
 			if loot.groundItems[0] == nil then
@@ -500,6 +500,7 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 	-- BUBB EDIT LOOT END
 	xa_iterations = 0;
 	xa_configLoaded = false;
+	xa_ALMenuOpen = false;
 %
 
 APPEND ~UI.MENU~ 
@@ -530,6 +531,8 @@ APPEND ~UI.MENU~
 			bam XAALBTN
 			action 
 			"
+				worldScreen:StopGroundItems()
+				xa_ALMenuOpen = true
 				Infinity_PushMenu('BUBB_AUTOLOOT_OPTIONS')	
 			"
 		}
@@ -540,10 +543,12 @@ APPEND ~UI.MENU~
 		modal
 		onOpen 
 		"
+			
 			xaInitializeAutolootOptionsMenu()
 		"
 		onClose 
 		"
+			xa_ALMenuOpen = false
 			xaWriteAutolootOptions()
 		"
 
