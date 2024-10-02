@@ -351,8 +351,8 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		end
 		xa_iterations = 0
 		if bubbALOptOnToggle == 1 then
-			-- Stupid check because LUA starts tables at index 1
 			local spaceRemaining = 0
+			worldScreen:StartGroundItems()
 			if loot.groundItems[0] == nil then
 				return
 			end
@@ -368,7 +368,10 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 				-- Infinity_DisplayString("[Auto Loot] Space Remaining:"..spaceRemaining)
 			end
 			
-			for i = 0, groundItemCount, 1 do
+			local i = 0
+			while (i <= groundItemCount)
+			do
+				--Infinity_DisplayString("[Auto Loot] Processing "..i.." of "..groundItemCount)
 				local groundItemSlot = loot.groundItems[i]
 				local groundItem = groundItemSlot.item
 				local info = lootInfo[groundItem.res]
@@ -378,14 +381,19 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 					if (bubbALOptGoldToggle == 1) then
 						Infinity_DisplayString("[Auto Loot] Picking up gold.")
 						worldScreen:OnGroundButtonClick(groundItemSlot.slotId, groundItemSlot.containerId, groundItem.res)
+						i = i - 1
+						groundItemCount = groundItemCount - 1
 					end
 				elseif (xa_itemCheckNeeded == true) and (spaceRemaining > 0) then
 					if xaDecideWhetherToPickUp(groundItem.res, info) then
 						Infinity_DisplayString("[Auto Loot] Picking up "..groundItem.name)
 						worldScreen:OnGroundButtonClick(groundItemSlot.slotId, groundItemSlot.containerId, groundItem.res)
 						spaceRemaining = (spaceRemaining - 1)
+						i = i - 1
+						groundItemCount = groundItemCount - 1
 					end
 				end
+				i = i + 1
 			end
 		end
 	end
@@ -505,7 +513,7 @@ APPEND ~UI.MENU~
 		"
 			xaLoadALConfig()
 			xaPlaceAutolootButton()
-			worldScreen:StartGroundItems()
+			
 		"
 		label
 		{
