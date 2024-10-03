@@ -2,6 +2,15 @@ PRINT ~Patching UI.MENU.~
 	
 COPY_EXISTING ~UI.MENU~ ~override/UI.MENU~
 
+REPLACE_TEXTUALLY ~Infinity_SetOffset(.*'WORLD_QUICKLOOT'.*,.*0,*,.*-toolbarTop)~
+%
+	if (xaALOptHideQLToolbarToggle == 1) then
+		Infinity_SetOffset('WORLD_QUICKLOOT',0, -5000)
+	else
+		Infinity_SetOffset('WORLD_QUICKLOOT',0, -toolbarTop)
+	end
+%
+
 REPLACE_TEXTUALLY ~Infinity_PushMenu(.*'WORLD_MESSAGES'.*)~ 
 %
 	Infinity_PushMenu('WORLD_MESSAGES')
@@ -327,6 +336,7 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		bubbALOptPricePerWeightField =    	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightField',    	'1')
 		xaALOptMenuXField =    	Infinity_GetINIValue('Bubb Autoloot', 'xaALOptMenuXField',    	'100')
 		xaALOptMenuYField =    	Infinity_GetINIValue('Bubb Autoloot', 'xaALOptMenuYField',    	'100')
+		xaALOptHideQLToolbarToggle = Infinity_GetINIValue('Bubb Autoloot', 'xaALOptHideQLToolbarToggle', '1')
 		
 		if ((bubbALOptCriticalItemsToggle == 1) or
 			(bubbALOptEnchantedWeaponsToggle == 1) or
@@ -435,6 +445,7 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightField',    bubbALOptPricePerWeightField)
 		Infinity_SetINIValue('Bubb Autoloot', 'xaALOptMenuXField', xaALOptMenuXField) 
 		Infinity_SetINIValue('Bubb Autoloot', 'xaALOptMenuYField', xaALOptMenuYField) 
+		Infinity_SetINIValue('Bubb Autoloot', 'xaALOptHideQLToolbarToggle', xaALOptHideQLToolbarToggle) 
 	end
 	
 	function xaInitializeAutolootOptionsMenu(itemName)
@@ -480,16 +491,20 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		Infinity_SetArea('bubbALOptPricePerWeight',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
 		Infinity_SetArea('bubbALOptPricePerWeightField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
 
+		-- Hide QL Toggle
+		Infinity_SetArea('xaALOptHideQLToolbarLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 6, nil, nil)
+		Infinity_SetArea('xaALOptHideQLToolbarToggle',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 6, nil, nil)
+
 		-- Menu X
-		Infinity_SetArea('xaALOptMenuXLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 6, nil, nil)
-		Infinity_SetArea('xaALOptMenuXField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 6, nil, nil)
+		Infinity_SetArea('xaALOptMenuXLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 7, nil, nil)
+		Infinity_SetArea('xaALOptMenuXField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 7, nil, nil)
 		
 		-- Menu Y
-		Infinity_SetArea('xaALOptMenuYLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 7, nil, nil)
-		Infinity_SetArea('xaALOptMenuYField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 7, nil, nil)
+		Infinity_SetArea('xaALOptMenuYLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 8, nil, nil)
+		Infinity_SetArea('xaALOptMenuYField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 8, nil, nil)
 		
-		-- Menu Y
-		Infinity_SetArea('xaALOptMenuNoteLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 8, nil, nil)
+		-- Launcher Offset Label
+		Infinity_SetArea('xaALOptMenuNoteLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 9, nil, nil)
 	end
 	
 	function xaPlaceAutolootButton()
@@ -556,7 +571,7 @@ APPEND ~UI.MENU~
 		label
 		{
 			name "bubbALOptBackground"
-			area -1 -1 500 375
+			area -1 -1 500 415
 			rectangle 0
 		}
 
@@ -733,6 +748,23 @@ APPEND ~UI.MENU~
 					return 0
 				end
 			"
+		}
+		
+		-- QL Toggle
+		label
+		{
+			name "xaALOptHideQLToolbarLabel"
+			area -1 -1 308 32
+			text "Hide Quickloot Toolbar"
+			text style 'normal'
+			text align left center
+		}
+		button
+		{
+			name "xaALOptHideQLToolbarToggle"
+			area -1 -1 32 32
+			bam ROUNDBUT
+			toggle xaALOptHideQLToolbarToggle
 		}
 		
 		-- Menu X
