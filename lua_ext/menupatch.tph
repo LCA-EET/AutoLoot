@@ -290,12 +290,18 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 	end
 
 	function xaDecideWhetherToPickUp(itemRes, itemInfo)
-
 		-- Critical Items
 		if bubbALOptCriticalItemsToggle == 1 then
 			if itemInfo.critical == 1 then
 				return true
 			end
+		end
+
+		-- Weight Check
+		if xaALOptWeightToggle == 1 then
+			if (itemInfo.weight > xaALOptWeightField) then
+				return false
+			end 
 		end
 
 		-- Enchanted Weapons
@@ -329,6 +335,8 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		bubbALOptCriticalItemsToggle =    	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptCriticalItemsToggle', 		0)
 		bubbALOptEnchantedWeaponsToggle = 	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsToggle', 	0)
 		bubbALOptEnchantedWeaponsField =  	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsField',		'1')
+		xaALOptWeightToggle =             	Infinity_GetINIValue('Bubb Autoloot', 'xaALOptWeightToggle',             	'1')
+		xaALOptWeightField =             	Infinity_GetINIValue('Bubb Autoloot', 'xaALOptWeightField',             	'10')
 		bubbALOptGoldToggle =             	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptGoldToggle',             	0)
 		bubbALOptPriceToggle =            	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPriceToggle',            	0)
 		bubbALOptPriceField =             	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptPriceField',             	'1')
@@ -341,7 +349,8 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		if ((bubbALOptCriticalItemsToggle == 1) or
 			(bubbALOptEnchantedWeaponsToggle == 1) or
 			(bubbALOptPriceToggle == 1) or
-			(bubbALOptPricePerWeightToggle == 1))
+			(bubbALOptPricePerWeightToggle == 1) or
+			(xaALOptWeightToggle == 1))
 		then
 			-- Infinity_DisplayString("[Auto Loot] IC Needed = true.") 
 			xa_itemCheckNeeded = true
@@ -355,14 +364,17 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 	end
 	function xaPickupLoot()
 		
-		if (xa_iterations < 10) or (worldScreen:CheckIfPaused()) then
+		if (xa_iterations < 20) or (worldScreen:CheckIfPaused()) then
 			xa_iterations = xa_iterations + 1
 			return
 		end
 		xa_iterations = 0
 		if (bubbALOptOnToggle == 1) and (xa_ALMenuOpen == false) then
 			local spaceRemaining = 0
-			worldScreen:StartGroundItems()
+			if (groundItemsButtonToggle ~= 1) then 
+				groundItemsButtonToggle = 1
+				worldScreen:StartGroundItems()
+			end
 			if loot.groundItems[0] == nil then
 				return
 			end
@@ -477,34 +489,38 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		Infinity_SetArea('bubbALOptEnchantedWeapons',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
 		Infinity_SetArea('bubbALOptEnchantedWeaponsField',  newBackGroundX + 52 + 356 + 5, newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
 
+		-- Weight
+		Infinity_SetArea('xaALOptWeightToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
+		Infinity_SetArea('xaALOptWeightField',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
+
 		-- Gold
-		Infinity_SetArea('bubbALOptGoldToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
-		Infinity_SetArea('bubbALOptGold',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
+		Infinity_SetArea('bubbALOptGoldToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
+		Infinity_SetArea('bubbALOptGold',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
 
 		-- Price
-		Infinity_SetArea('bubbALOptPriceToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
-		Infinity_SetArea('bubbALOptPrice',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
-		Infinity_SetArea('bubbALOptPriceField',  newBackGroundX + 52 + 218 + 5, newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
+		Infinity_SetArea('bubbALOptPriceToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
+		Infinity_SetArea('bubbALOptPrice',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
+		Infinity_SetArea('bubbALOptPriceField',  newBackGroundX + 52 + 218 + 5, newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
 
 		-- Price per Weight
-		Infinity_SetArea('bubbALOptPricePerWeightToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
-		Infinity_SetArea('bubbALOptPricePerWeight',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
-		Infinity_SetArea('bubbALOptPricePerWeightField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
+		Infinity_SetArea('bubbALOptPricePerWeightToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 6, nil, nil)
+		Infinity_SetArea('bubbALOptPricePerWeight',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 6, nil, nil)
+		Infinity_SetArea('bubbALOptPricePerWeightField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 6, nil, nil)
 
 		-- Hide QL Toggle
-		Infinity_SetArea('xaALOptHideQLToolbarLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 6, nil, nil)
-		Infinity_SetArea('xaALOptHideQLToolbarToggle',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 6, nil, nil)
+		Infinity_SetArea('xaALOptHideQLToolbarLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 7, nil, nil)
+		Infinity_SetArea('xaALOptHideQLToolbarToggle',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 7, nil, nil)
 
 		-- Menu X
-		Infinity_SetArea('xaALOptMenuXLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 7, nil, nil)
-		Infinity_SetArea('xaALOptMenuXField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 7, nil, nil)
+		Infinity_SetArea('xaALOptMenuXLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 8, nil, nil)
+		Infinity_SetArea('xaALOptMenuXField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 8, nil, nil)
 		
 		-- Menu Y
-		Infinity_SetArea('xaALOptMenuYLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 8, nil, nil)
-		Infinity_SetArea('xaALOptMenuYField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 8, nil, nil)
+		Infinity_SetArea('xaALOptMenuYLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 9, nil, nil)
+		Infinity_SetArea('xaALOptMenuYField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 9, nil, nil)
 		
 		-- Launcher Offset Label
-		Infinity_SetArea('xaALOptMenuNoteLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 9, nil, nil)
+		Infinity_SetArea('xaALOptMenuNoteLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 10, nil, nil)
 	end
 	
 	function xaPlaceAutolootButton()
@@ -571,7 +587,7 @@ APPEND ~UI.MENU~
 		label
 		{
 			name "bubbALOptBackground"
-			area -1 -1 500 415
+			area -1 -1 500 450
 			rectangle 0
 		}
 
@@ -712,7 +728,43 @@ APPEND ~UI.MENU~
 				end
 			"
 		}
-
+		-- Weight Limit
+		button
+		{
+			name "xaALOptWeightToggle"
+			area -1 -1 32 32
+			bam ROUNDBUT
+			toggle xaALOptWeightToggle
+		}
+		label
+		{
+			name "xaALOptWeightLabel"
+			area -1 -1 308 32
+			text "Item Weight <=:"
+			text style 'normal'
+			text align left center
+		}
+		edit
+		{
+			name "xaALOptWeightField"
+			area -1 -1 50 32
+			var xaALOptWeightField
+			text style "edit"
+			align left center
+			maxlines 1
+			action
+			"
+				if((tonumber(letter_pressed) ~= nil
+					and #tostring(xaALOptWeightField) >= 0)
+					or not letter_pressed)
+				then
+					return 1
+				else
+					return 0
+				end
+			"
+		}
+		
 		-- Price per Weight
 		button
 		{
@@ -725,7 +777,7 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptPricePerWeight"
 			area -1 -1 308 32
-			text "Price per Weight equal to or higher than:"
+			text "Price per Weight >=:"
 			text style 'normal'
 			text align left center
 		}
