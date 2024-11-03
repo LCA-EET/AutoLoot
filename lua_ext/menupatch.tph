@@ -290,39 +290,31 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 	end
 
 	function xaDecideWhetherToPickUp(itemRes, itemInfo)
+		local weightLimitExceeded = false
+	
+		-- Weight Check
+		if xaALOptWeightToggle == 1 and (itemInfo.weight > xaALOptWeightField) then
+			weightLimitExceeded = true
+		end
+		
 		-- Critical Items
 		if bubbALOptCriticalItemsToggle == 1 then
-			if itemInfo.critical == 1 then
-				return true
-			end
-		end
-
-		-- Weight Check
-		if xaALOptWeightToggle == 1 then
-			if (itemInfo.weight > xaALOptWeightField) then
-				return false
-			end 
+			return (itemInfo.critical == 1) and weightLimitExceeded
 		end
 
 		-- Enchanted Weapons
 		if bubbALOptEnchantedWeaponsToggle == 1 then
-			if itemInfo.enchantment >= tonumber(bubbALOptEnchantedWeaponsField) then
-				return true
-			end
+			return (itemInfo.enchantment >= tonumber(bubbALOptEnchantedWeaponsField))
 		end
 
 		-- Price
 		if bubbALOptPriceToggle == 1 then
-			if itemInfo.price >= tonumber(bubbALOptPriceField) then
-				return true
-			end
+			return itemInfo.price >= tonumber(bubbALOptPriceField)
 		end
 
 		-- Price per Weight
 		if bubbALOptPricePerWeightToggle == 1 then
-			if xaGetPricePerWeight(itemInfo.price, itemInfo.weight) >= tonumber(bubbALOptPricePerWeightField) then
-				return true
-			end
+			return xaGetPricePerWeight(itemInfo.price, itemInfo.weight) >= tonumber(bubbALOptPricePerWeightField)
 		end
 
 		return false
@@ -433,6 +425,7 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		bubbALOptPriceToggle = xaValidateEntry(bubbALOptPriceToggle, bubbALOptPriceField)
 		bubbALOptEnchantedWeaponsToggle = xaValidateEntry(bubbALOptEnchantedWeaponsToggle, bubbALOptEnchantedWeaponsField)
 		bubbALOptPricePerWeightToggle = xaValidateEntry(bubbALOptPricePerWeightToggle, bubbALOptPricePerWeightField)
+		xaALOptWeightToggle = xaValidateEntry(xaALOptWeightToggle, xaALOptWeightField)
 	
 		if ((bubbALOptCriticalItemsToggle == 1) or
 			(bubbALOptEnchantedWeaponsToggle == 1) or
@@ -451,6 +444,8 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsToggle', tostring(bubbALOptEnchantedWeaponsToggle))
 		Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsField',  bubbALOptEnchantedWeaponsField)
 		Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptGoldToggle',             tostring(bubbALOptGoldToggle))
+		Infinity_SetINIValue('Bubb Autoloot', 'xaALOptWeightToggle',            tostring(xaALOptWeightToggle))
+		Infinity_SetINIValue('Bubb Autoloot', 'xaALOptWeightField',             xaALOptWeightField)
 		Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptPriceToggle',            tostring(bubbALOptPriceToggle))
 		Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptPriceField',             bubbALOptPriceField)
 		Infinity_SetINIValue('Bubb Autoloot', 'bubbALOptPricePerWeightToggle',   tostring(bubbALOptPricePerWeightToggle))
@@ -491,7 +486,8 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 
 		-- Weight
 		Infinity_SetArea('xaALOptWeightToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
-		Infinity_SetArea('xaALOptWeightField',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
+		Infinity_SetArea('xaALOptWeightLabel',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
+		Infinity_SetArea('xaALOptWeightField',       newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
 
 		-- Gold
 		Infinity_SetArea('bubbALOptGoldToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
@@ -587,7 +583,7 @@ APPEND ~UI.MENU~
 		label
 		{
 			name "bubbALOptBackground"
-			area -1 -1 500 450
+			area -1 -1 500 465
 			rectangle 0
 		}
 
