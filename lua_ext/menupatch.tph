@@ -291,30 +291,39 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 
 	function xaDecideWhetherToPickUp(itemRes, itemInfo)
 		local weightLimitExceeded = false
-	
 		-- Weight Check
-		if xaALOptWeightToggle == 1 and (itemInfo.weight > xaALOptWeightField) then
-			weightLimitExceeded = true
+		if xaALOptWeightToggle == 1 then
+			if (itemInfo.weight > xaALOptWeightField) then
+				weightLimitExceeded = true
+			end
 		end
 		
 		-- Critical Items
 		if bubbALOptCriticalItemsToggle == 1 then
-			return (itemInfo.critical == 1) and weightLimitExceeded
+			if (itemInfo.critical == 1) and weightLimitExceeded then
+				return true and weightLimitExceeded
+			end
 		end
 
 		-- Enchanted Weapons
 		if bubbALOptEnchantedWeaponsToggle == 1 then
-			return (itemInfo.enchantment >= tonumber(bubbALOptEnchantedWeaponsField))
+			if (itemInfo.enchantment >= tonumber(bubbALOptEnchantedWeaponsField)) then
+				return true and weightLimitExceeded
+			end
 		end
 
 		-- Price
 		if bubbALOptPriceToggle == 1 then
-			return itemInfo.price >= tonumber(bubbALOptPriceField)
+			if itemInfo.price >= tonumber(bubbALOptPriceField) then
+				return true and weightLimitExceeded
+			end
 		end
 
 		-- Price per Weight
 		if bubbALOptPricePerWeightToggle == 1 then
-			return xaGetPricePerWeight(itemInfo.price, itemInfo.weight) >= tonumber(bubbALOptPricePerWeightField)
+			if xaGetPricePerWeight(itemInfo.price, itemInfo.weight) >= tonumber(bubbALOptPricePerWeightField) then
+				return true and weightLimitExceeded
+			end
 		end
 
 		return false
@@ -368,14 +377,16 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 				worldScreen:StartGroundItems()
 			end
 			if loot.groundItems[0] == nil then
+				--Infinity_DisplayString("[Auto Loot] Nil.")
 				return
 			end
 			
 			local groundItemCount = #loot.groundItems
 			
-			if (groundItemCount == 0) then
-				return
-			end
+			--if (groundItemCount == 0) then
+			--	Infinity_DisplayString("[Auto Loot] GI Count 0.")
+			--	return
+			--end
 			
 			if (xa_itemCheckNeeded == true) then
 				spaceRemaining = xaSpaceRemaining()
