@@ -2,6 +2,10 @@
 
 # Report any bugs to LCAMod@danielvalle.net
 
+# v1.2.2 2024-11-02
+* Added an option to limit items picked up to those below a specified weight.
+* Improved behavior when the quickloot toolbar is open.
+
 # v1.2.1 2024-10-02
 * Added an option to hide the quickloot toolbar.
 
