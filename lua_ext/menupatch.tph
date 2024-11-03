@@ -301,28 +301,28 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		-- Critical Items
 		if bubbALOptCriticalItemsToggle == 1 then
 			if (itemInfo.critical == 1) and weightLimitExceeded then
-				return true and weightLimitExceeded
+				return true and not weightLimitExceeded
 			end
 		end
 
 		-- Enchanted Weapons
 		if bubbALOptEnchantedWeaponsToggle == 1 then
 			if (itemInfo.enchantment >= tonumber(bubbALOptEnchantedWeaponsField)) then
-				return true and weightLimitExceeded
+				return true and not weightLimitExceeded
 			end
 		end
 
 		-- Price
 		if bubbALOptPriceToggle == 1 then
 			if itemInfo.price >= tonumber(bubbALOptPriceField) then
-				return true and weightLimitExceeded
+				return true and not weightLimitExceeded
 			end
 		end
 
 		-- Price per Weight
 		if bubbALOptPricePerWeightToggle == 1 then
 			if xaGetPricePerWeight(itemInfo.price, itemInfo.weight) >= tonumber(bubbALOptPricePerWeightField) then
-				return true and weightLimitExceeded
+				return true and not weightLimitExceeded
 			end
 		end
 
