@@ -8,4 +8,4 @@ Compatible with:
 
 <b><u>Author</u></b><br>
 Original Version: Bubb<br>
-Subsequent Versions: Daniel Valle (lcamod@danielvalle.net)
+Subsequent Versions: Daniel Valle (support@fosiemods.net)
