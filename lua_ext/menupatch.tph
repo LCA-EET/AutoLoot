@@ -1,16 +1,28 @@
 PRINT ~Patching UI.MENU.~
 	
+ACTION_IF(MOD_IS_INSTALLED "setup-infinity_ui.tp2" "0") THEN BEGIN
+	COPY_EXISTING ~UI.MENU~ ~override/UI.MENU~
+	REPLACE_TEXTUALLY ~--Infinity_SetOffset(.*'WORLD_QUICKLOOT'.*,.*0,*,.*-toolbarTop)~
+	%
+		if (xaALOptHideQLToolbarToggle == 1) then
+			--Infinity_SetOffset('WORLD_QUICKLOOT',0, -5000)
+		else
+			--Infinity_SetOffset('WORLD_QUICKLOOT',0, -toolbarTop)
+		end
+	%
+END ELSE BEGIN
+	COPY_EXISTING ~UI.MENU~ ~override/UI.MENU~
+	REPLACE_TEXTUALLY ~Infinity_SetOffset(.*'WORLD_QUICKLOOT'.*,.*0,*,.*-toolbarTop)~
+	%
+		if (xaALOptHideQLToolbarToggle == 1) then
+			Infinity_SetOffset('WORLD_QUICKLOOT',0, -5000)
+		else
+			Infinity_SetOffset('WORLD_QUICKLOOT',0, -toolbarTop)
+		end
+	%
+END
+
 COPY_EXISTING ~UI.MENU~ ~override/UI.MENU~
-
-REPLACE_TEXTUALLY ~Infinity_SetOffset(.*'WORLD_QUICKLOOT'.*,.*0,*,.*-toolbarTop)~
-%
-	if (xaALOptHideQLToolbarToggle == 1) then
-		Infinity_SetOffset('WORLD_QUICKLOOT',0, -5000)
-	else
-		Infinity_SetOffset('WORLD_QUICKLOOT',0, -toolbarTop)
-	end
-%
-
 REPLACE_TEXTUALLY ~Infinity_PushMenu(.*'WORLD_MESSAGES'.*)~ 
 %
 	Infinity_PushMenu('WORLD_MESSAGES')

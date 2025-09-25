@@ -44,4 +44,4 @@ Start-SevenZip a -mx=9 $Target $Source
 Remove-Item -LiteralPath $basePath -Force -Recurse
 Get-FileHash $archive -Algorithm SHA256 > SHA256.txt
 
-Copy-Item -Path $archive -Destination ("\\192.168.1.88\smbuser\Home\Installers\" + $archive)
+Copy-Item -Path $archive -Destination ("\\nas.home.lan\smbuser\Home\Installers\" + $archive)
