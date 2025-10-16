@@ -22,12 +22,25 @@ END ELSE BEGIN
 	%
 END
 
+ACTION_IF(FILE_EXISTS_IN_GAME ~m_dw_oof.lua~) THEN BEGIN
+	PRINT ~SCS UI.MENU modifications detected.~
+	COPY_EXISTING ~UI.MENU~ ~override/UI.MENU~
+	REPLACE_TEXTUALLY ~dwOnOpen('WORLD_ACTIONBAR')~ 
+	%
+		dwOnOpen('WORLD_ACTIONBAR')
+		Infinity_PushMenu('XA_AUTOLOOT')
+	%
+END ELSE BEGIN
+	PRINT ~No SCS changes to UI.MENU were detected.~
+	COPY_EXISTING ~UI.MENU~ ~override/UI.MENU~
+	REPLACE_TEXTUALLY ~Infinity_PushMenu(.*'WORLD_MESSAGES'.*)~ 
+	%
+		Infinity_PushMenu('WORLD_MESSAGES')
+		Infinity_PushMenu('XA_AUTOLOOT')
+	%
+END
+
 COPY_EXISTING ~UI.MENU~ ~override/UI.MENU~
-REPLACE_TEXTUALLY ~Infinity_PushMenu(.*'WORLD_MESSAGES'.*)~ 
-%
-	Infinity_PushMenu('WORLD_MESSAGES')
-	Infinity_PushMenu('XA_AUTOLOOT')
-%
 
 REPLACE_TEXTUALLY ~Infinity_PopMenu(.*'WORLD_MESSAGES'.*)~ 
 %
@@ -478,7 +491,7 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		Infinity_SetINIValue('Bubb Autoloot', 'xaALOptHideQLToolbarToggle', xaALOptHideQLToolbarToggle) 
 	end
 	
-	function xaInitializeAutolootOptionsMenu(itemName)
+	function xaInitializeAutolootOptionsMenu()
 		xaLoadALConfig()
 		-- Infinity_DisplayString("[Auto Loot] On Open Called.") 
 		local screenWidth, screenHeight = Infinity_GetScreenSize()

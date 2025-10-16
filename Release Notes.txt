@@ -2,6 +2,9 @@
 
 # Report any bugs to support@fosiemods.net
 
+# v1.2.4 2025-10-15
+* Added compatibility with the SCS mod.
+
 # v1.2.3 2025-09-24
 * Fixed an issue concerning compatibility with InfinityUI (fix submitted by basicals - thank you).
 
