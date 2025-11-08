@@ -613,13 +613,14 @@ APPEND ~UI.MENU~
 		"
 			xa_ALMenuOpen = false
 			xaWriteAutolootOptions()
+			xaPlaceAutolootButton()
 		"
 
 		-- Background
 		label
 		{
 			name "bubbALOptBackground"
-			area -1 -1 500 465
+			area -1 -1 500 430
 			rectangle 0
 		}
 
@@ -910,16 +911,7 @@ APPEND ~UI.MENU~
 				end
 			"
 		}
-		-- Menu Note
 		
-		label
-		{
-			name "xaALOptMenuNoteLabel"
-			area -1 -1 308 32
-			text "Note: Reload Save to Reflect Launcher Offset Changes"
-			text style 'normal'
-			text align left center
-		}
 	
 	}
 

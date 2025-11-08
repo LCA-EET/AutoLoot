@@ -2,6 +2,9 @@
 
 # Report any bugs to support@fosiemods.net
 
+# v1.2.5 2025-11-08
+* Removed the need to reload a save game after adjusting the position of the AutoLoot menu launcher.
+
 # v1.2.4 2025-10-15
 * Added compatibility with the SCS mod.
 

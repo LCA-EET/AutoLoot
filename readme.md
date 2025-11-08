@@ -5,7 +5,9 @@ Compatible with:
 - SoD
 - BG2EE
 - EET
+- SCS
+- InfinityUI
 
 <b><u>Author</u></b><br>
 Original Version: Bubb<br>
-Subsequent Versions: Daniel Valle (support@fosiemods.net)
+Subsequent Versions: Fosie (support@fosiemods.net)

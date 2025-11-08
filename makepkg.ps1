@@ -17,16 +17,13 @@ foreach($folder in $folders){
 	Copy-Item -Path $folder -Destination ($modPath + "/" + $folder) -Recurse	
 }
 
-#& $PSScriptRoot/d_compactor.ps1 -dPath $modPath
-
-#Copy-Item -Path ("bubb_lib.tph") -Destination $modPath 
 Copy-Item -Path ($tp2Name + ".tp2") -Destination $modPath 
 Copy-Item -Path "weidu.exe" -Destination ($basePath + "/" + $exePath)
-Copy-Item -Path "readme.md" -Destination ($basePath + "/ReadMe.md")
-Copy-Item -Path "Discord Server.url" -Destination ($basePath + "/Discord Server.url")
-Copy-Item -Path "Beamdog Forum Post.url" -Destination ($basePath + "/Beamdog Forum Post.url")
-Copy-Item -Path "Venmo.url" -Destination ($basePath + "/Venmo.url")
-Copy-Item -Path "Release Notes.txt" -Destination ($basePath + "/Release Notes - AutoLoot.txt")
+Copy-Item -Path "readme.md" -Destination ($modPath + "/ReadMe.md")
+Copy-Item -Path "Discord Server.url" -Destination ($modPath + "/Discord Server.url")
+Copy-Item -Path "Beamdog Forum Post.url" -Destination ($modPath + "/Beamdog Forum Post.url")
+Copy-Item -Path "Venmo.url" -Destination ($modPath + "/Venmo.url")
+Copy-Item -Path "Release Notes.txt" -Destination ($modPath + "/Release Notes.txt")
 
 $7zipPath = "$env:ProgramFiles/7-Zip/7z.exe"
 
