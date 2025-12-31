@@ -6,3 +6,16 @@
 @5 = ~Bubb (Original Author), Daniel Valle lcamod@danielvalle.net (EET version)~
 @6 = ~Could not patch UI.MENU.~ 
 @7 = ~Installation was successful. Enjoy!~
+
+@100 = ~Autoloot On~
+@101 = ~Critical Items~
+@102 = ~Enchanted Weapons equal to or higher than enchantment level:~
+@103 = ~Gold~
+@104 = ~Price equal to or higher than:~
+@105 = ~Item Weight <=:~
+@106 = ~Price per Weight >=:~
+@107 = ~Hide Quickloot Toolbar~
+@108 = ~Autoloot Menu Launcher X Offset:~
+@109 = ~Autoloot Menu Launcher Y Offset:~
+@110 = ~[Auto Loot] Picking up gold.~
+@111 = ~[Auto Loot] Picking up ~

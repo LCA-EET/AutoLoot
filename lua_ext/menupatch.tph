@@ -429,14 +429,14 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 				-- Gold doesn't need an empty space check
 				if groundItem.res == "MISC07" then 
 					if (bubbALOptGoldToggle == 1) then
-						Infinity_DisplayString("[Auto Loot] Picking up gold.")
+						Infinity_DisplayString("XA_STR_REF_110")
 						worldScreen:OnGroundButtonClick(groundItemSlot.slotId, groundItemSlot.containerId, groundItem.res)
 						i = i - 1
 						groundItemCount = groundItemCount - 1
 					end
 				elseif (xa_itemCheckNeeded == true) and (spaceRemaining > 0) then
 					if xaDecideWhetherToPickUp(groundItem.res, info) then
-						Infinity_DisplayString("[Auto Loot] Picking up "..groundItem.name)
+						Infinity_DisplayString("XA_STR_REF_110"..groundItem.name)
 						worldScreen:OnGroundButtonClick(groundItemSlot.slotId, groundItemSlot.containerId, groundItem.res)
 						spaceRemaining = (spaceRemaining - 1)
 						i = i - 1
@@ -649,7 +649,7 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptOn"
 			area -1 -1 102 32
-			text "Autoloot On"
+			text "XA_STR_REF_100"
 			text style 'normal'
 			text align left center
 		}
@@ -666,7 +666,7 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptCriticalItems"
 			area -1 -1 102 32
-			text "Critical Items"
+			text "XA_STR_REF_101"
 			text style 'normal'
 			text align left center
 		}
@@ -683,7 +683,7 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptEnchantedWeapons"
 			area -1 -1 356 32
-			text "Enchanted Weapons equal to or higher than enchantment level:"
+			text "XA_STR_REF_102"
 			text style 'normal'
 			text align left center
 		}
@@ -720,7 +720,7 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptGold"
 			area -1 -1 356 32
-			text "Gold"
+			text "XA_STR_REF_103"
 			text style 'normal'
 			text align left center
 		}
@@ -737,7 +737,7 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptPrice"
 			area -1 -1 218 32
-			text "Price equal to or higher than:"
+			text "XA_STR_REF_104"
 			text style 'normal'
 			text align left center
 		}
@@ -773,7 +773,7 @@ APPEND ~UI.MENU~
 		{
 			name "xaALOptWeightLabel"
 			area -1 -1 308 32
-			text "Item Weight <=:"
+			text "XA_STR_REF_105"
 			text style 'normal'
 			text align left center
 		}
@@ -810,7 +810,7 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptPricePerWeight"
 			area -1 -1 308 32
-			text "Price per Weight >=:"
+			text "XA_STR_REF_106"
 			text style 'normal'
 			text align left center
 		}
@@ -840,7 +840,7 @@ APPEND ~UI.MENU~
 		{
 			name "xaALOptHideQLToolbarLabel"
 			area -1 -1 308 32
-			text "Hide Quickloot Toolbar"
+			text "XA_STR_REF_107"
 			text style 'normal'
 			text align left center
 		}
@@ -857,7 +857,7 @@ APPEND ~UI.MENU~
 		{
 			name "xaALOptMenuXLabel"
 			area -1 -1 308 32
-			text "Autoloot Menu Launcher X Offset:"
+			text "XA_STR_REF_108"
 			text style 'normal'
 			text align left center
 		}
@@ -887,7 +887,7 @@ APPEND ~UI.MENU~
 		{
 			name "xaALOptMenuYLabel"
 			area -1 -1 308 32
-			text "Autoloot Menu Launcher Y Offset:"
+			text "XA_STR_REF_109"
 			text style 'normal'
 			text align left center
 		}
@@ -918,8 +918,29 @@ APPEND ~UI.MENU~
 	-- BUBB EDIT LOOT END
 %
 
+OUTER_SPRINT xa_100_replace @100
+OUTER_SPRINT xa_101_replace @101
+OUTER_SPRINT xa_102_replace @102
+OUTER_SPRINT xa_103_replace @103
+OUTER_SPRINT xa_104_replace @104
+OUTER_SPRINT xa_105_replace @105
+OUTER_SPRINT xa_106_replace @106
+OUTER_SPRINT xa_107_replace @107
+OUTER_SPRINT xa_108_replace @108
+OUTER_SPRINT xa_109_replace @109
+OUTER_SPRINT xa_110_replace @110
+OUTER_SPRINT xa_111_replace @111
 
-
-
-
-
+COPY_EXISTING ~UI.MENU~ ~override/UI.MENU~
+REPLACE_TEXTUALLY ~XA_STR_REF_100~ ~%xa_100_replace%~
+REPLACE_TEXTUALLY ~XA_STR_REF_101~ ~%xa_101_replace%~
+REPLACE_TEXTUALLY ~XA_STR_REF_102~ ~%xa_102_replace%~
+REPLACE_TEXTUALLY ~XA_STR_REF_103~ ~%xa_103_replace%~
+REPLACE_TEXTUALLY ~XA_STR_REF_104~ ~%xa_104_replace%~
+REPLACE_TEXTUALLY ~XA_STR_REF_105~ ~%xa_105_replace%~
+REPLACE_TEXTUALLY ~XA_STR_REF_106~ ~%xa_106_replace%~
+REPLACE_TEXTUALLY ~XA_STR_REF_107~ ~%xa_107_replace%~
+REPLACE_TEXTUALLY ~XA_STR_REF_108~ ~%xa_108_replace%~
+REPLACE_TEXTUALLY ~XA_STR_REF_109~ ~%xa_109_replace%~
+REPLACE_TEXTUALLY ~XA_STR_REF_110~ ~%xa_110_replace%~
+REPLACE_TEXTUALLY ~XA_STR_REF_111~ ~%xa_111_replace%~
