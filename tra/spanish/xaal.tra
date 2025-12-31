@@ -1,0 +1,21 @@
+@0 = ~Procesando objetos. Esto tomara un momento... por favor espera.~
+@1 = ~UI.MENU No encontrado en el juego.~
+@2 = ~Bubb's Auto Loot para los juegos Baldur's Gate Enhanced Edition.~
+@3 = ~Juego no soportado.~
+@4 = ~Este instalador puede intentar parchear UI.MENU En lugar de sobrescribirlo en plataformas Windows; que metodo de instalacion prefieres perform?%WNL% 1] Patch%WNL% 2] Override~
+@5 = ~Bubb (Autor Original), Daniel Valle support@fosiemods.net (EET version)~
+@6 = ~No se pudo parchear. UI.MENU.~ 
+@7 = ~La instalacion fue exitosa. ¡Disfruta!~
+
+@100 = ~Auto recoger activado~
+@101 = ~Objetos prioritarios~
+@102 = ~Armas encantadas iguales o superiores al nivel encantadas:~
+@103 = ~Oro~
+@104 = ~Precio igual o superior a:~
+@105 = ~Peso de los objetos <=:~
+@106 = ~Precio por peso >=:~
+@107 = ~Ocultarla barra de herramientas de Saqueo rapido~
+@108 = ~Menu Auto recoger posicion X:~
+@109 = ~Menu Auto recoger posicion Y:~
+@110 = ~[Auto Loot] Recogiendo oro.~
+@111 = ~[Auto Loot] Recogiendo ~

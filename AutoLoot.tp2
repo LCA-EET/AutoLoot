@@ -2,6 +2,7 @@ BACKUP ~AutoLoot/backup~
 AUTHOR ~Bubb (Original version), Daniel Valle support@fosiemods.net (EET-compatible version)~
 AUTO_TRA ~%MOD_FOLDER%/tra/%s~
 LANGUAGE ~English~ ~english~ ~%MOD_FOLDER%/tra/english/xaal.tra~
+LANGUAGE ~Spanish~ ~spanish~ ~%MOD_FOLDER%/tra/spanish/xaal.tra~
 
 BEGIN @2 /*~Bubb's Auto Loot BG2EE / EET~*/
 REQUIRE_PREDICATE FILE_EXISTS_IN_GAME ~UI.MENU~ @1 /*~UI.MENU not found in game.~*/
