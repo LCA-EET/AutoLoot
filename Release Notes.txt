@@ -2,6 +2,10 @@
 
 # Report any bugs to support@fosiemods.net
 
+# v1.2.6 2025-12-30
+* Updated menupatch.tph to utilize string TRA references instead of hard-coded strings.
+* Added Spanish language translation, courtesy of IoViVo.
+
 # v1.2.5 2025-11-08
 * Removed the need to reload a save game after adjusting the position of the AutoLoot menu launcher.
 

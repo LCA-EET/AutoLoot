@@ -648,7 +648,7 @@ APPEND ~UI.MENU~
 		label
 		{
 			name "bubbALOptOn"
-			area -1 -1 102 32
+			area -1 -1 200 32
 			text "XA_STR_REF_100"
 			text style 'normal'
 			text align left center
@@ -665,7 +665,7 @@ APPEND ~UI.MENU~
 		label
 		{
 			name "bubbALOptCriticalItems"
-			area -1 -1 102 32
+			area -1 -1 200 32
 			text "XA_STR_REF_101"
 			text style 'normal'
 			text align left center
