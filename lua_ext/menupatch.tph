@@ -48,9 +48,9 @@ REPLACE_TEXTUALLY ~Infinity_PopMenu(.*'WORLD_MESSAGES'.*)~
 	Infinity_PopMenu('XA_AUTOLOOT')
 %
 
-REPLACE_TEXTUALLY ~function displayTHAC()~ 
+REPLACE_TEXTUALLY ~function displayHelp()~ 
 %
-	xa_alreplace0function displayTHAC()
+	xa_alreplace0function displayHelp()
 %
 
 REPLACE_TEXTUALLY ~xa_alreplace0~ 
