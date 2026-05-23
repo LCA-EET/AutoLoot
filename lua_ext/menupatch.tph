@@ -642,7 +642,7 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptOnToggle"
 			area -1 -1 32 32
-			bam ROUNDBUT
+			bam XARNDBTN
 			toggle bubbALOptOnToggle
 		}
 		label
@@ -659,7 +659,7 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptCriticalItemsToggle"
 			area -1 -1 32 32
-			bam ROUNDBUT
+			bam XARNDBTN
 			toggle bubbALOptCriticalItemsToggle
 		}
 		label
@@ -676,7 +676,7 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptEnchantedWeaponsToggle"
 			area -1 -1 32 32
-			bam ROUNDBUT
+			bam XARNDBTN
 			toggle bubbALOptEnchantedWeaponsToggle
 		}
 		label
@@ -713,7 +713,7 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptGoldToggle"
 			area -1 -1 32 32
-			bam ROUNDBUT
+			bam XARNDBTN
 			toggle bubbALOptGoldToggle
 		}
 		label
@@ -730,7 +730,7 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptPriceToggle"
 			area -1 -1 32 32
-			bam ROUNDBUT
+			bam XARNDBTN
 			toggle bubbALOptPriceToggle
 		}
 		label
@@ -766,7 +766,7 @@ APPEND ~UI.MENU~
 		{
 			name "xaALOptWeightToggle"
 			area -1 -1 32 32
-			bam ROUNDBUT
+			bam XARNDBTN
 			toggle xaALOptWeightToggle
 		}
 		label
@@ -803,7 +803,7 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptPricePerWeightToggle"
 			area -1 -1 32 32
-			bam ROUNDBUT
+			bam XARNDBTN
 			toggle bubbALOptPricePerWeightToggle
 		}
 		label
@@ -848,7 +848,7 @@ APPEND ~UI.MENU~
 		{
 			name "xaALOptHideQLToolbarToggle"
 			area -1 -1 32 32
-			bam ROUNDBUT
+			bam XARNDBTN
 			toggle xaALOptHideQLToolbarToggle
 		}
 		

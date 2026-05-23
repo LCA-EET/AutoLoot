@@ -11,6 +11,7 @@ REQUIRE_PREDICATE (GAME_IS ~bgee bg2ee eet~) @3 /*~Game not supported.~*/
 	INCLUDE ~%MOD_FOLDER%/lua_ext/menupatch.tph~
 	
 	COPY ~%MOD_FOLDER%/bam/xaalbtn.bam~ ~override~
+	COPY ~%MOD_FOLDER%/bam/xarndbtn.bam~ ~override~
 	
 	PRINT @0 /*~Processing items. Please wait...~*/
 	
