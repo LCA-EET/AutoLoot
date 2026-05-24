@@ -642,8 +642,17 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptOnToggle"
 			area -1 -1 32 32
-			bam XARNDBTN
-			toggle bubbALOptOnToggle
+			bam CBUTT
+			glow lua "bubbALOptOnToggle == 1"
+			scaleToClip
+			action 
+			"
+				if bubbALOptOnToggle == 1 then
+					bubbALOptOnToggle = 0
+				else
+					bubbALOptOnToggle = 1
+				end
+			"
 		}
 		label
 		{
@@ -659,8 +668,17 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptCriticalItemsToggle"
 			area -1 -1 32 32
-			bam XARNDBTN
-			toggle bubbALOptCriticalItemsToggle
+			bam CBUTT
+			glow lua "bubbALOptCriticalItemsToggle == 1"
+			scaleToClip
+			action 
+			"
+				if bubbALOptCriticalItemsToggle == 1 then
+					bubbALOptCriticalItemsToggle = 0
+				else
+					bubbALOptCriticalItemsToggle = 1
+				end
+			"
 		}
 		label
 		{
@@ -676,8 +694,17 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptEnchantedWeaponsToggle"
 			area -1 -1 32 32
-			bam XARNDBTN
-			toggle bubbALOptEnchantedWeaponsToggle
+			bam CBUTT
+			glow lua "bubbALOptEnchantedWeaponsToggle == 1"
+			scaleToClip
+			action 
+			"
+				if bubbALOptEnchantedWeaponsToggle == 1 then
+					bubbALOptEnchantedWeaponsToggle = 0
+				else
+					bubbALOptEnchantedWeaponsToggle = 1
+				end
+			"
 		}
 		label
 		{
@@ -713,8 +740,17 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptGoldToggle"
 			area -1 -1 32 32
-			bam XARNDBTN
-			toggle bubbALOptGoldToggle
+			bam CBUTT
+			glow lua "bubbALOptGoldToggle == 1"
+			scaleToClip
+			action 
+			"
+				if bubbALOptGoldToggle == 1 then
+					bubbALOptGoldToggle = 0
+				else
+					bubbALOptGoldToggle = 1
+				end
+			"
 		}
 		label
 		{
@@ -730,8 +766,17 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptPriceToggle"
 			area -1 -1 32 32
-			bam XARNDBTN
-			toggle bubbALOptPriceToggle
+			bam CBUTT
+			glow lua "bubbALOptPriceToggle == 1"
+			scaleToClip
+			action 
+			"
+				if bubbALOptPriceToggle == 1 then
+					bubbALOptPriceToggle = 0
+				else
+					bubbALOptPriceToggle = 1
+				end
+			"
 		}
 		label
 		{
@@ -766,8 +811,17 @@ APPEND ~UI.MENU~
 		{
 			name "xaALOptWeightToggle"
 			area -1 -1 32 32
-			bam XARNDBTN
-			toggle xaALOptWeightToggle
+			bam CBUTT
+			glow lua "xaALOptWeightToggle == 1"
+			scaleToClip
+			action 
+			"
+				if xaALOptWeightToggle == 1 then
+					xaALOptWeightToggle = 0
+				else
+					xaALOptWeightToggle = 1
+				end
+			"
 		}
 		label
 		{
@@ -803,8 +857,17 @@ APPEND ~UI.MENU~
 		{
 			name "bubbALOptPricePerWeightToggle"
 			area -1 -1 32 32
-			bam XARNDBTN
-			toggle bubbALOptPricePerWeightToggle
+			bam CBUTT
+			glow lua "bubbALOptPricePerWeightToggle == 1"
+			scaleToClip
+			action 
+			"
+				if bubbALOptPricePerWeightToggle == 1 then
+					bubbALOptPricePerWeightToggle = 0
+				else
+					bubbALOptPricePerWeightToggle = 1
+				end
+			"
 		}
 		label
 		{
@@ -848,8 +911,17 @@ APPEND ~UI.MENU~
 		{
 			name "xaALOptHideQLToolbarToggle"
 			area -1 -1 32 32
-			bam XARNDBTN
-			toggle xaALOptHideQLToolbarToggle
+			bam CBUTT
+			glow lua "xaALOptHideQLToolbarToggle == 1"
+			scaleToClip
+			action 
+			"
+				if xaALOptHideQLToolbarToggle == 1 then
+					xaALOptHideQLToolbarToggle = 0
+				else
+					xaALOptHideQLToolbarToggle = 1
+				end
+			"
 		}
 		
 		-- Menu X
