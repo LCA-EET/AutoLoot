@@ -11,3 +11,7 @@ Compatible with:
 <b><u>Author</u></b><br>
 Original Version: Bubb<br>
 Subsequent Versions: Fosie (support@fosiemods.net)
+
+Installation Instructions
+- Download the release archive (https://github.com/LCA-EET/AutoLoot/releases) and extract the contents to the game directory containing Baldur.exe.
+- Run setup-Autoloot.exe
