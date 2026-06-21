@@ -316,13 +316,41 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 
 	function xaDecideWhetherToPickUp(itemRes, itemInfo)
 		local weightLimitExceeded = false
+		
+		-- Ammunition
+		local itemCategory = itemInfo.category
+			-- Arrows
+				if (xaALOptArrowsToggle == 1) then
+					if(itemCategory == 5) then
+						return true
+					end
+				end
+			-- Bolts
+				if (xaALOptBoltsToggle == 1) then
+					if(itemCategory == 31) then
+						return true
+					end
+				end
+			-- Bullets
+				if (xaALOptBulletsToggle == 1) then
+					if(itemCategory == 14) then
+						return true
+					end
+				end
+			-- Darts
+				if (xaALOptDartsToggle == 1) then
+					if(itemCategory == 24) then
+						return true
+					end
+				end
+		
 		-- Weight Check
 		if xaALOptWeightToggle == 1 then
 			if (itemInfo.weight > xaALOptWeightField) then
 				weightLimitExceeded = true
 			end
 		end
-		
+
 		-- Critical Items
 		if bubbALOptCriticalItemsToggle == 1 then
 			if (itemInfo.critical == 1) and weightLimitExceeded then
@@ -358,6 +386,10 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		xa_configLoaded = true
 		--xa_screenWidth, xa_screenHeight = Infinity_GetScreenSize()
 		bubbALOptOnToggle = 				Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptOnToggle', 					0)
+		xaALOptArrowsToggle =    		Infinity_GetINIValue('Bubb Autoloot', 'xaALOptArrowsToggle', 			0)
+		xaALOptBoltsToggle =    		Infinity_GetINIValue('Bubb Autoloot', 'xaALOptBoltsToggle', 			0)
+		xaALOptBulletsToggle =    		Infinity_GetINIValue('Bubb Autoloot', 'xaALOptBulletsToggle', 			0)
+		xaALOptDartsToggle =    		Infinity_GetINIValue('Bubb Autoloot', 'xaALOptDartsToggle', 			0)
 		bubbALOptCriticalItemsToggle =    	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptCriticalItemsToggle', 		0)
 		bubbALOptEnchantedWeaponsToggle = 	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsToggle', 	0)
 		bubbALOptEnchantedWeaponsField =  	Infinity_GetINIValue('Bubb Autoloot', 'bubbALOptEnchantedWeaponsField',		'1')
@@ -376,7 +408,11 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 			(bubbALOptEnchantedWeaponsToggle == 1) or
 			(bubbALOptPriceToggle == 1) or
 			(bubbALOptPricePerWeightToggle == 1) or
-			(xaALOptWeightToggle == 1))
+			(xaALOptWeightToggle == 1) or
+			(xaALOptArrowsToggle == 1) or
+			(xaALOptBoltsToggle == 1) or
+			(xaALOptBulletsToggle == 1) or
+			(xaALOptDartsToggle == 1))
 		then
 			-- Infinity_DisplayString("[Auto Loot] IC Needed = true.") 
 			xa_itemCheckNeeded = true
@@ -436,7 +472,7 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 					end
 				elseif (xa_itemCheckNeeded == true) and (spaceRemaining > 0) then
 					if xaDecideWhetherToPickUp(groundItem.res, info) then
-						Infinity_DisplayString("XA_STR_REF_110"..groundItem.name)
+						Infinity_DisplayString("XA_STR_REF_111"..groundItem.name)
 						worldScreen:OnGroundButtonClick(groundItemSlot.slotId, groundItemSlot.containerId, groundItem.res)
 						spaceRemaining = (spaceRemaining - 1)
 						i = i - 1
@@ -489,6 +525,10 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		Infinity_SetINIValue('Bubb Autoloot', 'xaALOptMenuXField', xaALOptMenuXField) 
 		Infinity_SetINIValue('Bubb Autoloot', 'xaALOptMenuYField', xaALOptMenuYField) 
 		Infinity_SetINIValue('Bubb Autoloot', 'xaALOptHideQLToolbarToggle', xaALOptHideQLToolbarToggle) 
+		Infinity_SetINIValue('Bubb Autoloot', 'xaALOptArrowsToggle', xaALOptArrowsToggle) 
+		Infinity_SetINIValue('Bubb Autoloot', 'xaALOptBoltsToggle', xaALOptBoltsToggle) 
+		Infinity_SetINIValue('Bubb Autoloot', 'xaALOptBulletsToggle', xaALOptBulletsToggle) 
+		Infinity_SetINIValue('Bubb Autoloot', 'xaALOptDartsToggle', xaALOptDartsToggle) 
 	end
 	
 	function xaInitializeAutolootOptionsMenu()
@@ -508,51 +548,83 @@ REPLACE_TEXTUALLY ~xa_alreplace2~
 		Infinity_SetArea('bubbALOptExitButton', newBackGroundX + backgroundWidth - 54, newBackGroundY + 10, nil, nil)
 
 		-- Autoloot On
-		Infinity_SetArea('bubbALOptOnToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 0, nil, nil)
-		Infinity_SetArea('bubbALOptOn',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 0, nil, nil)
+		newBackGroundY = newBackGroundY + 10
+		Infinity_SetArea('bubbALOptOnToggle', newBackGroundX + 10, newBackGroundY, nil, nil)
+		Infinity_SetArea('bubbALOptOn',       newBackGroundX + 52, newBackGroundY, nil, nil)
+
+		-- Ammunition
+			-- Arrows
+			newBackGroundY = newBackGroundY + 42
+			Infinity_SetArea('xaALOptArrowsToggle', newBackGroundX + 10, newBackGroundY, nil, nil)
+			Infinity_SetArea('xaALOptArrows',       newBackGroundX + 52, newBackGroundY, nil, nil)
+				
+			-- Bolts
+			newBackGroundY = newBackGroundY + 42
+			Infinity_SetArea('xaALOptBoltsToggle', newBackGroundX + 10, newBackGroundY, nil, nil)
+			Infinity_SetArea('xaALOptBolts',       newBackGroundX + 52, newBackGroundY, nil, nil)
+			
+			-- Bullets
+			newBackGroundY = newBackGroundY + 42
+			Infinity_SetArea('xaALOptBulletsToggle', newBackGroundX + 10, newBackGroundY, nil, nil)
+			Infinity_SetArea('xaALOptBullets',       newBackGroundX + 52, newBackGroundY, nil, nil)
+			
+			-- Darts
+			newBackGroundY = newBackGroundY + 42
+			Infinity_SetArea('xaALOptDartsToggle', newBackGroundX + 10, newBackGroundY, nil, nil)
+			Infinity_SetArea('xaALOptDarts',       newBackGroundX + 52, newBackGroundY, nil, nil)
 
 		-- Critical Items
-		Infinity_SetArea('bubbALOptCriticalItemsToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 1, nil, nil)
-		Infinity_SetArea('bubbALOptCriticalItems',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 1, nil, nil)
+		newBackGroundY = newBackGroundY + 42
+		Infinity_SetArea('bubbALOptCriticalItemsToggle', newBackGroundX + 10, newBackGroundY, nil, nil)
+		Infinity_SetArea('bubbALOptCriticalItems',       newBackGroundX + 52, newBackGroundY, nil, nil)
 
 		-- Enchanted Weapons
-		Infinity_SetArea('bubbALOptEnchantedWeaponsToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
-		Infinity_SetArea('bubbALOptEnchantedWeapons',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
-		Infinity_SetArea('bubbALOptEnchantedWeaponsField',  newBackGroundX + 52 + 356 + 5, newBackGroundY + 10 + (32 + 10) * 2, nil, nil)
+		newBackGroundY = newBackGroundY + 42
+		Infinity_SetArea('bubbALOptEnchantedWeaponsToggle', newBackGroundX + 10,           newBackGroundY, nil, nil)
+		Infinity_SetArea('bubbALOptEnchantedWeapons',       newBackGroundX + 52,           newBackGroundY, nil, nil)
+		Infinity_SetArea('bubbALOptEnchantedWeaponsField',  newBackGroundX + 52 + 356 + 5, newBackGroundY, nil, nil)
 
 		-- Weight
-		Infinity_SetArea('xaALOptWeightToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
-		Infinity_SetArea('xaALOptWeightLabel',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
-		Infinity_SetArea('xaALOptWeightField',       newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 3, nil, nil)
+		newBackGroundY = newBackGroundY + 42
+		Infinity_SetArea('xaALOptWeightToggle', newBackGroundX + 10, newBackGroundY, nil, nil)
+		Infinity_SetArea('xaALOptWeightLabel',       newBackGroundX + 52, newBackGroundY, nil, nil)
+		Infinity_SetArea('xaALOptWeightField',       newBackGroundX + 52 + 308 + 5, newBackGroundY, nil, nil)
 
 		-- Gold
-		Infinity_SetArea('bubbALOptGoldToggle', newBackGroundX + 10, newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
-		Infinity_SetArea('bubbALOptGold',       newBackGroundX + 52, newBackGroundY + 10 + (32 + 10) * 4, nil, nil)
+		newBackGroundY = newBackGroundY + 42
+		Infinity_SetArea('bubbALOptGoldToggle', newBackGroundX + 10, newBackGroundY, nil, nil)
+		Infinity_SetArea('bubbALOptGold',       newBackGroundX + 52, newBackGroundY, nil, nil)
 
 		-- Price
-		Infinity_SetArea('bubbALOptPriceToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
-		Infinity_SetArea('bubbALOptPrice',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
-		Infinity_SetArea('bubbALOptPriceField',  newBackGroundX + 52 + 218 + 5, newBackGroundY + 10 + (32 + 10) * 5, nil, nil)
+		newBackGroundY = newBackGroundY + 42
+		Infinity_SetArea('bubbALOptPriceToggle', newBackGroundX + 10,           newBackGroundY, nil, nil)
+		Infinity_SetArea('bubbALOptPrice',       newBackGroundX + 52,           newBackGroundY, nil, nil)
+		Infinity_SetArea('bubbALOptPriceField',  newBackGroundX + 52 + 218 + 5, newBackGroundY, nil, nil)
 
 		-- Price per Weight
-		Infinity_SetArea('bubbALOptPricePerWeightToggle', newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 6, nil, nil)
-		Infinity_SetArea('bubbALOptPricePerWeight',       newBackGroundX + 52,           newBackGroundY + 10 + (32 + 10) * 6, nil, nil)
-		Infinity_SetArea('bubbALOptPricePerWeightField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 6, nil, nil)
+		newBackGroundY = newBackGroundY + 42
+		Infinity_SetArea('bubbALOptPricePerWeightToggle', newBackGroundX + 10,           newBackGroundY, nil, nil)
+		Infinity_SetArea('bubbALOptPricePerWeight',       newBackGroundX + 52,           newBackGroundY, nil, nil)
+		Infinity_SetArea('bubbALOptPricePerWeightField',  newBackGroundX + 52 + 308 + 5, newBackGroundY, nil, nil)
 
 		-- Hide QL Toggle
-		Infinity_SetArea('xaALOptHideQLToolbarLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 7, nil, nil)
-		Infinity_SetArea('xaALOptHideQLToolbarToggle',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 7, nil, nil)
+		newBackGroundY = newBackGroundY + 42
+		Infinity_SetArea('xaALOptHideQLToolbarLabel',       newBackGroundX + 10,           newBackGroundY, nil, nil)
+		Infinity_SetArea('xaALOptHideQLToolbarToggle',  newBackGroundX + 52 + 308 + 5, newBackGroundY, nil, nil)
 
 		-- Menu X
-		Infinity_SetArea('xaALOptMenuXLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 8, nil, nil)
-		Infinity_SetArea('xaALOptMenuXField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 8, nil, nil)
+		newBackGroundY = newBackGroundY + 42
+		Infinity_SetArea('xaALOptMenuXLabel', newBackGroundX + 10, newBackGroundY, nil, nil)
+		Infinity_SetArea('xaALOptMenuXField', newBackGroundX + 52 + 308 + 5, newBackGroundY, nil, nil)
 		
 		-- Menu Y
-		Infinity_SetArea('xaALOptMenuYLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 9, nil, nil)
-		Infinity_SetArea('xaALOptMenuYField',  newBackGroundX + 52 + 308 + 5, newBackGroundY + 10 + (32 + 10) * 9, nil, nil)
+		newBackGroundY = newBackGroundY + 42
+		Infinity_SetArea('xaALOptMenuYLabel', newBackGroundX + 10, newBackGroundY, nil, nil)
+		Infinity_SetArea('xaALOptMenuYField',  newBackGroundX + 52 + 308 + 5, newBackGroundY, nil, nil)
 		
 		-- Launcher Offset Label
-		Infinity_SetArea('xaALOptMenuNoteLabel',       newBackGroundX + 10,           newBackGroundY + 10 + (32 + 10) * 10, nil, nil)
+		newBackGroundY = newBackGroundY + 42
+		Infinity_SetArea('xaALOptMenuNoteLabel', newBackGroundX + 10, newBackGroundY, nil, nil)
 	end
 	
 	function xaPlaceAutolootButton()
@@ -620,7 +692,7 @@ APPEND ~UI.MENU~
 		label
 		{
 			name "bubbALOptBackground"
-			area -1 -1 500 430
+			area -1 -1 500 650
 			rectangle 0
 		}
 
@@ -663,6 +735,107 @@ APPEND ~UI.MENU~
 			text align left center
 		}
 
+		-- Ammunition
+			-- Arrows
+			button
+			{
+				name "xaALOptArrowsToggle"
+				area -1 -1 32 32
+				bam CBUTT
+				glow lua "xaALOptArrowsToggle == 1"
+				scaleToClip
+				action 
+				"
+					if xaALOptArrowsToggle == 1 then
+						xaALOptArrowsToggle = 0
+					else
+						xaALOptArrowsToggle = 1
+					end
+				"
+			}
+			label
+			{
+				name "xaALOptArrows"
+				area -1 -1 200 32
+				text "XA_STR_REF_112"
+				text style 'normal'
+				text align left center
+			}
+			-- Bolts
+			button
+			{
+				name "xaALOptBoltsToggle"
+				area -1 -1 32 32
+				bam CBUTT
+				glow lua "xaALOptBoltsToggle == 1"
+				scaleToClip
+				action 
+				"
+					if xaALOptBoltsToggle == 1 then
+						xaALOptBoltsToggle = 0
+					else
+						xaALOptBoltsToggle = 1
+					end
+				"
+			}
+			label
+			{
+				name "xaALOptBolts"
+				area -1 -1 200 32
+				text "XA_STR_REF_113"
+				text style 'normal'
+				text align left center
+			}
+			-- Bullets
+			button
+			{
+				name "xaALOptBulletsToggle"
+				area -1 -1 32 32
+				bam CBUTT
+				glow lua "xaALOptBulletsToggle == 1"
+				scaleToClip
+				action 
+				"
+					if xaALOptBulletsToggle == 1 then
+						xaALOptBulletsToggle = 0
+					else
+						xaALOptBulletsToggle = 1
+					end
+				"
+			}
+			label
+			{
+				name "xaALOptBullets"
+				area -1 -1 200 32
+				text "XA_STR_REF_114"
+				text style 'normal'
+				text align left center
+			}
+			-- Darts
+			button
+			{
+				name "xaALOptDartsToggle"
+				area -1 -1 32 32
+				bam CBUTT
+				glow lua "xaALOptDartsToggle == 1"
+				scaleToClip
+				action 
+				"
+					if xaALOptDartsToggle == 1 then
+						xaALOptDartsToggle = 0
+					else
+						xaALOptDartsToggle = 1
+					end
+				"
+			}
+			label
+			{
+				name "xaALOptDarts"
+				area -1 -1 200 32
+				text "XA_STR_REF_115"
+				text style 'normal'
+				text align left center
+			}
 		-- Critical Items
 		button
 		{
@@ -1002,6 +1175,10 @@ OUTER_SPRINT xa_108_replace @108
 OUTER_SPRINT xa_109_replace @109
 OUTER_SPRINT xa_110_replace @110
 OUTER_SPRINT xa_111_replace @111
+OUTER_SPRINT xa_112_replace @112
+OUTER_SPRINT xa_113_replace @113
+OUTER_SPRINT xa_114_replace @114
+OUTER_SPRINT xa_115_replace @115
 
 COPY_EXISTING ~UI.MENU~ ~override/UI.MENU~
 REPLACE_TEXTUALLY ~XA_STR_REF_100~ ~%xa_100_replace%~
@@ -1016,3 +1193,7 @@ REPLACE_TEXTUALLY ~XA_STR_REF_108~ ~%xa_108_replace%~
 REPLACE_TEXTUALLY ~XA_STR_REF_109~ ~%xa_109_replace%~
 REPLACE_TEXTUALLY ~XA_STR_REF_110~ ~%xa_110_replace%~
 REPLACE_TEXTUALLY ~XA_STR_REF_111~ ~%xa_111_replace%~
+REPLACE_TEXTUALLY ~XA_STR_REF_112~ ~%xa_112_replace%~
+REPLACE_TEXTUALLY ~XA_STR_REF_113~ ~%xa_113_replace%~
+REPLACE_TEXTUALLY ~XA_STR_REF_114~ ~%xa_114_replace%~
+REPLACE_TEXTUALLY ~XA_STR_REF_115~ ~%xa_115_replace%~

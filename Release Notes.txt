@@ -2,6 +2,9 @@
 
 # Report any bugs to support@fosiemods.net
 
+# v1.3 2026-06-20
+* Added new options to automatically pick up ammunition (i.e. arrows, bolts, bullets and darts).
+
 # v1.2.7a 2026-05-23
 * Fixed a bug that caused a failure of the red toggle buttons to appear when playing EET with BG1 and SoD.
 
