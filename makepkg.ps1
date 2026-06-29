@@ -1,6 +1,6 @@
 $weiduApps		= @("weidu.exe", "weidu_linux")
 $weiduExts		= @(".exe", "")
-$weiduArchives 	= @("_(win)", "_(linux)")
+$weiduArchives 	= @("_win", "_linux")
 
 $basePath = "AutoLoot"
 $tp2Name = "AutoLoot"
@@ -15,8 +15,8 @@ $folders = @(
 
 foreach($weiduArchive in $weiduArchives){
 	Remove-Item -LiteralPath ($basePath + $weiduArchive + ".zip") -Force
-
 }
+
 Remove-Item -LiteralPath $basePath -Force -Recurse
 
 foreach($folder in $folders){
@@ -58,5 +58,5 @@ for ($i = 0; $i -lt $weiduApps.Length; $i++) {
 	Copy-Item -Path $archive -Destination ("\\nas.home.lan\smbuser\Home\Installers\" + $archive)
 }
 
-
+Remove-Item -LiteralPath $basePath -Force -Recurse
 
