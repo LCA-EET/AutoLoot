@@ -6,7 +6,6 @@ $basePath = "AutoLoot"
 $tp2Name = "AutoLoot"
 $modPath = $basePath + "/" + $tp2Name 
 $exePath = "setup-" + $tp2Name
-$testDir = "F:\Baldur's Gate EE\00783\"
 $folders = @(
 'bam',
 'tra',
@@ -29,6 +28,7 @@ Copy-Item -Path "readme.md" -Destination ($modPath + "/ReadMe.md")
 Copy-Item -Path "Discord Server.url" -Destination ($modPath + "/Discord Server.url")
 Copy-Item -Path "Beamdog Forum Post.url" -Destination ($modPath + "/Beamdog Forum Post.url")
 Copy-Item -Path "Venmo.url" -Destination ($modPath + "/Venmo.url")
+Copy-Item -Path "PayPal.url" -Destination ($modPath + "/PayPal.url")
 Copy-Item -Path "Release Notes.txt" -Destination ($modPath + "/Release Notes.txt")
 
 for ($i = 0; $i -lt $weiduApps.Length; $i++) {
