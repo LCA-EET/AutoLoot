@@ -14,4 +14,9 @@ Subsequent Versions: Fosie (support@fosiemods.net)
 
 Installation Instructions
 - Download the release archive (https://github.com/LCA-EET/AutoLoot/releases) and extract the contents to the game directory containing Baldur.exe.
+
+Windows
 - Run setup-Autoloot.exe
+
+Linux
+- Prior to running setup-AutoLoot, run the "chmod a+x setup-AutoLoot" command to make the file executable, then run "./setup-AutoLoot".
