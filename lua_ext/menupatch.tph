@@ -1,16 +1,6 @@
 PRINT ~Patching UI.MENU.~
 	
-ACTION_IF(MOD_IS_INSTALLED "setup-infinity_ui.tp2" "0") THEN BEGIN
-	COPY_EXISTING ~UI.MENU~ ~override/UI.MENU~
-	REPLACE_TEXTUALLY ~--Infinity_SetOffset(.*'WORLD_QUICKLOOT'.*,.*0,*,.*-toolbarTop)~
-	%
-		if (xaALOptHideQLToolbarToggle == 1) then
-			--Infinity_SetOffset('WORLD_QUICKLOOT',0, -5000)
-		else
-			--Infinity_SetOffset('WORLD_QUICKLOOT',0, -toolbarTop)
-		end
-	%
-END ELSE BEGIN
+ACTION_IF(NOT MOD_IS_INSTALLED "setup-infinity_ui.tp2" "0") THEN BEGIN
 	COPY_EXISTING ~UI.MENU~ ~override/UI.MENU~
 	REPLACE_TEXTUALLY ~Infinity_SetOffset(.*'WORLD_QUICKLOOT'.*,.*0,*,.*-toolbarTop)~
 	%
